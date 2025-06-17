@@ -13,7 +13,7 @@
         const configJson = `{
             "pageTitle": "My Quick Links",
             "notes": [
-                { "title": "Project Ideas", "content": "#Project Dashboard#\\nA personal dashboard with weather, to-do list, and quick links. Maybe use a public API.\\n\\n##Technology Choices##\\nIt could be built with SvelteKit or Next.js and deployed on Vercel for free.\\n\\n##Design Principles##\\nThe design should be clean, modern, and utilize glassmorphism for a futuristic feel. I should also consider adding a configurable search bar that can search across different engines." },
+                { "title": "Project Ideas", "content": "#Project Dashboard#\\nA personal dashboard with weather, to-do list, and quick links. Maybe use a public API.\\n\\n##Technology Choices##\\nIt could be built with SvelteKit or Next.js and deployed on Vercel for free.\\n\\n##Design Principles##\\nThe design should be clean, modern, and utilize glassmorphism for a futuristic feel. I should also consider adding a configurable search bar that can search across different engines.#Project Dashboard#\\nA personal dashboard with weather, to-do list, and quick links. Maybe use a public API.\\n\\n##Technology Choices##\\nIt could be built with SvelteKit or Next.js and deployed on Vercel for free.\\n\\n##Design Principles##\\nThe design should be clean, modern, and utilize glassmorphism for a futuristic feel. I should also consider adding a configurable search bar that can search across different engines." },
                 { "title": "Shopping List", "content": "#Groceries#\\nMilk\\nBread\\nCoffee Beans\\n\\n#Hardware#\\nA new mousepad." },
                 { "content": "Remember to deploy the latest changes to Vercel by Friday EOD." }
             ],
@@ -254,7 +254,7 @@
                     noteCard.classList.add('cursor-pointer', 'hover:border-sky-500/50', 'dark:hover:border-sky-500/50', 'hover:-translate-y-1');
                     
                     // Show full parsed content in the modal, using isPreview = false
-                    noteCard.addEventListener('click', () => showNoteModal(note.title, parseNoteContent(note.content, false)));
+                    noteCard.addEventListener('click', () => showNoteModal(note.title, parseNoteContent(note.content, false), note.content));
                 } else {
                     // If not truncated, still parse the content for display with less prominent headers for the widget
                     contentElement.innerHTML = parseNoteContent(note.content, true);
@@ -291,11 +291,58 @@
         function setupModal() {
             const modal = document.getElementById('note-modal');
             const closeBtn = document.getElementById('modal-close-btn');
-            if (!modal || !closeBtn) return;
+            const copyBtn = document.getElementById('modal-copy-btn');
+            let currentNoteContent = ''; // Variable to hold the raw content
+
+            // Elements for copy button feedback
+            const copyBtnText = document.getElementById('copy-btn-text');
+            const copyBtnIcon = document.getElementById('copy-btn-icon');
+            const copyBtnSuccessIcon = document.getElementById('copy-btn-success-icon');
+
+            if (!modal || !closeBtn || !copyBtn) return;
+
+            // The function that shows the modal should also set the raw content
+            window.showNoteModal = (title, htmlContent, rawContent) => {
+                const modalTitle = document.getElementById('modal-title');
+                const modalBody = document.getElementById('modal-body');
+
+                modalTitle.textContent = title || 'Note';
+                modalTitle.style.display = title ? 'block' : 'none';
+                modalBody.innerHTML = htmlContent;
+                currentNoteContent = rawContent; // Store raw content for copying
+
+                modal.classList.add('is-active');
+                document.body.style.overflow = 'hidden';
+            };
 
             closeBtn.addEventListener('click', hideNoteModal);
+
+            copyBtn.addEventListener('click', () => {
+                if (copyBtnText.textContent === 'Copied!') return; // Prevent multiple clicks
+
+                navigator.clipboard.writeText(currentNoteContent).then(() => {
+                    // Provide feedback to the user
+                    copyBtnText.textContent = 'Copied!';
+                    copyBtnIcon.classList.add('hidden');
+                    copyBtnSuccessIcon.classList.remove('hidden');
+
+                    // Revert back to the original state after 2 seconds
+                    setTimeout(() => {
+                        copyBtnText.textContent = 'Copy';
+                        copyBtnIcon.classList.remove('hidden');
+                        copyBtnSuccessIcon.classList.add('hidden');
+                    }, 2000);
+                }).catch(err => {
+                    console.error('Failed to copy text: ', err);
+                    copyBtnText.textContent = 'Error!';
+                    setTimeout(() => {
+                        copyBtnText.textContent = 'Copy';
+                    }, 2000);
+                });
+            });
+
             modal.addEventListener('click', (event) => {
-                // Close modal only if clicking directly on the overlay, not the content
+                // Close modal only if clicking on the background overlay
                 if (event.target === modal) hideNoteModal();
             });
         }
@@ -381,14 +428,14 @@
 <body class="bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-white transition-colors duration-300">
     
     <div class="fixed top-4 right-4 flex space-x-2 z-10">
-        <button id="theme-switcher" class="p-2 rounded-full bg-gray-500/20 hover:bg-gray-500/40 backdrop-blur-sm transition-colors" aria-label="Toggle theme">
+        <button id="theme-switcher" class="p-2 rounded-full bg-gray-500/20 hover:bg-gray-500/40 backdrop-blur-sm transition-colors cursor-pointer" aria-label="Toggle theme">
             <svg id="sun-icon" class="w-6 h-6 text-yellow-500 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
             <svg id="moon-icon" class="w-6 h-6 text-gray-200 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
         </button>
 
-    <button id="style-switcher" class="p-2 rounded-full bg-gray-500/20 hover:bg-gray-500/40 backdrop-blur-sm transition-colors" aria-label="Toggle display style">
-        <span id="style-text" class="text-sm font-semibold text-indigo-400">Compact</span>
-    </button>
+        <button id="style-switcher" class="p-2 rounded-full bg-gray-500/20 hover:bg-gray-500/40 backdrop-blur-sm transition-colors cursor-pointer" aria-label="Toggle display style">
+            <span id="style-text" class="text-sm font-semibold text-indigo-400">Compact</span>
+        </button>
     </div>
 
     <div class="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-white/10 via-white/0 to-indigo-100/20 dark:from-gray-900 dark:via-gray-900 dark:to-indigo-900/40 -z-10"></div>
@@ -403,10 +450,23 @@
     </div>
 
     <div id="note-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 transition-opacity duration-300 opacity-0 invisible">
-        <div id="note-modal-content" class="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-8 w-full max-w-2xl max-h-[90vh] overflow-y-auto transform scale-95 opacity-0 transition-all duration-300 relative">
-            <button id="modal-close-btn" class="absolute top-4 right-4 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white text-3xl leading-none">×</button>
-            <h2 id="modal-title" class="text-2xl font-bold mb-4 text-gray-900 dark:text-white"></h2>
-            <div id="modal-body" class="text-gray-700 dark:text-gray-200 whitespace-pre-wrap"></div>
+        <div id="note-modal-content" class="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] transform scale-95 opacity-0 transition-all duration-300 relative flex flex-col">
+            <button id="modal-close-btn" class="absolute top-4 right-8 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white text-3xl leading-none z-10">×</button>
+            
+            <div class="flex-grow overflow-y-auto custom-scrollbar">
+                <div class="p-8">
+                    <h2 id="modal-title" class="text-2xl font-bold mb-4 text-gray-900 dark:text-white"></h2>
+                    <div id="modal-body" class="text-gray-700 dark:text-gray-200 whitespace-pre-wrap"></div>
+                </div>
+            </div>
+
+            <div class="flex-shrink-0 pt-4 pb-6 px-8 border-t border-gray-200 dark:border-gray-700 flex justify-end">
+                <button id="modal-copy-btn" class="flex items-center gap-2 px-4 py-2 rounded-md bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors cursor-pointer" aria-label="Copy content">
+                    <span id="copy-btn-text" class="text-sm font-medium text-gray-700 dark:text-gray-200">Copy</span>
+                    <svg id="copy-btn-icon" class="w-5 h-5 text-gray-500 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                    <svg id="copy-btn-success-icon" class="w-5 h-5 text-green-500 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                </button>
+            </div>
         </div>
     </div>
 </body>
