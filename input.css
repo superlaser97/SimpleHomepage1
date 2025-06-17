@@ -4,6 +4,134 @@
 
 @source "safelist.txt";
 
+
+/* Tailwind CSS compact styles */
+/* Default "comfortable" styles implicitly applied by your base classes */
+/* .container {
+    padding: 1rem;
+}
+#shortcuts-container, #notes-container {
+    gap: 0.75rem;
+}
+.p-4 {
+    padding: 1rem;
+}
+.gap-4 {
+    gap: 1rem;
+}
+*/
+
+/* Compact styles when .container has .style-compact class */
+.container.style-compact {
+    padding: 0.5rem; /* Equivalent to p-2 */
+}
+
+.container.style-compact #page-title {
+    font-size: 1.875rem; /* text-3xl */
+    margin-bottom: 1rem; /* mb-4 */
+}
+
+.container.style-compact #shortcuts-container,
+.container.style-compact #notes-container {
+    gap: 0.5rem; /* gap-2 */
+    margin-bottom: 1rem; /* mb-4 for shortcuts-container */
+}
+
+.container.style-compact .p-5 { /* For categoryWrapper and noteCard */
+    padding: 0.75rem; /* p-3 */
+    border-radius: 0.5rem; /* rounded-lg */
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* shadow-lg */
+    background-color: rgba(255, 255, 255, 0.5); /* bg-white/50 */
+}
+.dark .container.style-compact .p-5 {
+    background-color: rgba(31, 41, 55, 0.5); /* dark:bg-gray-800/50 */
+}
+
+.container.style-compact .group.flex.items-center { /* For shortcut elements */
+    gap: 0.5rem; /* gap-2 */
+    padding: 0.5rem; /* p-2 */
+    font-size: 0.875rem; /* text-sm */
+    background-color: rgba(255, 255, 255, 0.6); /* bg-white/60 */
+}
+.dark .container.style-compact .group.flex.items-center {
+    background-color: rgba(31, 41, 55, 0.6); /* dark:bg-gray-800/60 */
+}
+
+.container.style-compact .group.flex.items-center .flex-shrink-0 { /* For shortcut icons */
+    width: 1.25rem; /* w-5 */
+    height: 1.25rem; /* h-5 */
+}
+
+.container.style-compact .font-semibold { /* For shortcut text */
+    font-weight: 400; /* font-normal */
+}
+
+.container.style-compact .flex.items-center.gap-3.mb-4 { /* For category headers */
+    gap: 0.5rem; /* gap-2 */
+    margin-bottom: 0.5rem; /* mb-2 */
+    padding-bottom: 0.25rem; /* pb-1 */
+    border-bottom-width: 1px; /* border-b */
+}
+.container.style-compact .w-3.h-3.rounded-full { /* For category color dots */
+    width: 0.5rem; /* w-2 */
+    height: 0.5rem; /* h-2 */
+}
+
+.container.style-compact .text-xl.font-bold { /* For category titles */
+    font-size: 1.125rem; /* text-lg */
+    font-weight: 600; /* font-semibold */
+}
+
+/* Notes specific adjustments for compact mode */
+.container.style-compact #notes-container .text-gray-600 {
+    font-size: 0.875rem; /* text-sm */
+}
+
+.container.style-compact #notes-container .mb-2 {
+    margin-bottom: 0.25rem; /* mb-1 */
+}
+
+/* Read more button in compact mode */
+.container.style-compact .pt-2 {
+    padding-top: 0.25rem; /* pt-1 */
+}
+.container.style-compact .text-sm {
+    font-size: 0.75rem; /* text-xs */
+}
+
+/* Header adjustments for notes in compact mode (preview within cards) */
+.container.style-compact h2.text-md { /* for h2 in preview */
+    font-size: 0.875rem; /* text-sm */
+}
+.container.style-compact h3.text-sm { /* for h3 in preview */
+    font-size: 0.75rem; /* text-xs */
+}
+.container.style-compact h4.text-xs,
+.container.style-compact h5.text-xs,
+.container.style-compact h6.text-xs { /* for h4, h5, h6 in preview */
+    font-size: 0.75rem; /* text-xs */
+}
+
+.container.style-compact .note-card h3.text-lg { /* Note title */
+    font-size: 1rem; /* text-base */
+}
+/*************************************************************/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /* Add a keyframe animation for a subtle fade-in effect on load */
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(10px); }
