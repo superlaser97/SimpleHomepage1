@@ -1,7 +1,3 @@
-<!---------------------------------------------------------------->
-<!-- MODIFY THE PAGE IN THE CONFIGURATION SECTION OF THE SCRIPT -->
-<!---------------------------------------------------------------->
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -19,9 +15,14 @@
             animation: fadeIn 0.5s ease-out forwards;
         }
         /* Stagger the animation for each category */
-        #shortcuts-container > div {
+        #shortcuts-container > div, #notes-container > div {
             animation: fadeIn 0.5s ease-out forwards;
             opacity: 0;
+        }
+
+        /* Styles for the note modal to ensure it appears on top */
+        #note-modal {
+            z-index: 50;
         }
     </style>
     <script>
@@ -29,12 +30,19 @@
         // --- CONFIGURATION ---
         // ---------------------
         const pageTitle = 'My Quick Links';
+
+        // --- NOTES CONFIGURATION ---
+        const notes = [
+            { title: 'Project Ideas', content: 'A personal dashboard with weather, to-do list, and quick links. Maybe use a public API. It could be built with SvelteKit or Next.js and deployed on Vercel for free. The design should be clean, modern, and utilize glassmorphism for a futuristic feel. I should also consider adding a configurable search bar that can search across different engines.' },
+            { title: 'Shopping List', content: 'Milk, bread, coffee beans, and a new mousepad.' },
+            { content: 'Remember to deploy the latest changes to Vercel by Friday EOD.' }
+        ];
         
         const shortcuts = [
             // Note the new 'icon' property. These are SVG paths.
             { name: 'Google', category: 'Search', url: 'https://www.google.com', icon: 'M11.99 2C6.47 2 2 6.47 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zm6.93 6h-2.95a6.36 6.36 0 00-3.98-3.98V6.07h2.95a8.03 8.03 0 013.98 1.93zM12 4.04c.83 1.2 1.48 2.53 1.91 3.96h-3.82c.43-1.43 1.08-2.76 1.91-3.96zM4.26 14C4.1 13.36 4 12.69 4 12s.1-1.36.26-2h3.38c-.08.66-.14 1.32-.14 2s.06 1.34.14 2H4.26zm.8 2h2.95a6.36 6.36 0 003.98 3.98v-2.02h-2.95a8.03 8.03 0 01-3.98-1.96zM12.01 19.96c-.83-1.2-1.48-2.53-1.91-3.96h3.82c-.43 1.43-1.08 2.76-1.91 3.96zM14.34 14H9.66c.09-.66.15-1.32.15-2s-.06-1.34-.15-2h4.68c-.09.66-.15 1.32-.15 2s.06 1.34.15 2zm.25 5.98v-2.02h2.95a8.03 8.03 0 01-3.98 1.96zM17.07 16h2.95a8.03 8.03 0 00-1.93-3.98H16.07v2.02c.36.01.71.02 1 .02z' },
             { name: 'Bing', category: 'Search', url: 'https://www.bing.com', icon: 'M12.83 12.83L10 16.5V7.5l2.83 3.67 4.51-4.51-2.05-2.05a8 8 0 10-8.12 8.12l2.05 2.05 4.51-4.51z' },
-            { name: 'YouTube', category: 'Media', url: 'https://www.youtube.com', icon: 'M21.58 7.19c-.23-.86-.91-1.54-1.77-1.77C18.25 5 12 5 12 5s-6.25 0-7.81.42c-.86.23-1.54.91-1.77 1.77C2 8.75 2 12 2 12s0 3.25.42 4.81c.23.86.91 1.54 1.77 1.77C5.75 19 12 19 12 19s6.25 0 7.81-.42c.86-.23 1.54-.91 1.77-1.77C22 15.25 22 12 22 12s0-3.25-.42-4.81zM10 15V9l5.2 3-5.2 3z' },
+            { name: 'YouTube', category: 'Media', url: 'https://www.youtube.com', icon: 'M21.58 7.19c-.23-.86-.91-1.54-1.77-1.77C18.25 5 12 5 12 5s-6.25 0-7.81.42c-.86.23-1.54.91-1.77 1.77C2 8.75 2 12 2 12s0 3.25.42 4.81c.23.86.91 1.54 1.77 1.77C5.75 19 12 19 12 19s6.25 0 7.81-.42c.86-.23-1.54-.91-1.77-1.77C22 15.25 22 12 22 12s0-3.25-.42-4.81zM10 15V9l5.2 3-5.2 3z' },
             { name: 'Reddit', category: 'Social & News', url: 'https://www.reddit.com', icon: 'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1.84 13.21c-1.36 0-2.46-1.1-2.46-2.46s1.1-2.46 2.46-2.46 2.46 1.1 2.46 2.46-1.1 2.46-2.46 2.46zm3.68 0c-1.36 0-2.46-1.1-2.46-2.46s1.1-2.46 2.46-2.46 2.46 1.1 2.46 2.46-1.1 2.46-2.46 2.46zm-5.4-5.06c.26-.26.68-.26.94 0l1.62 1.62c.26.26.26.68 0 .94-.26.26-.68.26-.94 0l-1.62-1.62c-.26-.26-.26-.68 0-.94zm6.16 2.56c-.52 1-1.59 1.68-2.8 1.68s-2.28-.68-2.8-1.68c-.14-.28.04-.63.36-.71.32-.08.66.04.79.36.33.63 1.04 1.03 1.65 1.03s1.32-.4 1.65-1.03c.13-.32.47-.44.79-.36.32.08.5.43.36.71z' },
             { name: 'GitHub', category: 'Development', url: 'https://github.com', icon: 'M12 2C6.477 2 2 6.477 2 12c0 4.419 2.865 8.166 6.839 9.49.5.092.682-.217.682-.482 0-.237-.009-.868-.014-1.703-2.782.605-3.369-1.343-3.369-1.343-.455-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.004.071 1.532 1.03 1.532 1.03.891 1.53 2.339 1.088 2.91.832.091-.647.349-1.088.635-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.03-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.269 2.75 1.026A9.564 9.564 0 0112 6.82c.85.004 1.705.115 2.504.336 1.909-1.295 2.747-1.026 2.747-1.026.546 1.378.202 2.398.1 2.65.64.7 1.028 1.595 1.028 2.688 0 3.848-2.338 4.695-4.566 4.942.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.578.688.482A10.001 10.001 0 0022 12c0-5.523-4.477-10-10-10z' },
             { name: 'Vercel', category: 'Development', url: 'https://vercel.com', icon: 'M12 2L2 12l10 10 10-10L12 2z' },
@@ -42,8 +50,6 @@
         ];
 
         // --- CATEGORY COLOR CONFIGURATION ---
-        // Define your category colors here. Using richer 600-level shades.
-        // Available Tailwind colors: 'slate', 'gray', 'zinc', 'neutral', 'stone', 'red', 'orange', 'amber', 'yellow', 'lime', 'green', 'emerald', 'teal', 'cyan', 'sky', 'blue', 'indigo', 'violet', 'purple', 'fuchsia', 'pink', 'rose'
         const categoryConfig = {
             'Search': { color: 'sky' },
             'Media': { color: 'red' },
@@ -69,29 +75,22 @@
             a.href = shortcut.url;
             a.target = '_blank';
             a.rel = 'noopener noreferrer';
-            
-            // Modernized link style: larger, with icon and text, better hover effect
             a.className = 'group flex items-center gap-4 p-4 bg-gray-800/50 rounded-lg shadow-lg hover:bg-gray-700/80 hover:shadow-cyan-500/10 hover:-translate-y-1 transition-all duration-300 text-gray-200 border border-gray-700';
 
-            // SVG Icon
             if (shortcut.icon) {
                 const iconContainer = document.createElement('div');
                 iconContainer.className = 'flex-shrink-0 w-6 h-6';
-                
                 const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
                 svg.setAttribute('viewBox', '0 0 24 24');
                 svg.setAttribute('fill', 'currentColor');
                 svg.className = 'text-gray-400 group-hover:text-white transition-colors duration-300';
-
                 const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
                 path.setAttribute('d', shortcut.icon);
-                
                 svg.appendChild(path);
                 iconContainer.appendChild(svg);
                 a.appendChild(iconContainer);
             }
 
-            // Text content
             const textSpan = document.createElement('span');
             textSpan.textContent = shortcut.name;
             textSpan.className = 'font-semibold whitespace-nowrap overflow-hidden text-ellipsis';
@@ -103,7 +102,6 @@
         function renderShortcuts() {
             const mainContainer = document.getElementById('shortcuts-container');
             mainContainer.innerHTML = '';
-
             const groupedByCategory = shortcuts.reduce((groups, shortcut) => {
                 const category = shortcut.category;
                 if (!groups[category]) {
@@ -116,21 +114,16 @@
             let delay = 0;
             for (const category in groupedByCategory) {
                 const config = categoryConfig[category] || { color: 'gray' };
-                // Use the color for a background gradient and a border
                 const colorClass = config.color;
-
                 const categoryWrapper = document.createElement('div');
-                // Glassmorphism effect: semi-transparent background with blur and subtle gradient
                 categoryWrapper.className = `p-5 rounded-xl border border-gray-700/80 bg-gray-800/40 backdrop-blur-sm shadow-2xl`;
-                categoryWrapper.style.animationDelay = `${delay}s`; // Staggered animation
+                categoryWrapper.style.animationDelay = `${delay}s`;
                 delay += 0.1;
 
                 const categoryHeader = document.createElement('div');
                 categoryHeader.className = `flex items-center gap-3 mb-4 border-b-2 border-${colorClass}-500/50 pb-2`;
-
                 const categoryColorDot = document.createElement('div');
                 categoryColorDot.className = `w-3 h-3 rounded-full bg-${colorClass}-500`;
-
                 const categoryTitle = document.createElement('h2');
                 categoryTitle.textContent = category;
                 categoryTitle.className = 'text-xl font-bold text-gray-200';
@@ -152,9 +145,99 @@
             }
         }
 
+        function renderNotes() {
+            const notesContainer = document.getElementById('notes-container');
+            const notesHeader = document.getElementById('notes-header');
+            const maxNoteLength = 120; // Max characters before truncating
+
+            if (!notes || notes.length === 0) {
+                notesHeader.style.display = 'none';
+                return;
+            }
+
+            notesHeader.style.display = 'block';
+            notesContainer.innerHTML = '';
+
+            let delay = 0;
+            notes.forEach(note => {
+                const noteCard = document.createElement('div');
+                noteCard.className = 'p-5 rounded-xl border border-gray-700/80 bg-gray-800/40 backdrop-blur-sm shadow-2xl flex flex-col transition-all duration-300';
+                noteCard.style.animationDelay = `${delay}s`;
+                delay += 0.1;
+
+                if (note.title) {
+                    const titleElement = document.createElement('h3');
+                    titleElement.className = 'text-lg font-bold text-sky-300 mb-2';
+                    titleElement.textContent = note.title;
+                    noteCard.appendChild(titleElement);
+                }
+
+                const contentElement = document.createElement('p');
+                contentElement.className = 'text-gray-300 whitespace-pre-wrap';
+                noteCard.appendChild(contentElement);
+
+                if (note.content.length > maxNoteLength) {
+                    contentElement.textContent = note.content.substring(0, maxNoteLength) + '...';
+                    
+                    const readMore = document.createElement('span');
+                    readMore.textContent = 'Read more';
+                    readMore.className = 'text-sky-400 hover:text-sky-300 font-semibold mt-auto pt-2 cursor-pointer';
+                    noteCard.appendChild(readMore);
+                    
+                    noteCard.classList.add('cursor-pointer', 'hover:border-sky-500/50', 'hover:-translate-y-1');
+                    noteCard.addEventListener('click', () => showNoteModal(note.title, note.content));
+                } else {
+                    contentElement.textContent = note.content;
+                }
+
+                notesContainer.appendChild(noteCard);
+            });
+        }
+        
+        // --- NEW MODAL FUNCTIONS ---
+        function showNoteModal(title, content) {
+            const modal = document.getElementById('note-modal');
+            const modalTitle = document.getElementById('modal-title');
+            const modalBody = document.getElementById('modal-body');
+
+            modalTitle.textContent = title || 'Note';
+            modalTitle.style.display = title ? 'block' : 'none';
+            modalBody.textContent = content;
+
+            modal.style.display = 'flex';
+        }
+
+        function hideNoteModal() {
+            const modal = document.getElementById('note-modal');
+            modal.style.display = 'none';
+        }
+
+        function setupModal() {
+            const modal = document.getElementById('note-modal');
+            const closeBtn = document.getElementById('modal-close-btn');
+
+            if (!modal || !closeBtn) return;
+
+            closeBtn.addEventListener('click', hideNoteModal);
+
+            modal.addEventListener('click', (event) => {
+                if (event.target === modal) {
+                    hideNoteModal();
+                }
+            });
+
+            window.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape' && modal.style.display !== 'none') {
+                    hideNoteModal();
+                }
+            });
+        }
+
         window.onload = function() {
             renderTitle();
             renderShortcuts();
+            renderNotes();
+            setupModal(); // Initialize modal listeners
         };
     </script>
 </head>
@@ -163,8 +246,21 @@
     
     <div class="container mx-auto p-4 sm:p-6 lg:p-8">
         <h1 id="page-title" class="text-4xl font-bold text-white mb-8 text-center fade-in"></h1>
+
+        <h2 id="notes-header" class="text-3xl font-bold text-white mb-6 text-center fade-in" style="display: none;">Notes</h2>
+        <div id="notes-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+            </div>
+
         <div id="shortcuts-container" class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
             </div>
+    </div>
+
+    <div id="note-modal" class="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center p-4" style="display: none;">
+        <div class="bg-gray-800 bg-opacity-80 border border-gray-700 rounded-xl shadow-2xl p-6 w-full max-w-2xl relative text-gray-200" id="modal-inner">
+            <button id="modal-close-btn" class="absolute top-2 right-4 text-gray-400 hover:text-white text-3xl font-bold transition-colors">×</button>
+            <h2 id="modal-title" class="text-2xl font-bold text-sky-300 mb-4"></h2>
+            <p id="modal-body" class="whitespace-pre-wrap max-h-[70vh] overflow-y-auto"></p>
+        </div>
     </div>
 </body>
 </html>
