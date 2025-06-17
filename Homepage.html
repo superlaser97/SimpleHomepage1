@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Homepage</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script>
+        // --- CONFIGURATION ---
+        const pageTitle = 'My Quick Links';
+        
+        const shortcuts = [
+            { name: 'Google', category: 'Search', url: 'https://www.google.com' },
+            { name: 'Bing', category: 'Search', url: 'https://www.bing.com' },
+            { name: 'YouTube', category: 'Media', url: 'https://www.youtube.com' },
+            { name: 'Reddit', category: 'Social & News', url: 'https://www.reddit.com' },
+            { name: 'Twitter', category: 'Social & News', url: 'https://twitter.com' },
+            { name: 'GitHub', category: 'Development', url: 'https://github.com' },
+            { name: 'Stack Overflow', category: 'Development', url: 'https://stackoverflow.com' },
+            { name: 'Vercel', category: 'Development', url: 'https://vercel.com' },
+            { name: 'Figma', category: 'Design', url: 'https://www.figma.com' },
+        ];
+
+        // --- CATEGORY COLOR CONFIGURATION ---
+        // Define your category colors here.
+        // Available colors: 'blue', 'green', 'red', 'yellow', 'purple', 'indigo', 'pink', 'orange', 'gray'
+        const categoryConfig = {
+            'Search': { color: 'gray' },
+            'Media': { color: 'gray' },
+            'Social & News': { color: 'gray' },
+            'Development': { color: 'gray' },
+            'Design': { color: 'gray' }
+        };
+        // --- END CONFIGURATION ---
+
+
+        function renderTitle() {
+            const titleElement = document.getElementById('page-title');
+            document.title = pageTitle;
+            if (titleElement) {
+                titleElement.textContent = pageTitle;
+            }
+        }
+
+        function createShortcutElement(shortcut) {
+            const a = document.createElement('a');
+            a.href = shortcut.url;
+            a.textContent = shortcut.name;
+            a.target = '_blank';
+            a.rel = 'noopener noreferrer';
+            // MODIFIED: Added whitespace-nowrap, overflow-hidden, and text-ellipsis
+            a.className = 'flex items-center justify-center p-4 bg-gray-800 rounded-lg shadow-md hover:bg-gray-700 hover:scale-105 transition-all text-center font-medium text-gray-200 border border-gray-700 whitespace-nowrap overflow-hidden text-ellipsis';
+            return a;
+        }
+
+        function renderShortcuts() {
+            const mainContainer = document.getElementById('shortcuts-container');
+            mainContainer.innerHTML = '';
+
+            const groupedByCategory = shortcuts.reduce((groups, shortcut) => {
+                const category = shortcut.category;
+                if (!groups[category]) {
+                    groups[category] = [];
+                }
+                groups[category].push(shortcut);
+                return groups;
+            }, {});
+
+            // --- MODIFIED: Mapped to darker, more muted -700 shades ---
+            const colorMap = {
+                blue: 'border-blue-700',
+                green: 'border-green-700',
+                red: 'border-red-700',
+                yellow: 'border-yellow-700',
+                purple: 'border-purple-700',
+                indigo: 'border-indigo-700',
+                pink: 'border-pink-700',
+                orange: 'border-orange-700',
+                gray: 'border-gray-700'
+            };
+            const defaultConfig = { color: 'gray' };
+
+            for (const category in groupedByCategory) {
+                const config = categoryConfig[category] || defaultConfig;
+                const borderColorClass = colorMap[config.color] || colorMap.gray;
+
+                const categoryWrapper = document.createElement('div');
+                categoryWrapper.className = `bg-gray-800/50 p-4 rounded-lg border-t-4 ${borderColorClass}`;
+
+                const categoryTitle = document.createElement('h2');
+                categoryTitle.textContent = category;
+                categoryTitle.className = 'text-xl font-bold text-gray-300 mb-4';
+                categoryWrapper.appendChild(categoryTitle);
+
+                const linksGrid = document.createElement('div');
+                linksGrid.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3';
+                
+                groupedByCategory[category].forEach(shortcut => {
+                    const shortcutElement = createShortcutElement(shortcut);
+                    linksGrid.appendChild(shortcutElement);
+                });
+
+                categoryWrapper.appendChild(linksGrid);
+                mainContainer.appendChild(categoryWrapper);
+            }
+        }
+
+        window.onload = function() {
+            renderTitle();
+            renderShortcuts();
+        };
+    </script>
+</head>
+<body class="bg-gray-900">
+    <div class="container mx-auto p-4 sm:p-6">
+        <h1 id="page-title" class="text-3xl font-bold text-white mb-6 text-center"></h1>
+        <div id="shortcuts-container" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            </div>
+    </div>
+</body>
+</html>
