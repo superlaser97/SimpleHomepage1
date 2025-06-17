@@ -10,6 +10,15 @@
         // --- CONFIGURATION ---
         // ---------------------
         // Load configuration from a JSON string embedded in the HTML
+        // This JSON contains page title, notes, shortcuts, category configurations, and icons.
+        // The JSON structure is designed to be easily editable and extensible.
+        // - The page title is used for the document title and main header.
+        // - Notes are displayed in cards with titles and content, supporting custom headers.
+        // - Shortcuts are displayed in categorized sections with icons and links.
+        // - Category configurations allow for custom colors for each category.
+        // - Icons are defined in SVG format for use in shortcuts.
+        // - The content supports a simple markdown-like syntax for headers (e.g., #Header# for <h2>).
+        // - Supported colors for categories: 'sky', 'red', 'orange', 'violet', 'pink', 'gray'
         const configJson = `{
             "pageTitle": "My Quick Links",
             "notes": [
