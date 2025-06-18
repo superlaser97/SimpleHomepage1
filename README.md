@@ -1,5 +1,7 @@
 ![screenshot1](./screenshots/screenshot1.png)
 
+# !! WORK IN PROGRESS !!
+
 # Simple Homepage
 
 A simple, customizable homepage for quick access to your links and notes. All settings are right in the `homepage.html` file, making it super easy to use and deploy.
