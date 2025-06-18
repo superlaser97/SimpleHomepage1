@@ -5,6 +5,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Homepage</title>
     <link href="./style.css" rel="stylesheet">
+    <style>
+        /* Basic styling for the active tab and hidden content */
+        .active-tab {
+            border-color: #0ea5e9; /* sky-500 */
+            color: #0284c7; /* sky-600 */
+            background-color: rgba(255, 255, 255, 0.5);
+        }
+        .dark .active-tab {
+            color: #38bdf8; /* sky-400 */
+            background-color: rgba(31, 41, 55, 0.5); /* gray-800/50 */
+        }
+        .hidden {
+            display: none;
+        }
+        /* --- NEW: Change cursor for tabs --- */
+        .tab-button {
+            cursor: pointer;
+        }
+    </style>
     <script>
         // ---------------------
         // --- CONFIGURATION ---
@@ -47,7 +66,7 @@
         const config = JSON.parse(configJson);
         const { pageTitle, notes, shortcuts, categoryConfig, icons } = config;
 
-        // --- NEW: RENDER DYNAMIC FAVICON ---
+        // --- RENDER DYNAMIC FAVICON ---
         function renderFavicon() {
             const link = document.createElement('link');
             link.rel = 'icon';
@@ -62,7 +81,7 @@
             document.title = pageTitle;
         }
 
-        // --- NEW: GREETING FUNCTION ---
+        // --- GREETING FUNCTION ---
         function renderGreeter() {
             const greeterContainer = document.getElementById('greeter');
             if (!greeterContainer) return;
@@ -81,6 +100,15 @@
             greeterContainer.textContent = greeting;
         }
 
+        // --- DATE FUNCTION (Improvement 3) ---
+        function renderDate() {
+            const dateContainer = document.getElementById('date-display');
+            if (!dateContainer) return;
+            const now = new Date();
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            dateContainer.textContent = now.toLocaleDateString(undefined, options);
+        }
+
         function renderClock() {
             const clockContainer = document.getElementById('clock');
             if (!clockContainer) return;
@@ -97,8 +125,8 @@
             a.target = '_blank';
             a.rel = 'noopener noreferrer';
             a.className = 'group flex items-center gap-4 p-4 rounded-lg shadow-lg hover:shadow-cyan-500/10 hover:-translate-y-1 transition-all duration-300 text-gray-700 dark:text-gray-200 border border-gray-300/80 dark:border-gray-700/80 ' +
-                          'bg-white/50 dark:bg-gray-800/50 hover:bg-gray-200/60 dark:hover:bg-gray-700/80 ' +
-                          'style-compact:gap-2 style-compact:p-2 style-compact:text-sm style-compact:bg-white/60 style-compact:dark:bg-gray-800/60';
+                            'bg-white/50 dark:bg-gray-800/50 hover:bg-gray-200/60 dark:hover:bg-gray-700/80 ' +
+                            'style-compact:gap-2 style-compact:p-2 style-compact:text-sm style-compact:bg-white/60 style-compact:dark:bg-gray-800/60';
 
             if (shortcut.icon && icons[shortcut.icon]) {
                 const iconContainer = document.createElement('div');
@@ -117,10 +145,25 @@
             textSpan.textContent = shortcut.name;
             textSpan.className = 'font-semibold style-compact:font-normal';
             a.appendChild(textSpan);
+
+            const previewBox = document.getElementById('link-preview');
+            if (previewBox) {
+                a.addEventListener('mouseenter', (event) => {
+                    previewBox.textContent = shortcut.url;
+                    const rect = event.currentTarget.getBoundingClientRect();
+                    previewBox.style.top = `${rect.bottom + window.scrollY + 8}px`;
+                    previewBox.style.left = `${rect.left + rect.width / 2}px`;
+                    previewBox.style.transform = 'translateX(-50%)';
+                    previewBox.classList.remove('opacity-0');
+                });
+
+                a.addEventListener('mouseleave', () => {
+                    previewBox.classList.add('opacity-0');
+                });
+            }
             return a;
         }
 
-        // --- MODIFIED: ADDED SEARCH QUERY & EMPTY STATE ---
         function renderShortcuts(query = '') {
             const mainContainer = document.getElementById('shortcuts-container');
             mainContainer.innerHTML = '';
@@ -150,13 +193,13 @@
                 const colorClass = config.color;
                 const categoryWrapper = document.createElement('div');
                 categoryWrapper.className = `p-5 rounded-xl border border-gray-300/80 dark:border-gray-700/80 bg-white/40 dark:bg-gray-800/40 backdrop-blur-sm shadow-2xl transition-all duration-300
-                                             style-compact:p-3 style-compact:rounded-lg style-compact:shadow-lg style-compact:bg-white/50 style-compact:dark:bg-gray-800/50`;
+                                                style-compact:p-3 style-compact:rounded-lg style-compact:shadow-lg style-compact:bg-white/50 style-compact:dark:bg-gray-800/50`;
                 categoryWrapper.style.animationDelay = `${delay}s`;
                 delay += 0.1;
 
                 const categoryHeader = document.createElement('div');
                 categoryHeader.className = `flex items-center gap-3 mb-4 border-b-2 border-${colorClass}-500/50 pb-2
-                                            style-compact:gap-2 style-compact:mb-2 style-compact:pb-1 style-compact:border-b style-compact:border-${colorClass}-500/30`;
+                                                style-compact:gap-2 style-compact:mb-2 style-compact:pb-1 style-compact:border-b style-compact:border-${colorClass}-500/30`;
                 const categoryColorDot = document.createElement('div');
                 categoryColorDot.className = `w-3 h-3 rounded-full bg-${colorClass}-500 style-compact:w-2 style-compact:h-2`;
                 const categoryTitle = document.createElement('h2');
@@ -177,7 +220,6 @@
             }
         }
 
-        // --- MODIFIED: ADDED LIST (UL/LI) PARSING ---
         function parseNoteContent(rawContent, isPreview = false) {
             const lines = rawContent.split('\n');
             let processedLines = [];
@@ -210,8 +252,8 @@
                     const headingLevel = Math.min(hashes.length + 1, 6);
                     let classes = 'font-bold';
                     if (isPreview) {
-                         if (headingLevel === 2) classes += ' text-md text-gray-500 dark:text-gray-400 mt-2 mb-1 style-compact:text-sm';
-                         else classes += ' text-sm text-gray-500 dark:text-gray-400 mt-2 mb-1 style-compact:text-xs';
+                        if (headingLevel === 2) classes += ' text-md text-gray-500 dark:text-gray-400 mt-2 mb-1 style-compact:text-sm';
+                        else classes += ' text-sm text-gray-500 dark:text-gray-400 mt-2 mb-1 style-compact:text-xs';
                     } else {
                         classes += ` text-sky-600 dark:text-sky-300 ${['text-2xl','text-xl','text-lg','text-base'][headingLevel-2] || 'text-base'}`;
                     }
@@ -237,22 +279,29 @@
             return processedLines.join('');
         }
         
-        // --- MODIFIED: Dynamic truncation by line count ---
-        function renderNotes() {
+        function renderNotes(query = '') {
             const notesContainer = document.getElementById('notes-container');
-            const maxLines = 6; // Set a limit for the number of lines to show in the preview
+            const maxLines = 6;
 
-            if (!notes || notes.length === 0) {
-                notesContainer.innerHTML = `<p class="text-gray-500 dark:text-gray-400 p-4 text-center col-span-full">No notes available.</p>`;
+            const lowerCaseQuery = query.toLowerCase();
+            const filteredNotes = notes.filter(note =>
+                query === '' ||
+                (note.title && note.title.toLowerCase().includes(lowerCaseQuery)) ||
+                note.content.toLowerCase().includes(lowerCaseQuery)
+            );
+
+            if (filteredNotes.length === 0) {
+                const message = query ? `No notes found for "${query}".` : 'No notes available.';
+                notesContainer.innerHTML = `<p class="text-gray-500 dark:text-gray-400 p-4 text-center col-span-full">${message}</p>`;
                 return;
             }
             notesContainer.innerHTML = '';
 
             let delay = 0;
-            notes.forEach(note => {
+            filteredNotes.forEach(note => {
                 const noteCard = document.createElement('div');
                 noteCard.className = 'p-5 rounded-xl border border-gray-300/80 dark:border-gray-700/80 bg-white/40 dark:bg-gray-800/40 backdrop-blur-sm shadow-2xl flex flex-col transition-all duration-300 ' +
-                                      'style-compact:p-3 style-compact:rounded-lg style-compact:shadow-lg style-compact:bg-white/50 style-compact:dark:bg-gray-800/50';
+                                    'style-compact:p-3 style-compact:rounded-lg style-compact:shadow-lg style-compact:bg-white/50 style-compact:dark:bg-gray-800/50';
                 noteCard.style.animationDelay = `${delay}s`;
                 delay += 0.1;
 
@@ -267,12 +316,10 @@
                 contentElement.className = 'text-gray-600 dark:text-gray-300 whitespace-pre-wrap style-compact:text-sm';
                 noteCard.appendChild(contentElement);
 
-                // --- New Truncation Logic ---
                 const lines = note.content.split('\n');
                 const isTruncated = lines.length > maxLines;
                 const previewContent = isTruncated ? lines.slice(0, maxLines).join('\n') + '\n...' : note.content;
                 contentElement.innerHTML = parseNoteContent(previewContent, true);
-                // --- End New Logic ---
 
                 if (isTruncated) {
                     const readMore = document.createElement('span');
@@ -347,18 +394,60 @@
             });
         }
         
-        // --- NEW: SEARCH FUNCTIONALITY ---
         function setupSearch() {
             const searchInput = document.getElementById('search-input');
             const searchBox = document.getElementById('search-box');
             if (!searchInput) return;
 
             searchInput.addEventListener('keyup', (e) => {
-                renderShortcuts(e.target.value);
+                const query = e.target.value;
+                const isShortcutsActive = document.getElementById('tab-shortcuts').classList.contains('active-tab');
+                
+                if (isShortcutsActive) {
+                    renderShortcuts(query);
+                } else {
+                    renderNotes(query);
+                }
             });
             
             searchInput.addEventListener('focus', () => searchBox.classList.add('border-sky-500'));
             searchInput.addEventListener('blur', () => searchBox.classList.remove('border-sky-500'));
+        }
+
+        function setupTabs() {
+            const shortcutsTab = document.getElementById('tab-shortcuts');
+            const notesTab = document.getElementById('tab-notes');
+            const shortcutsContainer = document.getElementById('shortcuts-container');
+            const notesContainer = document.getElementById('notes-container');
+            const searchInput = document.getElementById('search-input');
+
+            // Set initial state
+            notesContainer.classList.add('hidden');
+            shortcutsTab.classList.add('active-tab');
+
+            shortcutsTab.addEventListener('click', () => {
+                if (shortcutsTab.classList.contains('active-tab')) return;
+                
+                notesTab.classList.remove('active-tab');
+                shortcutsTab.classList.add('active-tab');
+
+                notesContainer.classList.add('hidden');
+                shortcutsContainer.classList.remove('hidden');
+                searchInput.placeholder = "Search shortcuts... (Press '/' to focus)";
+                renderShortcuts(searchInput.value); // Re-render with current query
+            });
+
+            notesTab.addEventListener('click', () => {
+                if (notesTab.classList.contains('active-tab')) return;
+
+                shortcutsTab.classList.remove('active-tab');
+                notesTab.classList.add('active-tab');
+
+                shortcutsContainer.classList.add('hidden');
+                notesContainer.classList.remove('hidden');
+                searchInput.placeholder = "Search notes... (Press '/' to focus)";
+                renderNotes(searchInput.value); // Re-render with current query
+            });
         }
 
         function setupThemeSwitcher() {
@@ -389,8 +478,10 @@
                 styleText.textContent = isCompact ? 'Comfortable' : 'Compact';
                 styleText.classList.toggle('text-green-500', isCompact);
                 styleText.classList.toggle('text-indigo-400', !isCompact);
-                renderShortcuts(document.getElementById('search-input').value);
-                renderNotes();
+                
+                const currentQuery = document.getElementById('search-input').value;
+                renderShortcuts(currentQuery);
+                renderNotes(currentQuery);
             };
             styleBtn.addEventListener('click', () => {
                 const isCompact = container.classList.toggle('style-compact');
@@ -403,16 +494,17 @@
 
         window.onload = function() {
             renderTitle();
-            renderFavicon(); // New
-            renderGreeter(); // New
+            renderFavicon();
+            renderGreeter();
+            renderDate();
             renderClock();
             setInterval(renderClock, 1000);
             setupThemeSwitcher();
-            setupDisplayStyleSwitcher(); // This will call renderShortcuts and renderNotes
-            setupSearch(); // New
+            setupDisplayStyleSwitcher();
+            setupSearch();
+            setupTabs();
             setupModal();
             window.addEventListener('keydown', (event) => {
-                // Focus search bar with '/' key
                 if (event.key === '/' && document.activeElement.tagName.toLowerCase() !== 'input') {
                     event.preventDefault();
                     document.getElementById('search-input').focus();
@@ -440,13 +532,14 @@
     <div class="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-white/10 via-white/0 to-indigo-100/20 dark:from-gray-900 dark:via-gray-900 dark:to-indigo-900/40 -z-10"></div>
     
     <div class="container mx-auto p-4 sm:p-6 lg:p-8 transition-all duration-300
-                 style-compact:p-2 style-compact:sm:p-4 style-compact:lg:p-6">
+                style-compact:p-2 style-compact:sm:p-4 style-compact:lg:p-6">
         <div class="mb-8 style-compact:mb-4">
             <div class="flex items-baseline gap-4">
                 <h1 id="page-title" class="text-4xl font-bold text-left fade-in style-compact:text-3xl"></h1>
                 <div id="clock" class="text-xl font-mono text-gray-500 dark:text-gray-400 style-compact:text-lg"></div>
             </div>
             <p id="greeter" class="text-gray-500 dark:text-gray-400 fade-in"></p>
+            <p id="date-display" class="text-gray-500 dark:text-gray-400 fade-in"></p>
         </div>
 
         <div class="mb-6 style-compact:mb-4">
@@ -456,6 +549,15 @@
                 </div>
                 <input id="search-input" type="text" placeholder="Search shortcuts... (Press '/' to focus)" class="w-full bg-transparent p-2 text-gray-800 dark:text-gray-200 focus:outline-none">
             </div>
+        </div>
+
+        <div class="mb-4 flex items-center border-b border-gray-300/80 dark:border-gray-700/80">
+            <button id="tab-shortcuts" class="tab-button px-4 py-2 text-sm font-semibold border-b-2 transition-colors duration-300 text-gray-500 hover:text-gray-800 dark:hover:text-gray-200">
+                Shortcuts
+            </button>
+            <button id="tab-notes" class="tab-button px-4 py-2 text-sm font-semibold border-b-2 transition-colors duration-300 text-gray-500 hover:text-gray-800 dark:hover:text-gray-200">
+                Notes
+            </button>
         </div>
 
         <div id="shortcuts-container" class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-3 mb-6 style-compact:gap-2 style-compact:mb-4"></div>
@@ -482,6 +584,11 @@
                 </button>
             </div>
         </div>
+    </div>
+
+    <div id="link-preview"
+        class="fixed pointer-events-none z-50 rounded-lg bg-gray-800 px-3 py-1.5 text-sm font-medium text-white shadow-lg transition-opacity duration-200 opacity-0"
+        role="tooltip">
     </div>
 </body>
 </html>
