@@ -172,29 +172,13 @@
     z-index: 9999; /* Ensure it's on top of everything */
 }
 
-#note-modal-content {
-    background-color: #ffffff; /* White background for light theme */
-    color: #333333; /* Dark text for light theme */
-    padding: 2.5rem; /* Increased padding */
-    border-radius: 1rem; /* More rounded corners */
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-    width: 90%; /* Wider modal */
-    max-width: 800px; /* Max width for larger screens */
-    max-height: 90vh; /* Max height to prevent overflow */
-    overflow-y: auto; /* Enable scrolling for long content */
-    position: relative;
-    transform: scale(0.95); /* Slightly smaller initially for pop-in effect */
-    transition: transform 0.3s ease, opacity 0.3s ease;
-}
-
-/* Dark mode adjustments for modal content */
-.dark #note-modal-content {
-    background-color: #1a202c; /* Dark background for dark theme */
-    color: #e2e8f0; /* Light text for dark theme */
-}
+/*
+    The #note-modal-content block was removed as it was faulty and unused.
+    A new rule for #note-modal .edit-modal-content has been added below.
+*/
 
 /* Animation for modal content */
-#note-modal.is-active #note-modal-content {
+#note-modal.is-active .edit-modal-content {
     transform: scale(1);
     opacity: 1;
 }
@@ -243,7 +227,17 @@
 .hidden { display: none !important; }
 .edit-modal { position: fixed; inset: 0; background-color: rgba(0,0,0,0.7); backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: center; opacity: 0; visibility: hidden; transition: opacity 0.3s, visibility 0.3s; z-index: 1000; }
 .edit-modal.is-active { opacity: 1; visibility: visible; }
-.edit-modal-content { background-color: white; padding: 1.5rem 2rem; border-radius: 0.75rem; width: 90%; max-width: 500px; transform: scale(0.95); transition: transform 0.3s; }
+.edit-modal-content { background-color: white; padding: 1.5rem 2rem; border-radius: 0.75rem; width: 90%; max-width: 500px; transform: scale(0.95); transition: transform 0.3s; position: relative; }
+
+/* ++ ADDED ++ Make Note View modal wider */
+#note-modal .edit-modal-content {
+    max-width: 800px;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    padding: 0; /* Let inner elements control padding */
+}
+
 /* ++ MODIFIED ++ Larger note editing modal */
 #edit-note-modal .edit-modal-content { max-width: 800px; width: 90%; height: 70%; display: flex; flex-direction: column; }
 #edit-note-modal form { height: 100%; display: flex; flex-direction: column; }
@@ -302,3 +296,17 @@ body:not(.dark) .color-tag-btn { border-color: #ffffff; }
 body:not(.dark) .color-tag-btn.active { border-color: #d1d5db; }
 .color-tag-btn svg { width: 20px; height: 20px; color: white; opacity: 0; transition: opacity 0.2s; }
 .color-tag-btn.active svg { opacity: 1; }
+
+/* Styles for Search Highlighting */
+mark {
+    background-color: #fef08a; /* A bright, non-intrusive yellow */
+    color: inherit;
+    padding: 0 2px;
+    border-radius: 3px;
+    font-weight: 600;
+}
+
+.dark mark {
+    background-color: #facc15; /* A darker yellow for better contrast in dark mode */
+    color: #1f2937; /* Dark text for readability on the yellow background */
+}

@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Homepage</title>
     <link rel="stylesheet" href="style.css">
-    <script src="https://cdn.tailwindcss.com"></script>
     <script>
         // ---------------------
         // --- CONFIGURATION ---
@@ -83,7 +82,7 @@
 
             const confirmationModal = document.createElement('div');
             confirmationModal.id = 'confirmation-modal';
-            confirmationModal.className = 'edit-modal is-active';
+            confirmationModal.className = 'edit-modal'; // Set base class, 'is-active' will be added later for transition
             
             confirmationModal.innerHTML = `
                 <div class="edit-modal-content !max-w-sm">
@@ -97,13 +96,42 @@
             `;
             document.body.appendChild(confirmationModal);
 
-            const closeModal = () => confirmationModal.remove();
-            confirmationModal.addEventListener('click', (e) => { if(e.target === confirmationModal) closeModal(); });
+            // Add 'is-active' after a short delay to trigger the CSS transition
+            setTimeout(() => {
+                confirmationModal.classList.add('is-active');
+            }, 10);
+
+            const closeModal = () => {
+                confirmationModal.classList.remove('is-active');
+                // Wait for fade-out animation to finish before removing the element
+                setTimeout(() => {
+                    confirmationModal.remove();
+                }, 300);
+            };
+
+            confirmationModal.addEventListener('click', (e) => { if (e.target === confirmationModal) closeModal(); });
             document.getElementById('confirm-cancel').onclick = closeModal;
             document.getElementById('confirm-ok').onclick = () => {
                 onConfirm();
                 closeModal();
             };
+        }
+
+        /**
+         * Wraps all occurrences of a query in a text with <mark> tags for highlighting.
+         * Case-insensitive and escapes regex special characters in the query.
+         * @param {string} text The text to search within.
+         * @param {string} query The search query.
+         * @returns {string} The text as an HTML string with highlights.
+         */
+        function highlightText(text, query) {
+            if (!query || !text) {
+                return text; // Return original if no query or text
+            }
+            // Escape special regex characters to prevent errors
+            const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const regex = new RegExp(`(${escapedQuery})`, 'gi');
+            return text.replace(regex, '<mark>$1</mark>');
         }
 
         function saveConfig() {
@@ -126,7 +154,7 @@
         function loadConfig() {
             const defaultConfig = {
                 pageTitle: "My Homepage",
-                notes: [{ title: "Welcome!", content: "This is your new homepage.\nYour configuration is now saved automatically to your browser's local storage.\n\n- Use the controls in the top right to change the theme, style, or import/export your settings.\n- Click the page title to edit it." }],
+                notes: [{ title: "Welcome!", content: "This is your new homepage.\\nYour configuration is now saved automatically to your browser's local storage.\\n\\n- Use the controls in the top right to change the theme, style, or import/export your settings.\\n- Click the page title to edit it." }],
                 shortcuts: [{ name: "Google", category: "Search", url: "https://www.google.com", icon: "google" }],
                 categoryConfig: { "Search": { "color": "sky" }, "General": { "color": "gray" } }
             };
@@ -184,9 +212,9 @@
             if (!greeterContainer) return;
             const now = new Date();
             const hour = now.getHours();
-            let greeting = 'Welcome!';
-            if (hour < 12) { greeting = 'Good morning.'; } 
-            else if (hour < 18) { greeting = 'Good afternoon.'; } 
+            let greeting = 'Welcome back.';
+            if (hour >= 5 && hour < 12) { greeting = 'Good morning.'; } 
+            else if (hour >= 12 && hour < 18) { greeting = 'Good afternoon.'; } 
             else { greeting = 'Good evening.'; }
             greeterContainer.textContent = greeting;
         }
@@ -248,7 +276,7 @@
             return controlsContainer;
         }
         
-        function createShortcutElement(shortcut) {
+        function createShortcutElement(shortcut, query = '') {
             const container = document.createElement('div');
             container.className = 'relative group';
 
@@ -274,7 +302,7 @@
                 a.appendChild(iconContainer);
             }
             const textSpan = document.createElement('span');
-            textSpan.textContent = shortcut.name;
+            textSpan.innerHTML = highlightText(shortcut.name, query);
             textSpan.className = 'font-semibold style-compact:font-normal';
             a.appendChild(textSpan);
 
@@ -341,7 +369,7 @@
                 categoryColorDot.style.backgroundColor = SAFE_COLORS[colorClass] || '#6b7280';
 
                 const categoryTitle = document.createElement('h2');
-                categoryTitle.textContent = category;
+                categoryTitle.innerHTML = highlightText(category, query);
                 categoryTitle.className = 'text-xl font-bold text-gray-800 dark:text-gray-200 style-compact:text-lg style-compact:font-semibold';
                 
                 categoryHeader.appendChild(categoryColorDot);
@@ -351,49 +379,51 @@
                 const linksGrid = document.createElement('div');
                 linksGrid.className = 'grid grid-cols-1 sm:grid-cols-2 gap-3 style-compact:gap-2';
                 groupedByCategory[category].forEach(shortcut => {
-                    linksGrid.appendChild(createShortcutElement(shortcut));
+                    linksGrid.appendChild(createShortcutElement(shortcut, query));
                 });
                 categoryWrapper.appendChild(linksGrid);
                 mainContainer.appendChild(categoryWrapper);
             }
         }
 
-        function parseNoteContent(rawContent, isPreview = false) {
+        function parseNoteContent(rawContent, isPreview = false, query = '') {
              const lines = rawContent.split('\\n');
-               let processedLines = [];
-               let currentParagraph = [];
-               let inList = false;
-               const flushParagraph = () => {
-                   if (currentParagraph.length > 0) {
-                       processedLines.push(`<p class="text-gray-600 dark:text-gray-300 mb-2 style-compact:mb-1 style-compact:text-sm">${currentParagraph.join(' ').trim()}</p>`);
-                       currentParagraph = [];
-                   }
-               };
-               const closeList = () => { if (inList) { processedLines.push('</ul>'); inList = false; } };
-               lines.forEach(line => {
-                   const headerMatch = line.match(/^(#{1,6})(.*?)\1?$/);
-                   const listItemMatch = line.match(/^[\-\*]\s(.*)/);
-                   if (headerMatch && headerMatch[2].trim() !== '') {
-                       flushParagraph(); closeList();
-                       const hashes = headerMatch[1];
-                       const content = headerMatch[2];
-                       const headingLevel = Math.min(hashes.length + 1, 6);
-                       let classes = 'font-bold';
-                       if (isPreview) { classes += ' text-sm text-gray-500 dark:text-gray-400 mt-2 mb-1 style-compact:text-xs'; } 
-                       else { classes += ` text-sky-600 dark:text-sky-300 ${['text-2xl','text-xl','text-lg','text-base'][headingLevel-2] || 'text-base'} mb-2`; }
-                       processedLines.push(`<h${headingLevel} class="${classes}">${content.trim()}</h${headingLevel}>`);
-                   } else if (listItemMatch) {
-                       flushParagraph();
-                       if (!inList) { processedLines.push('<ul class="list-disc list-inside space-y-1 pl-2 mb-2 style-compact:text-sm">'); inList = true; }
-                       processedLines.push(`<li class="text-gray-600 dark:text-gray-300">${listItemMatch[1].trim()}</li>`);
-                   } else if (line.trim() === '') {
-                       flushParagraph(); closeList();
-                   } else {
-                       closeList(); currentParagraph.push(line);
-                   }
-               });
-               flushParagraph(); closeList();
-               return processedLines.join('');
+                let processedLines = [];
+                let currentParagraph = [];
+                let inList = false;
+                const flushParagraph = () => {
+                    if (currentParagraph.length > 0) {
+                        const paragraphText = currentParagraph.join(' ').trim();
+                        processedLines.push(`<p class="text-gray-600 dark:text-gray-300 mb-2 style-compact:mb-1 style-compact:text-sm">${highlightText(paragraphText, query)}</p>`);
+                        currentParagraph = [];
+                    }
+                };
+                const closeList = () => { if (inList) { processedLines.push('</ul>'); inList = false; } };
+                lines.forEach(line => {
+                    const headerMatch = line.match(/^(#{1,6})(.*?)\1?$/);
+                    const listItemMatch = line.match(/^[\-\*]\s(.*)/);
+                    if (headerMatch && headerMatch[2].trim() !== '') {
+                        flushParagraph(); closeList();
+                        const hashes = headerMatch[1];
+                        const content = headerMatch[2].trim();
+                        const headingLevel = Math.min(hashes.length + 1, 6);
+                        let classes = 'font-bold';
+                        if (isPreview) { classes += ' text-sm text-gray-500 dark:text-gray-400 mt-2 mb-1 style-compact:text-xs'; } 
+                        else { classes += ` text-sky-600 dark:text-sky-300 ${['text-2xl','text-xl','text-lg','text-base'][headingLevel-2] || 'text-base'} mb-2`; }
+                        processedLines.push(`<h${headingLevel} class="${classes}">${highlightText(content, query)}</h${headingLevel}>`);
+                    } else if (listItemMatch) {
+                        flushParagraph();
+                        if (!inList) { processedLines.push('<ul class="list-disc list-inside space-y-1 pl-2 mb-2 style-compact:text-sm">'); inList = true; }
+                        const listItemText = listItemMatch[1].trim();
+                        processedLines.push(`<li class="text-gray-600 dark:text-gray-300">${highlightText(listItemText, query)}</li>`);
+                    } else if (line.trim() === '') {
+                        flushParagraph(); closeList();
+                    } else {
+                        closeList(); currentParagraph.push(line);
+                    }
+                });
+                flushParagraph(); closeList();
+                return processedLines.join('');
         }
         
         function renderNotes(query = '') {
@@ -416,7 +446,7 @@
                 if (note.title) {
                     const titleElement = document.createElement('h3');
                     titleElement.className = 'text-lg font-bold text-sky-600 dark:text-sky-300 mb-2 style-compact:text-base style-compact:mb-1';
-                    titleElement.textContent = note.title;
+                    titleElement.innerHTML = highlightText(note.title, query);
                     noteCard.appendChild(titleElement);
                 }
                 const contentElement = document.createElement('div');
@@ -425,7 +455,7 @@
                 const lines = note.content.split('\\n');
                 const isTruncated = lines.length > maxLines;
                 const previewContent = isTruncated ? lines.slice(0, maxLines).join('\\n') + '\\n...' : note.content;
-                contentElement.innerHTML = parseNoteContent(previewContent, true);
+                contentElement.innerHTML = parseNoteContent(previewContent, true, query);
                 noteCard.appendChild(createItemControls(note, 'note'));
                 if (isTruncated) {
                     const readMore = document.createElement('span');
@@ -436,7 +466,11 @@
                 noteCard.classList.add('cursor-pointer', 'hover:border-sky-500/50', 'dark:hover:border-sky-500/50', 'hover:-translate-y-1');
                 noteCard.addEventListener('click', (e) => {
                     if (e.target.closest('button')) return;
-                    showNoteModal(note.title, parseNoteContent(note.content, false), note.content)
+                     showNoteModal(
+                        highlightText(note.title, query), 
+                        parseNoteContent(note.content, false, query), 
+                        note.content
+                    );
                 });
                 notesContainer.appendChild(noteCard);
             });
@@ -447,7 +481,7 @@
             const modal = document.getElementById('note-modal');
             const modalTitle = document.getElementById('modal-title');
             const modalBody = document.getElementById('modal-body');
-            modalTitle.textContent = title || 'Note';
+            modalTitle.innerHTML = title || 'Note';
             modalTitle.style.display = title ? 'block' : 'none';
             modalBody.innerHTML = htmlContent;
             modal.classList.add('is-active');
@@ -545,7 +579,7 @@
         }
 
         function deleteCategory(categoryToDelete) {
-            showConfirmation('Delete Category', `Are you sure you want to delete the "${categoryToDelete}" category?\nAll shortcuts in this category will be moved to "General".`, () => {
+            showConfirmation('Delete Category', `Are you sure you want to delete the "${categoryToDelete}" category?\\nAll shortcuts in this category will be moved to "General".`, () => {
                 config.shortcuts.forEach(shortcut => {
                     if (shortcut.category === categoryToDelete) { shortcut.category = 'General'; }
                 });
@@ -1031,7 +1065,7 @@
         <div id="notes-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 style-compact:gap-2"></div>
     </div>
 
-    <div id="note-modal" class="edit-modal"><div class="edit-modal-content"><button id="modal-close-btn" class="absolute top-4 right-4 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white text-3xl leading-none z-10 cursor-pointer">×</button><div class="flex-grow overflow-y-auto" style="scrollbar-width: thin; scrollbar-color: #6b7280 transparent;"><div class="p-8"><h2 id="modal-title" class="text-2xl font-bold mb-4 text-gray-900 dark:text-white"></h2><div id="modal-body" class="text-gray-700 dark:text-gray-200 whitespace-pre-wrap"></div></div></div><div class="flex-shrink-0 pt-4 pb-6 px-8 border-t border-gray-200 dark:border-gray-700 flex justify-end"><button id="modal-copy-btn" class="flex items-center gap-2 px-4 py-2 rounded-md bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors cursor-pointer" aria-label="Copy content"><span id="copy-btn-text" class="text-sm font-medium text-gray-700 dark:text-gray-200">Copy</span><svg id="copy-btn-icon" class="w-5 h-5 text-gray-500 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg><svg id="copy-btn-success-icon" class="w-5 h-5 text-green-500 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg></button></div></div></div>
+    <div id="note-modal" class="edit-modal"><div class="edit-modal-content"><button id="modal-close-btn" class="absolute top-4 right-4 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white text-3xl leading-none z-10 cursor-pointer">×</button><div class="flex-grow overflow-y-auto" style="scrollbar-width: thin; scrollbar-color: #6b7280 transparent;"><div class="p-6"><h2 id="modal-title" class="text-2xl font-bold mb-4 text-gray-900 dark:text-white"></h2><div id="modal-body" class="text-gray-700 dark:text-gray-200 whitespace-pre-wrap"></div></div></div><div class="flex-shrink-0 pt-4 pb-6 px-6 border-t border-gray-200 dark:border-gray-700 flex justify-end"><button id="modal-copy-btn" class="flex items-center gap-2 px-4 py-2 rounded-md bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors cursor-pointer" aria-label="Copy content"><span id="copy-btn-text" class="text-sm font-medium text-gray-700 dark:text-gray-200">Copy</span><svg id="copy-btn-icon" class="w-5 h-5 text-gray-500 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg><svg id="copy-btn-success-icon" class="w-5 h-5 text-green-500 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg></button></div></div></div>
     <div id="edit-shortcut-modal" class="edit-modal"><div class="edit-modal-content"><h2 id="edit-shortcut-modal-title" class="text-2xl font-bold mb-6 text-gray-800 dark:text-gray-100"></h2><form id="edit-shortcut-form"><div class="form-field"><label for="shortcut-name-input">Name</label><input id="shortcut-name-input" type="text" required></div><div class="form-field"><label for="shortcut-url-input">URL</label><input id="shortcut-url-input" type="url" required></div><div class="form-field"><label>Category</label><div id="shortcut-category-selector" class="category-selector-container"></div><input id="shortcut-category-input" type="hidden" required></div><div class="form-field"><label>Icon</label><div id="shortcut-icon-selector" class="icon-selector-container"></div><input id="shortcut-icon-input" type="hidden"></div><div class="form-actions"><button type="button" id="shortcut-modal-cancel" class="btn btn-secondary">Cancel</button><button type="submit" class="btn btn-primary">Save</button></div></form></div></div>
     <div id="edit-note-modal" class="edit-modal"><div class="edit-modal-content"><h2 id="edit-note-modal-title" class="text-2xl font-bold mb-6 text-gray-800 dark:text-gray-100"></h2><form id="edit-note-form"><div class="form-field"><label for="note-title-input">Title (Optional)</label><input id="note-title-input" type="text"></div><div class="form-field"><label for="note-content-input">Content</label><textarea id="note-content-input" required></textarea></div><div class="form-actions"><button type="button" id="note-modal-cancel" class="btn btn-secondary">Cancel</button><button type="submit" class="btn btn-primary">Save</button></div></form></div></div>
     <div id="add-category-modal" class="edit-modal"><div class="edit-modal-content"><h2 class="text-2xl font-bold mb-6 text-gray-800 dark:text-gray-100">Add New Category</h2><form id="add-category-form"><div class="form-field"><label for="new-category-name-input">Category Name</label><input id="new-category-name-input" type="text" required></div><div class="form-field"><label>Color</label><div id="new-category-color-selector" class="color-selector-container"></div><input id="new-category-color-input" type="hidden" required></div><div class="form-actions"><button type="button" id="category-modal-cancel" class="btn btn-secondary">Cancel</button><button type="submit" class="btn btn-primary">Save Category</button></div></form></div></div>
