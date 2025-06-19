@@ -188,13 +188,14 @@
         let { pageTitle, notes, shortcuts, categoryConfig } = config;
 
         // --- RENDER DYNAMIC FAVICON ---
-        function renderFavicon() {
-            const link = document.createElement('link');
-            link.rel = 'icon';
-            const svgFavicon = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='currentColor'><path d='${icons.vercel}'/></svg>`;
-            link.href = `data:image/svg+xml,${encodeURIComponent(svgFavicon)}`;
-            document.head.appendChild(link);
-        }
+        function renderFavicon() {
+            const link = document.createElement('link');
+            link.rel = 'icon';
+            // FIXED: Replaced non-existent 'vercel' icon with the 'browser' icon
+            const svgFavicon = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='currentColor'><path d='${icons.browser}'/></svg>`;
+            link.href = `data:image/svg+xml,${encodeURIComponent(svgFavicon)}`;
+            document.head.appendChild(link);
+        }
 
         // --- RENDER FUNCTIONS ---
         function renderTitle() {
@@ -610,33 +611,41 @@
         }
 
         function renderIconSelector(container, hiddenInput, selectedIcon = '') {
-            container.innerHTML = '';
-            const iconNames = Object.keys(config.icons).sort();
-            const noneTag = document.createElement('button');
-            noneTag.type = 'button';
-            noneTag.className = 'icon-tag-btn none-btn';
-            noneTag.textContent = 'None';
-            noneTag.dataset.icon = '';
-            if (selectedIcon === '' || !selectedIcon) { noneTag.classList.add('active'); }
-            container.appendChild(noneTag);
-            iconNames.forEach(iconName => {
-                const tag = document.createElement('button');
-                tag.type = 'button';
-                tag.className = 'icon-tag-btn';
-                tag.dataset.icon = iconName;
-                tag.title = iconName;
-                const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-                svg.setAttribute('viewBox', '0 0 24 24');
-                svg.setAttribute('fill', 'currentColor');
-                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-                path.setAttribute('d', config.icons[iconName]);
-                svg.appendChild(path);
-                tag.appendChild(svg);
-                if (iconName === selectedIcon) { tag.classList.add('active'); }
-                container.appendChild(tag);
-            });
-            hiddenInput.value = selectedIcon || '';
-        }
+            container.innerHTML = '';
+            // ADDED: Define icons that are for internal UI use only
+            const internalIcons = ['search', 'edit', 'delete', 'add', 'copy', 'check', 'clipboard', 'upload', 'download', 'reset'];
+            
+            // UPDATED: Filter the main icon list to exclude internal icons
+            const iconNames = Object.keys(config.icons)
+                                .filter(icon => !internalIcons.includes(icon))
+                                .sort();
+
+            const noneTag = document.createElement('button');
+            noneTag.type = 'button';
+            noneTag.className = 'icon-tag-btn none-btn';
+            noneTag.textContent = 'None';
+            noneTag.dataset.icon = '';
+            if (selectedIcon === '' || !selectedIcon) { noneTag.classList.add('active'); }
+            container.appendChild(noneTag);
+            
+            iconNames.forEach(iconName => {
+                const tag = document.createElement('button');
+                tag.type = 'button';
+                tag.className = 'icon-tag-btn';
+                tag.dataset.icon = iconName;
+                tag.title = iconName;
+                const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                svg.setAttribute('viewBox', '0 0 24 24');
+                svg.setAttribute('fill', 'currentColor');
+                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                path.setAttribute('d', config.icons[iconName]);
+                svg.appendChild(path);
+                tag.appendChild(svg);
+                if (iconName === selectedIcon) { tag.classList.add('active'); }
+                container.appendChild(tag);
+            });
+            hiddenInput.value = selectedIcon || '';
+        }
 
         function showCategoryModal(categoryName = null) {
             editingCategoryName = categoryName;
