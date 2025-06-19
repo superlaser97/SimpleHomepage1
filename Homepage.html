@@ -4,7 +4,310 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Homepage</title>
-    <link href="./style.css" rel="stylesheet">
+    <style>
+        /* Tailwind CSS will be loaded via CDN, custom styles below */
+        
+        /* Default "comfortable" styles implicitly applied by your base classes */
+        
+        /* Compact styles when .container has .style-compact class */
+        .container.style-compact {
+            padding: 0.5rem; /* Equivalent to p-2 */
+        }
+        
+        .container.style-compact #page-title {
+            font-size: 1.875rem; /* text-3xl */
+            margin-bottom: 1rem; /* mb-4 */
+        }
+        
+        .container.style-compact #shortcuts-container,
+        .container.style-compact #notes-container {
+            gap: 0.5rem; /* gap-2 */
+            margin-bottom: 1rem; /* mb-4 for shortcuts-container */
+        }
+        
+        .container.style-compact .p-5 { /* For categoryWrapper and noteCard */
+            padding: 0.75rem; /* p-3 */
+            border-radius: 0.5rem; /* rounded-lg */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* shadow-lg */
+            background-color: rgba(255, 255, 255, 0.5); /* bg-white/50 */
+        }
+        .dark .container.style-compact .p-5 {
+            background-color: rgba(31, 41, 55, 0.5); /* dark:bg-gray-800/50 */
+        }
+        
+        .container.style-compact .group.flex.items-center { /* For shortcut elements */
+            gap: 0.5rem; /* gap-2 */
+            padding: 0.5rem; /* p-2 */
+            font-size: 0.875rem; /* text-sm */
+            background-color: rgba(255, 255, 255, 0.6); /* bg-white/60 */
+        }
+        .dark .container.style-compact .group.flex.items-center {
+            background-color: rgba(31, 41, 55, 0.6); /* dark:bg-gray-800/60 */
+        }
+        
+        .container.style-compact .group.flex.items-center .flex-shrink-0 { /* For shortcut icons */
+            width: 1.25rem; /* w-5 */
+            height: 1.25rem; /* h-5 */
+        }
+        
+        .container.style-compact .font-semibold { /* For shortcut text */
+            font-weight: 400; /* font-normal */
+        }
+        
+        .container.style-compact .flex.items-center.gap-3.mb-4 { /* For category headers */
+            gap: 0.5rem; /* gap-2 */
+            margin-bottom: 0.5rem; /* mb-2 */
+            padding-bottom: 0.25rem; /* pb-1 */
+            border-bottom-width: 1px; /* border-b */
+        }
+        .container.style-compact .w-3.h-3.rounded-full { /* For category color dots */
+            width: 0.5rem; /* w-2 */
+            height: 0.5rem; /* h-2 */
+        }
+        
+        .container.style-compact .text-xl.font-bold { /* For category titles */
+            font-size: 1.125rem; /* text-lg */
+            font-weight: 600; /* font-semibold */
+        }
+        
+        /* Notes specific adjustments for compact mode */
+        .container.style-compact #notes-container .text-gray-600 {
+            font-size: 0.875rem; /* text-sm */
+        }
+        
+        .container.style-compact #notes-container .mb-2 {
+            margin-bottom: 0.25rem; /* mb-1 */
+        }
+        
+        /* Read more button in compact mode */
+        .container.style-compact .pt-2 {
+            padding-top: 0.25rem; /* pt-1 */
+        }
+        .container.style-compact .text-sm {
+            font-size: 0.75rem; /* text-xs */
+        }
+        
+        /* Header adjustments for notes in compact mode (preview within cards) */
+        .container.style-compact h2.text-md { /* for h2 in preview */
+            font-size: 0.875rem; /* text-sm */
+        }
+        .container.style-compact h3.text-sm { /* for h3 in preview */
+            font-size: 0.75rem; /* text-xs */
+        }
+        .container.style-compact h4.text-xs,
+        .container.style-compact h5.text-xs,
+        .container.style-compact h6.text-xs { /* for h4, h5, h6 in preview */
+            font-size: 0.75rem; /* text-xs */
+        }
+        
+        .container.style-compact .note-card h3.text-lg { /* Note title */
+            font-size: 1rem; /* text-base */
+        }
+        /*************************************************************/
+        
+        /*
+         * Custom Scrollbar Styling
+         * -----------------------------------
+         */
+        
+        /* For Webkit-based browsers (Chrome, Safari, Edge) */
+        .dark .custom-scrollbar::-webkit-scrollbar {
+          width: 8px; /* Width of the scrollbar */
+        }
+        
+        .dark .custom-scrollbar::-webkit-scrollbar-track {
+          background: transparent; /* Makes the track invisible */
+        }
+        
+        .dark .custom-scrollbar::-webkit-scrollbar-thumb {
+          background-color: #4b5563; /* A mid-gray color (Tailwind gray-600) */
+          border-radius: 20px; /* Fully rounded corners */
+        }
+        
+        .dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background-color: #6b7280; /* A lighter gray on hover (Tailwind gray-500) */
+        }
+        
+        /* For Firefox */
+        .dark .custom-scrollbar {
+          scrollbar-width: thin; /* Can be 'auto', 'thin', or 'none' */
+          scrollbar-color: #6b7280 transparent; /* thumb color, track color */
+        }
+        
+        /* Add a keyframe animation for a subtle fade-in effect on load */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+        /* Stagger the animation for each category */
+        #shortcuts-container > div, #notes-container > div {
+            animation: fadeIn 0.5s ease-out forwards;
+            opacity: 0;
+        }
+        #note-modal, #theme-switcher {
+            z-index: 50;
+        }
+        
+        /* Fullscreen Modal */
+        #note-modal.is-active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        
+        #note-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8); /* Dark overlay */
+            backdrop-filter: blur(10px); /* Frosted glass effect */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.3s ease;
+            transform: translateY(20px); /* Start slightly below for slide-up effect */
+            z-index: 9999; /* Ensure it's on top of everything */
+        }
+        
+        #note-modal-content {
+            background-color: #ffffff; /* White background for light theme */
+            color: #333333; /* Dark text for light theme */
+            padding: 2.5rem; /* Increased padding */
+            border-radius: 1rem; /* More rounded corners */
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            width: 90%; /* Wider modal */
+            max-width: 800px; /* Max width for larger screens */
+            max-height: 90vh; /* Max height to prevent overflow */
+            overflow-y: auto; /* Enable scrolling for long content */
+            position: relative;
+            transform: scale(0.95); /* Slightly smaller initially for pop-in effect */
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+        
+        /* Dark mode adjustments for modal content */
+        .dark #note-modal-content {
+            background-color: #1a202c; /* Dark background for dark theme */
+            color: #e2e8f0; /* Light text for dark theme */
+        }
+        
+        /* Animation for modal content */
+        #note-modal.is-active #note-modal-content {
+            transform: scale(1);
+            opacity: 1;
+        }
+        
+        /* Close button style */
+        #modal-close-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: none;
+            border: none;
+            font-size: 1.8rem; /* Larger close button */
+            color: #999;
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+        
+        #modal-close-btn:hover {
+            color: #333; /* Darker on hover for light theme */
+        }
+        
+        .dark #modal-close-btn:hover {
+            color: #eee; /* Lighter on hover for dark theme */
+        }
+        
+        /* Modal title and body styling */
+        #modal-title {
+            font-size: 2rem; /* Larger title */
+            margin-bottom: 1rem;
+            color: #2c5282; /* A shade of blue for the title */
+        }
+        
+        .dark #modal-title {
+            color: #90cdf4; /* Lighter blue for dark theme */
+        }
+        
+        #modal-body {
+            font-size: 1.1rem; /* Slightly larger body text */
+            line-height: 1.6;
+        }
+        
+        
+        .tab-button { cursor: pointer; }
+        .tab-button.active-tab { border-color: #0ea5e9 !important; color: #0284c7 !important; }
+        .dark .tab-button.active-tab { border-color: #38bdf8 !important; color: #38bdf8 !important; }
+        .hidden { display: none !important; }
+        .edit-modal { position: fixed; inset: 0; background-color: rgba(0,0,0,0.7); backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: center; opacity: 0; visibility: hidden; transition: opacity 0.3s, visibility 0.3s; z-index: 1000; }
+        .edit-modal.is-active { opacity: 1; visibility: visible; }
+        .edit-modal-content { background-color: white; padding: 1.5rem 2rem; border-radius: 0.75rem; width: 90%; max-width: 500px; transform: scale(0.95); transition: transform 0.3s; }
+        /* ++ MODIFIED ++ Larger note editing modal */
+        #edit-note-modal .edit-modal-content { max-width: 800px; width: 90%; height: 70%; display: flex; flex-direction: column; }
+        #edit-note-modal form { height: 100%; display: flex; flex-direction: column; }
+        #edit-note-modal #note-content-input { flex-grow: 1; resize: none; }
+        
+        .edit-modal.is-active .edit-modal-content { transform: scale(1); }
+        .dark .edit-modal-content { background-color: #1f2937; }
+        .form-field { margin-bottom: 1rem; }
+        .form-field label { display: block; font-weight: 600; margin-bottom: 0.5rem; color: #4a5568; }
+        .dark .form-field label { color: #cbd5e0; }
+        .form-field input, .form-field textarea { width: 100%; padding: 0.6rem 0.8rem; border-radius: 0.5rem; border: 1px solid #d1d5db; background-color: #f9fafb; color: #1f2937; }
+        .dark .form-field input, .dark .form-field textarea { border-color: #4b5563; background-color: #374151; color: #f3f4f6; }
+        .form-field textarea { min-height: 120px; resize: vertical; }
+        .form-actions { display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.5rem; }
+        .btn { padding: 0.5rem 1rem; border-radius: 0.5rem; font-weight: 600; cursor: pointer; transition: background-color 0.2s; }
+        .btn-primary { background-color: #3b82f6; color: white; border: none; }
+        .btn-primary:hover { background-color: #2563eb; }
+        .btn-secondary { background-color: #e5e7eb; color: #1f2937; border: none; }
+        .dark .btn-secondary { background-color: #4b5563; color: #f3f4f6; }
+        .dark .btn-secondary:hover { background-color: #d1d5db; }
+        .dark .btn-secondary:hover { background-color: #6b7280; }
+        
+        .category-selector-container, .icon-selector-container, .color-selector-container { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+        
+        .category-tag-wrapper { position: relative; }
+        .category-tag-btn { display: inline-flex; align-items: center; padding: 0.375rem 0.875rem; border-radius: 9999px; font-size: 0.875rem; font-weight: 500; cursor: pointer; border: 1px solid transparent; transition: all 0.2s; }
+        .category-tag-controls { position: absolute; top: -8px; right: -8px; display: flex; gap: 4px; opacity: 0; transform: scale(0.5); transition: all 0.2s ease-in-out; }
+        .category-tag-wrapper:hover .category-tag-controls { opacity: 1; transform: scale(1); }
+        .category-edit-btn, .category-delete-btn { width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; border: none; padding: 4px; }
+        .category-edit-btn { background-color: #3b82f6; color: white; }
+        .category-delete-btn { background-color: #ef4444; color: white; }
+        .category-edit-btn svg, .category-delete-btn svg { width: 12px; height: 12px; }
+        
+        .category-tag-btn { background-color: #e5e7eb; color: #374151; }
+        .category-tag-btn:hover { background-color: #d1d5db; }
+        .category-tag-btn.active { background-color: #3b82f6; color: white; font-weight: 600; }
+        .dark .category-tag-btn { background-color: #4b5563; color: #e5e7eb; }
+        .dark .category-tag-btn:hover { background-color: #6b7280; }
+        .dark .category-tag-btn.active { background-color: #9ca3af; color: #1f2937; font-weight: 600; }
+        
+        .icon-tag-btn { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; padding: 0.5rem; border-radius: 0.5rem; cursor: pointer; border: 2px solid transparent; transition: all 0.2s; }
+        .icon-tag-btn.none-btn { width: auto; padding-left: 1rem; padding-right: 1rem; }
+        .icon-tag-btn svg { width: 100%; height: 100%; }
+        .icon-tag-btn { background-color: #f3f4f6; color: #4b5563; }
+        .icon-tag-btn:hover { border-color: #d1d5db; }
+        .icon-tag-btn.active { border-color: #3b82f6; background-color: #eff6ff; color: #2563eb; }
+        .dark .icon-tag-btn { background-color: #374151; color: #d1d5db; }
+        .dark .icon-tag-btn:hover { border-color: #6b7280; }
+        .dark .icon-tag-btn.active { border-color: #60a5fa; background-color: #1e40af; color: #eff6ff; }
+        
+        .color-tag-btn { width: 36px; height: 36px; border-radius: 9999px; cursor: pointer; border: 3px solid transparent; transition: all 0.2s ease-in-out; display: flex; align-items: center; justify-content: center; }
+        .dark .color-tag-btn { border-color: #1f2937; }
+        body:not(.dark) .color-tag-btn { border-color: #ffffff; }
+        .color-tag-btn.active { transform: scale(1.1); }
+        .dark .color-tag-btn.active { border-color: #9ca3af; }
+        body:not(.dark) .color-tag-btn.active { border-color: #d1d5db; }
+        .color-tag-btn svg { width: 20px; height: 20px; color: white; opacity: 0; transition: opacity 0.2s; }
+        .color-tag-btn.active svg { opacity: 1; }
+    </style>
+    <script src="https://cdn.tailwindcss.com"></script>
     <script>
         // ---------------------
         // --- CONFIGURATION ---
@@ -24,7 +327,10 @@
             "add": "M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z",
             "copy": "M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z",
             "check": "M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z",
-            "clipboard": "M19 2h-4.18C14.4 1.15 13.55 0.5 12.5 0.5S10.6 1.15 10.18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h13c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm7 18H6V4h2v2h9V4h2v16z"
+            "clipboard": "M19 2h-4.18C14.4 1.15 13.55 0.5 12.5 0.5S10.6 1.15 10.18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h13c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm7 18H6V4h2v2h9V4h2v16z",
+            "upload": "M9 16h6v-6h4l-8-8-8 8h4v6zm-4 2h14v2H5v-2z",
+            "download": "M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z",
+            "reset": "M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"
         };
         
         const SAFE_COLORS = {
@@ -33,6 +339,7 @@
         };
         const PREDEFINED_COLORS = Object.keys(SAFE_COLORS);
 
+        // Legacy config: will be used only if nothing is in localStorage
         const encodedConfig = ``;
 
         // --- UTILITY FUNCTIONS ---
@@ -45,8 +352,8 @@
             messageBox.className = 'fixed top-5 left-1/2 -translate-x-1/2 w-full max-w-sm p-4 rounded-lg shadow-lg text-white z-[9999] transition-all duration-300 transform scale-95 opacity-0';
             
             const colors = {
-                info: 'bg-sky-500', success: 'bg-green-500',
-                warning: 'bg-orange-500', error: 'bg-red-500'
+                info: 'bg-sky-600', success: 'bg-green-600',
+                warning: 'bg-orange-600', error: 'bg-red-600'
             };
             messageBox.classList.add(colors[type] || colors.info);
             messageBox.innerHTML = `
@@ -60,7 +367,6 @@
             `;
             document.body.appendChild(messageBox);
             
-            // Trigger animation
             setTimeout(() => {
                 messageBox.classList.remove('scale-95', 'opacity-0');
             }, 10);
@@ -80,10 +386,11 @@
             const confirmationModal = document.createElement('div');
             confirmationModal.id = 'confirmation-modal';
             confirmationModal.className = 'edit-modal is-active';
+            
             confirmationModal.innerHTML = `
-                <div class="edit-modal-content">
-                    <h2 class="text-xl font-bold mb-4 text-gray-800 dark:text-gray-100">${title}</h2>
-                    <p class="mb-6 text-gray-600 dark:text-gray-300 whitespace-pre-line">${message}</p>
+                <div class="edit-modal-content !max-w-sm">
+                    <h2 class="text-lg font-bold mb-2 text-gray-800 dark:text-gray-100">${title}</h2>
+                    <p class="text-sm mb-4 text-gray-600 dark:text-gray-300 whitespace-pre-line">${message}</p>
                     <div class="form-actions">
                         <button id="confirm-cancel" class="btn btn-secondary">Cancel</button>
                         <button id="confirm-ok" class="btn btn-primary bg-red-600 hover:bg-red-700">Confirm</button>
@@ -101,25 +408,57 @@
             };
         }
 
+        function saveConfig() {
+            const configToSave = {
+                pageTitle: config.pageTitle,
+                notes: config.notes,
+                shortcuts: config.shortcuts,
+                categoryConfig: config.categoryConfig,
+            };
+            try {
+                const jsonString = JSON.stringify(configToSave);
+                localStorage.setItem('homepageConfig', jsonString);
+                console.log("Configuration saved to localStorage.");
+            } catch (e) {
+                console.error("Failed to save config to localStorage:", e);
+                showMessage("Save Error", "Could not save configuration to local storage.", "error");
+            }
+        }
 
         function loadConfig() {
             const defaultConfig = {
                 pageTitle: "My Homepage",
-                notes: [{ title: "Welcome!", content: "This is your new homepage.\nClick the controls that appear on hover to edit or delete items.\n\nTo save your changes, click the copy button in the top right, then paste the copied string into the `encodedConfig` variable in this page's HTML file." }],
+                notes: [{ title: "Welcome!", content: "This is your new homepage.\nYour configuration is now saved automatically to your browser's local storage.\n\n- Use the controls in the top right to change the theme, style, or import/export your settings.\n- Click the page title to edit it." }],
                 shortcuts: [{ name: "Google", category: "Search", url: "https://www.google.com", icon: "google" }],
                 categoryConfig: { "Search": { "color": "sky" }, "General": { "color": "gray" } }
             };
 
-            if (!encodedConfig || encodedConfig.trim() === '') { return defaultConfig; }
-            try {
-                const decodedJson = atob(encodedConfig);
-                const parsedConfig = JSON.parse(decodedJson);
-                return { ...defaultConfig, ...parsedConfig };
-            } catch (e) {
-                console.error("Failed to load or parse config, loading default. Error:", e);
-                showMessage("Config Error", "Could not load your saved configuration. The string may be invalid. Loading a default page instead.", "error");
-                return defaultConfig;
+            // 1. Try loading from localStorage
+            const savedConfig = localStorage.getItem('homepageConfig');
+            if (savedConfig) {
+                try {
+                    const parsedConfig = JSON.parse(savedConfig);
+                    return { ...defaultConfig, ...parsedConfig };
+                } catch (e) {
+                    console.error("Failed to parse config from localStorage, loading default. Error:", e);
+                    showMessage("Config Error", "Could not load your saved configuration from local storage. Loading default page.", "error");
+                }
             }
+
+            // 2. Fallback to encodedConfig variable (for legacy support)
+            if (encodedConfig && encodedConfig.trim() !== '') {
+                try {
+                    const decodedJson = atob(encodedConfig);
+                    const parsedConfig = JSON.parse(decodedJson);
+                    return { ...defaultConfig, ...parsedConfig };
+                } catch (e) {
+                    console.error("Failed to load or parse encodedConfig, loading default. Error:", e);
+                    showMessage("Config Error", "Could not load your saved configuration from the HTML file. Loading default page.", "error");
+                }
+            }
+
+            // 3. Return default if nothing else works
+            return defaultConfig;
         }
 
         let config = loadConfig();
@@ -137,8 +476,8 @@
 
         // --- RENDER FUNCTIONS ---
         function renderTitle() {
-            document.getElementById('page-title').textContent = pageTitle;
-            document.title = pageTitle;
+            document.getElementById('page-title').textContent = config.pageTitle;
+            document.title = config.pageTitle;
         }
 
         // --- GREETING FUNCTION ---
@@ -202,6 +541,7 @@
                         if (index > -1) config.notes.splice(index, 1);
                         renderNotes();
                     }
+                    saveConfig();
                 });
             };
             
@@ -356,7 +696,7 @@
                });
                flushParagraph(); closeList();
                return processedLines.join('');
-       }
+        }
         
         function renderNotes(query = '') {
             const notesContainer = document.getElementById('notes-container');
@@ -462,6 +802,7 @@
             const allCategories = [...new Set(['General', ...shortcutCategories, ...configuredCategories])].sort();
             
             allCategories.forEach(category => {
+                if(!category) return; // Skip null/undefined categories
                 const tagWrapper = document.createElement('div');
                 tagWrapper.className = 'category-tag-wrapper';
 
@@ -516,6 +857,7 @@
                 const newSelectedCategory = categoryInput.value === categoryToDelete ? 'General' : categoryInput.value;
                 renderCategorySelector(categoryContainer, categoryInput, newSelectedCategory);
                 renderShortcuts();
+                saveConfig();
             });
         }
 
@@ -650,6 +992,16 @@
         }
 
         function setupEditing() {
+            document.getElementById('page-title').addEventListener('blur', (e) => {
+                const newTitle = e.target.textContent;
+                if (newTitle !== config.pageTitle) {
+                    config.pageTitle = newTitle;
+                    document.title = newTitle;
+                    saveConfig();
+                    showMessage("Title Updated", "Page title has been saved.", "success");
+                }
+            });
+            
             document.getElementById('edit-shortcut-form').addEventListener('submit', (e) => {
                 e.preventDefault();
                 const updatedShortcut = {
@@ -662,6 +1014,7 @@
                 else { config.shortcuts.push(updatedShortcut); }
                 hideShortcutModal();
                 renderShortcuts(document.getElementById('search-input').value);
+                saveConfig();
             });
             document.getElementById('edit-shortcut-modal').addEventListener('click', (e) => { if(e.target === e.currentTarget) hideShortcutModal() });
             document.getElementById('shortcut-modal-cancel').addEventListener('click', hideShortcutModal);
@@ -713,6 +1066,7 @@
                 const categoryInput = document.getElementById('shortcut-category-input');
                 renderCategorySelector(categoryContainer, categoryInput, newName);
                 renderShortcuts();
+                saveConfig();
             });
             document.getElementById('new-category-color-selector').addEventListener('click', (e) => {
                 const clickedTag = e.target.closest('.color-tag-btn');
@@ -737,6 +1091,7 @@
                 else { config.notes.push(updatedNote); }
                 hideNoteEditModal();
                 renderNotes(document.getElementById('search-input').value);
+                saveConfig();
             });
             document.getElementById('edit-note-modal').addEventListener('click', (e) => { if(e.target === e.currentTarget) hideNoteEditModal() });
             document.getElementById('note-modal-cancel').addEventListener('click', hideNoteEditModal);
@@ -847,28 +1202,14 @@
             applyDisplayStyle(savedDisplayStyle === 'compact');
         }
 
-        function setupConfigCopy() {
-            const copyBtn = document.getElementById('copy-config-btn');
-            const copyWrapper = document.getElementById('copy-config-wrapper');
-            const copyIcon = document.getElementById('config-copy-icon');
-            const successIcon = document.getElementById('config-copy-success-icon');
-
-            // Create a popover element for instructions
-            const popover = document.createElement('div');
-            popover.className = 'absolute top-full mt-2 right-0 w-80 p-4 rounded-xl bg-gray-900/90 dark:bg-gray-900/80 backdrop-blur-sm border border-gray-700 text-white text-sm font-normal shadow-lg z-50 opacity-0 pointer-events-none transition-all duration-300 transform scale-95';
-            popover.innerHTML = `
-                <h4 class="font-bold mb-2 text-sky-400 flex items-center gap-2">
-                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
-                    Configuration Copied!
-                </h4>
-                <p class="text-gray-300 leading-relaxed">To save your layout, open this page's <code class="bg-gray-700 text-sky-300 rounded px-1 py-0.5 text-xs">.html</code> file and paste the copied string into the <code class="bg-gray-700 text-sky-300 rounded px-1 py-0.5 text-xs">encodedConfig</code> variable, then save the file.</p>
-            `;
-            if (copyWrapper) {
-                copyWrapper.appendChild(popover);
-            }
+        function setupConfigActions() {
+            const exportBtn = document.getElementById('export-config-btn');
+            const importBtn = document.getElementById('import-config-btn');
+            const importModal = document.getElementById('import-config-modal');
+            const resetBtn = document.getElementById('reset-config-btn');
             
-            copyBtn.addEventListener('click', () => {
-                config.pageTitle = document.getElementById('page-title').textContent;
+            // Export
+            exportBtn.addEventListener('click', () => {
                 const configToSave = {
                     pageTitle: config.pageTitle,
                     notes: config.notes,
@@ -878,25 +1219,61 @@
                 const jsonString = JSON.stringify(configToSave);
                 const base64String = btoa(unescape(encodeURIComponent(jsonString)));
                 navigator.clipboard.writeText(base64String).then(() => {
-                    copyIcon.classList.add('hidden');
-                    successIcon.classList.remove('hidden');
-                    
-                    popover.classList.remove('opacity-0', 'scale-95', 'pointer-events-none');
-                    popover.classList.add('scale-100');
-
-                    setTimeout(() => {
-                        copyIcon.classList.remove('hidden');
-                        successIcon.classList.add('hidden');
-                        popover.classList.add('opacity-0', 'scale-95', 'pointer-events-none');
-                        popover.classList.remove('scale-100');
-                    }, 7000); // Keep it visible for 7 seconds
+                    showMessage('Export Successful', 'Configuration string copied to clipboard.', 'success');
                 }).catch(err => {
-                    showMessage('Copy Failed', 'Could not copy configuration to clipboard.', 'error');
+                    showMessage('Export Failed', 'Could not copy configuration to clipboard.', 'error');
                     console.error('Failed to copy config: ', err);
                 });
             });
-        }
 
+            // Import
+            const showImportModal = () => { importModal.classList.add('is-active'); document.body.style.overflow = 'hidden'; };
+            const hideImportModal = () => { importModal.classList.remove('is-active'); document.body.style.overflow = ''; };
+            importBtn.addEventListener('click', showImportModal);
+            document.getElementById('import-modal-cancel').addEventListener('click', hideImportModal);
+            importModal.addEventListener('click', (e) => { if(e.target === e.currentTarget) hideImportModal(); });
+            
+            document.getElementById('import-config-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const importString = document.getElementById('import-config-string').value;
+                if (!importString) {
+                    showMessage('Import Error', 'Configuration string cannot be empty.', 'warning');
+                    return;
+                }
+                try {
+                    const decodedJson = atob(importString);
+                    const parsedConfig = JSON.parse(decodeURIComponent(escape(decodedJson)));
+                    
+                    config.pageTitle = parsedConfig.pageTitle || 'My Homepage';
+                    config.notes = parsedConfig.notes || [];
+                    config.shortcuts = parsedConfig.shortcuts || [];
+                    config.categoryConfig = parsedConfig.categoryConfig || {};
+
+                    saveConfig();
+                    hideImportModal();
+                    showMessage('Import Successful', 'Configuration has been loaded and saved.', 'success');
+                    
+                    renderTitle();
+                    renderShortcuts();
+                    renderNotes();
+
+                } catch (err) {
+                    showMessage('Import Failed', 'The provided configuration string is invalid.', 'error');
+                    console.error('Failed to import config:', err);
+                }
+            });
+
+            // Reset
+            resetBtn.addEventListener('click', () => {
+                showConfirmation('Reset Configuration', 'Are you sure you want to reset all settings to their default values? This action cannot be undone.', () => {
+                    localStorage.removeItem('homepageConfig');
+                    showMessage('Configuration Reset', 'The page will now reload with default settings.', 'success');
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1500);
+                });
+            });
+        }
 
         // --- INITIALIZATION ---
         window.onload = function() {
@@ -913,7 +1290,7 @@
             setupTabs();
             setupModal();
             setupEditing();
-            setupConfigCopy();
+            setupConfigActions();
             window.addEventListener('keydown', (event) => {
                 if (event.key === '/' && document.activeElement.tagName.toLowerCase() !== 'input' && document.activeElement.tagName.toLowerCase() !== 'textarea') {
                     event.preventDefault();
@@ -924,6 +1301,7 @@
                     if (document.getElementById('edit-shortcut-modal').classList.contains('is-active')) hideShortcutModal();
                     if (document.getElementById('edit-note-modal').classList.contains('is-active')) hideNoteEditModal();
                     if (document.getElementById('add-category-modal').classList.contains('is-active')) hideCategoryModal();
+                    if (document.getElementById('import-config-modal').classList.contains('is-active')) document.getElementById('import-config-modal').classList.remove('is-active');
                 }
             });
         };
@@ -932,20 +1310,23 @@
 <body class="bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-white transition-colors duration-300">
     
     <div class="fixed top-4 right-4 flex space-x-2 z-50">
-        <div id="copy-config-wrapper" class="relative">
-            <button id="copy-config-btn" class="p-2 rounded-full bg-gray-500/20 hover:bg-gray-500/40 backdrop-blur-sm transition-colors cursor-pointer" title="Copy configuration to save changes" aria-label="Copy Configuration to Clipboard">
-                <svg id="config-copy-icon" class="w-6 h-6 text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
-                <svg id="config-copy-success-icon" class="w-6 h-6 text-green-500 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
-            </button>
-        </div>
-        <button id="theme-switcher" class="p-2 rounded-full bg-gray-500/20 hover:bg-gray-500/40 backdrop-blur-sm transition-colors cursor-pointer" aria-label="Toggle theme"><svg id="sun-icon" class="w-6 h-6 text-yellow-500 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg><svg id="moon-icon" class="w-6 h-6 text-gray-200 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg></button>
+        <button id="reset-config-btn" class="p-2 rounded-full bg-gray-500/20 hover:bg-gray-500/40 backdrop-blur-sm transition-colors cursor-pointer" title="Reset Configuration" aria-label="Reset Configuration">
+            <svg class="w-5 h-5 text-gray-200" fill="currentColor" viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg>
+        </button>
+        <button id="import-config-btn" class="p-2 rounded-full bg-gray-500/20 hover:bg-gray-500/40 backdrop-blur-sm transition-colors cursor-pointer" title="Import Configuration" aria-label="Import Configuration">
+            <svg class="w-5 h-5 text-gray-200" fill="currentColor" viewBox="0 0 24 24"><path d="M9 16h6v-6h4l-8-8-8 8h4v6zm-4 2h14v2H5v-2z"/></svg>
+        </button>
+        <button id="export-config-btn" class="p-2 rounded-full bg-gray-500/20 hover:bg-gray-500/40 backdrop-blur-sm transition-colors cursor-pointer" title="Export Configuration" aria-label="Export Configuration">
+            <svg class="w-5 h-5 text-gray-200" fill="currentColor" viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+        </button>
+        <button id="theme-switcher" class="p-2 rounded-full bg-gray-500/20 hover:bg-gray-500/40 backdrop-blur-sm transition-colors cursor-pointer" aria-label="Toggle theme"><svg id="sun-icon" class="w-5 h-5 text-yellow-500 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg><svg id="moon-icon" class="w-5 h-5 text-gray-200 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg></button>
         <button id="style-switcher" class="p-2 rounded-full bg-gray-500/20 hover:bg-gray-500/40 backdrop-blur-sm transition-colors cursor-pointer" aria-label="Toggle display style"><span id="style-text" class="text-sm font-semibold">Compact</span></button>
     </div>
 
     <div class="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-white/10 via-white/0 to-indigo-100/20 dark:from-gray-900 dark:via-gray-900 dark:to-indigo-900/40 -z-10"></div>
     
     <div class="container mx-auto p-4 sm:p-6 lg:p-8 transition-all duration-300 style-compact:p-2 style-compact:sm:p-4 style-compact:lg:p-6">
-        <div class="mb-8 style-compact:mb-4"><div class="flex items-baseline gap-4"><h1 id="page-title" class="text-4xl font-bold text-left fade-in style-compact:text-3xl"></h1><div id="clock" class="text-xl font-mono text-gray-500 dark:text-gray-400 style-compact:text-lg"></div></div><p id="greeter" class="text-gray-500 dark:text-gray-400 fade-in"></p><p id="date-display" class="text-gray-500 dark:text-gray-400 fade-in"></p></div>
+        <div class="mb-8 style-compact:mb-4"><div class="flex items-baseline gap-4"><h1 id="page-title" contenteditable="true" class="text-4xl font-bold text-left fade-in style-compact:text-3xl rounded-lg px-2 -mx-2 hover:bg-gray-500/10 focus:bg-gray-500/20 outline-none transition-colors" title="Click to edit"></h1><div id="clock" class="text-xl font-mono text-gray-500 dark:text-gray-400 style-compact:text-lg"></div></div><p id="greeter" class="text-gray-500 dark:text-gray-400 fade-in"></p><p id="date-display" class="text-gray-500 dark:text-gray-400 fade-in"></p></div>
         <div class="mb-6 style-compact:mb-4"><div id="search-box" class="relative flex items-center p-1 rounded-xl border border-gray-300/80 dark:border-gray-700/80 bg-white/40 dark:bg-gray-800/40 backdrop-blur-sm shadow-lg transition-colors"><div class="w-10 h-10 flex items-center justify-center flex-shrink-0"><svg class="w-6 h-6 text-gray-400 dark:text-gray-500" fill="currentColor" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"></path></svg></div><input id="search-input" type="text" placeholder="Search shortcuts... (Press '/' to focus)" class="w-full bg-transparent p-2 text-gray-800 dark:text-gray-200 focus:outline-none"></div></div>
         <div class="mb-4 flex items-center border-b border-gray-300/80 dark:border-gray-700/80"><button id="tab-shortcuts" class="tab-button px-4 py-2 text-sm font-semibold border-b-2 border-transparent transition-colors duration-300 text-gray-500 hover:text-gray-800 dark:hover:text-gray-200">Shortcuts</button><button id="tab-notes" class="tab-button px-4 py-2 text-sm font-semibold border-b-2 border-transparent transition-colors duration-300 text-gray-500 hover:text-gray-800 dark:hover:text-gray-200">Notes</button><div class="ml-auto"><button id="add-shortcut-btn" class="hidden cursor-pointer flex items-center gap-2 px-3 py-1.5 rounded-lg bg-sky-500/10 hover:bg-sky-500/20 dark:bg-sky-400/10 dark:hover:bg-sky-400/20 transition-colors"><span class="text-sm font-semibold text-sky-700 dark:text-sky-200">Add Shortcut</span></button><button id="add-note-btn" class="hidden cursor-pointer flex items-center gap-2 px-3 py-1.5 rounded-lg bg-sky-500/10 hover:bg-sky-500/20 dark:bg-sky-400/10 dark:hover:bg-sky-400/20 transition-colors"><span class="text-sm font-semibold text-sky-700 dark:text-sky-200">Add Note</span></button></div></div>
         <div id="shortcuts-container" class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-3 mb-6 style-compact:gap-2 style-compact:mb-4"></div>
@@ -955,8 +1336,8 @@
     <div id="note-modal" class="edit-modal"><div class="edit-modal-content"><button id="modal-close-btn" class="absolute top-4 right-4 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white text-3xl leading-none z-10 cursor-pointer">×</button><div class="flex-grow overflow-y-auto" style="scrollbar-width: thin; scrollbar-color: #6b7280 transparent;"><div class="p-8"><h2 id="modal-title" class="text-2xl font-bold mb-4 text-gray-900 dark:text-white"></h2><div id="modal-body" class="text-gray-700 dark:text-gray-200 whitespace-pre-wrap"></div></div></div><div class="flex-shrink-0 pt-4 pb-6 px-8 border-t border-gray-200 dark:border-gray-700 flex justify-end"><button id="modal-copy-btn" class="flex items-center gap-2 px-4 py-2 rounded-md bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors cursor-pointer" aria-label="Copy content"><span id="copy-btn-text" class="text-sm font-medium text-gray-700 dark:text-gray-200">Copy</span><svg id="copy-btn-icon" class="w-5 h-5 text-gray-500 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg><svg id="copy-btn-success-icon" class="w-5 h-5 text-green-500 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg></button></div></div></div>
     <div id="edit-shortcut-modal" class="edit-modal"><div class="edit-modal-content"><h2 id="edit-shortcut-modal-title" class="text-2xl font-bold mb-6 text-gray-800 dark:text-gray-100"></h2><form id="edit-shortcut-form"><div class="form-field"><label for="shortcut-name-input">Name</label><input id="shortcut-name-input" type="text" required></div><div class="form-field"><label for="shortcut-url-input">URL</label><input id="shortcut-url-input" type="url" required></div><div class="form-field"><label>Category</label><div id="shortcut-category-selector" class="category-selector-container"></div><input id="shortcut-category-input" type="hidden" required></div><div class="form-field"><label>Icon</label><div id="shortcut-icon-selector" class="icon-selector-container"></div><input id="shortcut-icon-input" type="hidden"></div><div class="form-actions"><button type="button" id="shortcut-modal-cancel" class="btn btn-secondary">Cancel</button><button type="submit" class="btn btn-primary">Save</button></div></form></div></div>
     <div id="edit-note-modal" class="edit-modal"><div class="edit-modal-content"><h2 id="edit-note-modal-title" class="text-2xl font-bold mb-6 text-gray-800 dark:text-gray-100"></h2><form id="edit-note-form"><div class="form-field"><label for="note-title-input">Title (Optional)</label><input id="note-title-input" type="text"></div><div class="form-field"><label for="note-content-input">Content</label><textarea id="note-content-input" required></textarea></div><div class="form-actions"><button type="button" id="note-modal-cancel" class="btn btn-secondary">Cancel</button><button type="submit" class="btn btn-primary">Save</button></div></form></div></div>
-    
     <div id="add-category-modal" class="edit-modal"><div class="edit-modal-content"><h2 class="text-2xl font-bold mb-6 text-gray-800 dark:text-gray-100">Add New Category</h2><form id="add-category-form"><div class="form-field"><label for="new-category-name-input">Category Name</label><input id="new-category-name-input" type="text" required></div><div class="form-field"><label>Color</label><div id="new-category-color-selector" class="color-selector-container"></div><input id="new-category-color-input" type="hidden" required></div><div class="form-actions"><button type="button" id="category-modal-cancel" class="btn btn-secondary">Cancel</button><button type="submit" class="btn btn-primary">Save Category</button></div></form></div></div>
+    <div id="import-config-modal" class="edit-modal"><div class="edit-modal-content"><h2 class="text-2xl font-bold mb-6 text-gray-800 dark:text-gray-100">Import Configuration</h2><form id="import-config-form"><div class="form-field"><label for="import-config-string">Paste Configuration String</label><textarea id="import-config-string" required placeholder="Paste your exported configuration string here..."></textarea></div><div class="form-actions"><button type="button" id="import-modal-cancel" class="btn btn-secondary">Cancel</button><button type="submit" class="btn btn-primary">Load Configuration</button></div></form></div></div>
 
     <div id="link-preview" class="fixed pointer-events-none z-50 rounded-lg bg-gray-800 px-3 py-1.5 text-sm font-medium text-white shadow-lg transition-opacity duration-200 opacity-0" role="tooltip"></div>
 </body>
