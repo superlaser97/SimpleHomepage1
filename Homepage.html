@@ -579,7 +579,7 @@
         }
 
         function deleteCategory(categoryToDelete) {
-            showConfirmation('Delete Category', `Are you sure you want to delete the "${categoryToDelete}" category?\\nAll shortcuts in this category will be moved to "General".`, () => {
+            showConfirmation('Delete Category', `Are you sure you want to delete the "${categoryToDelete}" category? All shortcuts in this category will be moved to "General".`, () => {
                 config.shortcuts.forEach(shortcut => {
                     if (shortcut.category === categoryToDelete) { shortcut.category = 'General'; }
                 });
