@@ -301,7 +301,7 @@
 .hidden { display: none !important; }
 .edit-modal { position: fixed; inset: 0; background-color: rgba(0,0,0,0.7); backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: center; opacity: 0; visibility: hidden; transition: opacity 0.3s, visibility 0.3s; z-index: 1000; }
 .edit-modal.is-active { opacity: 1; visibility: visible; }
-.edit-modal-content { background-color: white; padding: 1.5rem 2rem; border-radius: 0.75rem; width: 90%; max-width: 500px; transform: scale(0.95); transition: transform 0.3s; position: relative; }
+.edit-modal-content { background-color: #f9fafb; /* Changed from white to gray-50 */ padding: 1.5rem 2rem; border-radius: 0.75rem; width: 90%; max-width: 500px; transform: scale(0.95); transition: transform 0.3s; position: relative; }
 
 /* ++ ADDED ++ Make Note View modal wider */
 #note-modal .edit-modal-content {

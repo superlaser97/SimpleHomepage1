@@ -11,13 +11,6 @@
         // ---------------------
 
         const icons = {
-            "google": "M11.99 2C6.47 2 2 6.47 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zm6.93 6h-2.95a6.36 6.36 0 00-3.98-3.98V6.07h2.95a8.03 8.03 0 013.98 1.93zM12 4.04c.83 1.2 1.48 2.53 1.91 3.96h-3.82c.43-1.43 1.08-2.76 1.91-3.96zM4.26 14C4.1 13.36 4 12.69 4 12s.1-1.36.26-2h3.38c-.08.66-.14 1.32-.14 2s.06 1.34.14 2H4.26zm.8 2h2.95a6.36 6.36 0 003.98 3.98v-2.02h-2.95a8.03 8.03 0 01-3.98-1.96zM12.01 19.96c-.83-1.2-1.48-2.53-1.91-3.96h3.82c-.43 1.43-1.08 2.76-1.91 3.96zM14.34 14H9.66c.09-.66.15-1.32.15-2s-.06-1.34-.15-2h4.68c-.09.66-.15 1.32-.15 2s.06 1.34.15 2zm.25 5.98v-2.02h2.95a8.03 8.03 0 01-3.98 1.96zM17.07 16h2.95a8.03 8.03 0 00-1.93-3.98H16.07v2.02c.36.01.71.02 1 .02z",
-            "bing": "M12.83 12.83L10 16.5V7.5l2.83 3.67 4.51-4.51-2.05-2.05a8 8 0 10-8.12 8.12l2.05 2.05 4.51-4.51z",
-            "youtube": "M21.58 7.19c-.23-.86-.91-1.54-1.77-1.77C18.25 5 12 5 12 5s-6.25 0-7.81.42c-.86.23-1.54.91-1.77 1.77C2 8.75 2 12 2 12s0 3.25.42 4.81c.23.86.91 1.54 1.77 1.77C5.75 19 12 19 12 19s6.25 0 7.81-.42c.86-.23-1.54-.91-1.77-1.77C22 15.25 22 12 22 12s0-3.25-.42-4.81zM10 15V9l5.2 3-5.2 3z",
-            "reddit": "M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1.84 13.21c-1.36 0-2.46-1.1-2.46-2.46s1.1-2.46 2.46-2.46 2.46 1.1 2.46 2.46-1.1 2.46-2.46 2.46zm3.68 0c-1.36 0-2.46-1.1-2.46-2.46s1.1-2.46 2.46-2.46 2.46 1.1 2.46 2.46-1.1 2.46-2.46 2.46zm-5.4-5.06c.26-.26.68-.26.94 0l1.62 1.62c.26.26.26.68 0 .94-.26.26-.68.26-.94 0l-1.62-1.62c-.26-.26-.26-.68 0-.94zm6.16 2.56c-.52 1-1.59 1.68-2.8 1.68s-2.28-.68-2.8-1.68c-.14-.28.04-.63.36-.71.32-.08.66.04.79.36.33.63 1.04 1.03 1.65 1.03s1.32-.4 1.65-1.03c.13-.32.47-.44.79-.36.32.08.5.43.36.71z",
-            "github": "M12 2C6.477 2 2 6.477 2 12c0 4.419 2.865 8.166 6.839 9.49.5.092.682-.217.682-.482 0-.237-.009-.868-.014-1.703-2.782.605-3.369-1.343-3.369-1.343-.455-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.004.071 1.532 1.03 1.532 1.03.891 1.53 2.339 1.088 2.91.832.091-.647.349-1.088.635-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.03-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.269 2.75 1.026A9.564 9.564 0 0112 6.82c.85.004 1.705.115 2.504.336 1.909-1.295 2.747-1.026 2.747-1.026.546 1.378.202 2.398.1 2.65.64.7 1.028 1.595 1.028 2.688 0 3.848-2.338 4.695-4.566 4.942.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.578.688.482A10.001 10.001 0 0022 12c0-5.523-4.477-10-10-10z",
-            "vercel": "M12 2L2 12l10 10 10-10L12 2z",
-            "figma": "M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zM9 18v-6H7V9h2V7a2 2 0 012-2h2v3h-2v2h2v3h-2v3H9z",
             "search": "M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z",
             "edit": "M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z",
             "delete": "M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z",
@@ -27,7 +20,10 @@
             "clipboard": "M19 2h-4.18C14.4 1.15 13.55 0.5 12.5 0.5S10.6 1.15 10.18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h13c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm7 18H6V4h2v2h9V4h2v16z",
             "upload": "M9 16h6v-6h4l-8-8-8 8h4v6zm-4 2h14v2H5v-2z",
             "download": "M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z",
-            "reset": "M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"
+            "reset": "M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z",
+            "file": "M6 2c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6H6zm7 7V3.5L18.5 9H13z",
+            "folder": "M10 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z",
+            "browser": "M19 4H5c-1.11 0-2 .9-2 2v12c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 14H5V8h14v10z"
         };
         
         const SAFE_COLORS = {
@@ -285,8 +281,8 @@
             a.target = '_blank';
             a.rel = 'noopener noreferrer';
             a.className = 'flex items-center gap-4 p-4 rounded-lg shadow-lg hover:shadow-cyan-500/10 hover:-translate-y-1 transition-all duration-300 text-gray-700 dark:text-gray-200 border border-gray-300/80 dark:border-gray-700/80 ' +
-                          'bg-white/50 dark:bg-gray-800/50 hover:bg-gray-200/60 dark:hover:bg-gray-700/80 ' +
-                          'style-compact:gap-2 style-compact:p-2 style-compact:text-sm style-compact:bg-white/60 style-compact:dark:bg-gray-800/60';
+              'bg-gray-100/50 dark:bg-gray-800/50 hover:bg-gray-200/60 dark:hover:bg-gray-700/80 ' +
+              'style-compact:gap-2 style-compact:p-2 style-compact:text-sm style-compact:bg-white/60 style-compact:dark:bg-gray-800/60';
 
             if (shortcut.icon && icons[shortcut.icon]) {
                 const iconContainer = document.createElement('div');
@@ -356,12 +352,14 @@
                 const configData = categoryConfig[category] || { color: 'gray' };
                 const colorClass = configData.color;
                 const categoryWrapper = document.createElement('div');
-                categoryWrapper.className = `p-5 rounded-xl border border-gray-300/80 dark:border-gray-700/80 bg-white/40 dark:bg-gray-800/40 backdrop-blur-sm shadow-2xl transition-all duration-300 style-compact:p-3 style-compact:rounded-lg style-compact:shadow-lg style-compact:bg-white/50 style-compact:dark:bg-gray-800/50`;
+                categoryWrapper.className = `p-5 rounded-xl border border-gray-300/80 dark:border-gray-700/80 bg-gray-50/40 dark:bg-gray-800/40 backdrop-blur-sm shadow-2xl transition-all duration-300 style-compact:p-3 style-compact:rounded-lg style-compact:shadow-lg style-compact:bg-white/50 style-compact:dark:bg-gray-800/50`;
+
                 categoryWrapper.style.animationDelay = `${delay}s`;
                 delay += 0.1;
 
                 const categoryHeader = document.createElement('div');
-                categoryHeader.className = `flex items-center gap-3 mb-4 border-b-2 pb-2`;
+                // CHANGED: Added 'group' to enable group-hover for the new button
+                categoryHeader.className = `group flex items-center gap-3 mb-4 border-b-2 pb-2`; 
                 categoryHeader.style.borderColor = (SAFE_COLORS[colorClass] || '#6b7280') + '80';
 
                 const categoryColorDot = document.createElement('div');
@@ -374,6 +372,23 @@
                 
                 categoryHeader.appendChild(categoryColorDot);
                 categoryHeader.appendChild(categoryTitle);
+
+                // --- ADDED START: Direct Edit Button for Category ---
+                if (category !== 'General') {
+                    const editCategoryBtn = document.createElement('button');
+                    editCategoryBtn.className = 'ml-2 p-1 rounded-full hover:bg-gray-500/20 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer';
+                    editCategoryBtn.title = `Edit "${category}" category`;
+                    editCategoryBtn.innerHTML = `<svg class="w-4 h-4 text-gray-500 dark:text-gray-400" fill="currentColor" viewBox="0 0 24 24"><path d="${icons.edit}"/></svg>`;
+                    
+                    editCategoryBtn.onclick = (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        showCategoryModal(category); // The category name is in scope
+                    };
+                    categoryHeader.appendChild(editCategoryBtn);
+                }
+                // --- ADDED END ---
+
                 categoryWrapper.appendChild(categoryHeader);
 
                 const linksGrid = document.createElement('div');
@@ -440,7 +455,8 @@
             let delay = 0;
             filteredNotes.forEach(note => {
                 const noteCard = document.createElement('div');
-                noteCard.className = 'relative group p-5 rounded-xl border border-gray-300/80 dark:border-gray-700/80 bg-white/40 dark:bg-gray-800/40 backdrop-blur-sm shadow-2xl flex flex-col transition-all duration-300 style-compact:p-3 style-compact:rounded-lg style-compact:shadow-lg style-compact:bg-white/50 style-compact:dark:bg-gray-800/50';
+                noteCard.className = 'relative group p-5 rounded-xl border border-gray-300/80 dark:border-gray-700/80 bg-gray-50/40 dark:bg-gray-800/40 backdrop-blur-sm shadow-2xl flex flex-col transition-all duration-300 style-compact:p-3 style-compact:rounded-lg style-compact:shadow-lg style-compact:bg-white/50 style-compact:dark:bg-gray-800/50';
+
                 noteCard.style.animationDelay = `${delay}s`;
                 delay += 0.1;
                 if (note.title) {
@@ -1039,7 +1055,7 @@
         };
     </script>
 </head>
-<body class="bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-white transition-colors duration-300">
+<body class="bg-gray-200 text-gray-800 dark:bg-gray-900 dark:text-white transition-colors duration-300">
     
     <div class="fixed top-4 right-4 flex space-x-2 z-50">
         <button id="reset-config-btn" class="p-2 rounded-full bg-gray-500/20 hover:bg-gray-500/40 backdrop-blur-sm transition-colors cursor-pointer" title="Reset Configuration" aria-label="Reset Configuration">
