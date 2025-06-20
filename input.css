@@ -390,10 +390,17 @@ mark {
     color: #1f2937; /* Dark text for readability on the yellow background */
 }
 
-/* Added for new Import/Export sub-menu */
+/* MODIFIED: Update Import/Export sub-menu styling */
 .config-submenu {
     transform-origin: top right;
     animation: scale-in-tr 0.1s ease-out;
+    border: 1px solid #e5e7eb; /* gray-200 */
+    background-color: #ffffff; /* white */
+}
+
+.dark .config-submenu {
+    border-color: #4b5563; /* gray-600 */
+    background-color: #374151; /* gray-700 */
 }
 
 .config-submenu-item {
@@ -456,4 +463,69 @@ mark {
 .container.style-compact ~ #note-modal #modal-body h6 {
     font-size: 0.875rem; /* text-sm */
     font-weight: 700;
+}
+
+/*
+ * ==========================================================
+ * === FIX: UI Adjustments (Visibility & Theme Alignment) ===
+ * ==========================================================
+ */
+
+/* 1. Improve visibility of header icons in light mode */
+
+/* Change button background for better contrast against light page BG */
+#reset-config-btn,
+#import-menu-btn,
+#export-menu-btn,
+#theme-switcher,
+#style-switcher {
+    background-color: rgba(0, 0, 0, 0.05); /* Subtle dark background on light theme */
+}
+#reset-config-btn:hover,
+#import-menu-btn:hover,
+#export-menu-btn:hover,
+#theme-switcher:hover,
+#style-switcher:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+/* Change icon/text color to be dark on light theme */
+#reset-config-btn svg,
+#import-menu-btn svg,
+#export-menu-btn svg,
+#theme-switcher #moon-icon,
+#style-switcher #style-text {
+    color: #374151; /* gray-700 */
+}
+#theme-switcher #sun-icon {
+    color: #f59e0b; /* amber-500 */
+}
+
+
+/* Restore original styles for dark mode */
+.dark #reset-config-btn,
+.dark #import-menu-btn,
+.dark #export-menu-btn,
+.dark #theme-switcher,
+.dark #style-switcher {
+    background-color: rgba(107, 114, 128, 0.2); /* Original: bg-gray-500/20 */
+}
+.dark #reset-config-btn:hover,
+.dark #import-menu-btn:hover,
+.dark #export-menu-btn:hover,
+.dark #theme-switcher:hover,
+.dark #style-switcher:hover {
+    background-color: rgba(107, 114, 128, 0.4); /* Original: hover:bg-gray-500/40 */
+}
+
+.dark #reset-config-btn svg,
+.dark #import-menu-btn svg,
+.dark #export-menu-btn svg,
+.dark #theme-switcher #moon-icon,
+.dark #style-switcher #style-text {
+    color: #e5e7eb; /* Original: text-gray-200 */
+}
+/* Keep sun-icon yellow in dark mode */
+.dark #theme-switcher #sun-icon {
+    color: #f59e0b; /* amber-500 */
 }
