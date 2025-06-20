@@ -1,6 +1,6 @@
 # A Modern, Self-Contained Homepage
 
-A fast, modern, and highly customizable homepage that runs entirely from a single HTML file. No databases, no complicated setup. Organize your links, manage notes, and keep track of reminders with an intuitive interface. All your data is securely stored in your browser's local storage.
+A fast, modern, and highly customizable homepage that runs entirely from a single HTML file. No databases, no complicated setup. Organize your links, manage notes, and keep track of reminders with an intuitive interface. All your data is stored in your browser's local storage.
 
 ![screenshot1](screenshots/screenshot1.png)
 ![screenshot2](screenshots/screenshot2.png)
@@ -45,12 +45,6 @@ Using this homepage is as simple as it gets.
 3.  Open `homepage.html` in your web browser.
 
 That's it! The page will load with a default set of example items that you can start customizing immediately.
-
----
-
-## How to Use the Homepage
-
-All configuration is done directly on the page.
 
 ---
 
