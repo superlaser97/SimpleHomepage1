@@ -565,6 +565,37 @@ mark {
     border-radius: 0.5rem; /* rounded-lg */
 }
 
+.reminder-card.completed {
+    opacity: 0.6;
+    border-style: dashed;
+    background-color: rgba(243, 244, 246, 0.6); /* bg-gray-100 */
+}
+.dark .reminder-card.completed {
+    background-color: rgba(55, 65, 81, 0.4); /* dark:bg-gray-700/40 */
+}
+
+.reminder-card.completed:hover {
+    opacity: 1;
+}
+
+/* Don't apply pulse animation to completed cards, even if they were triggered */
+.reminder-card.completed.triggered {
+    animation: none;
+    border-color: #d1d5db; /* gray-300 */
+}
+.dark .reminder-card.completed.triggered {
+    border-color: #4b5563; /* dark:gray-600 */
+}
+
+/* Style the text inside completed cards */
+.reminder-card.completed .font-semibold {
+    text-decoration: line-through;
+    color: #6b7280; /* gray-500 */
+}
+.dark .reminder-card.completed .font-semibold {
+    color: #9ca3af; /* dark:gray-400 */
+}
+
 /* Triggered State */
 .reminder-card.triggered {
     border-color: #ef4444; /* red-500 */
@@ -603,3 +634,101 @@ mark {
 }
 .control-btn.edit-btn:hover { background-color: rgba(59, 130, 246, 0.5); }
 .control-btn.delete-btn:hover { background-color: rgba(239, 68, 68, 0.5); }
+
+/* Hide the default, ugly input */
+.checkbox-input {
+    display: none;
+}
+
+/* Style the label to act as our button */
+.checkbox-label {
+   display: inline-flex;
+   align-items: center;
+   position: relative; /* Needed for the pseudo-elements */
+   padding: 6px 12px 6px 32px; /* Space for the custom box */
+   border-radius: 0.5rem; /* rounded-lg */
+   font-size: 0.875rem; /* text-sm */
+   font-weight: 500;
+   cursor: pointer;
+   transition: all 0.2s ease-in-out;
+   color: #374151; /* gray-700 */
+   padding: 4px 10px 4px 30px; /* Adjusted padding */
+}
+.dark .checkbox-label {
+    color: #d1d5db; /* gray-300 */
+}
+
+/* Hover state */
+.checkbox-label:hover {
+    background-color: transparent; /* Set background to transparent */
+}
+.dark .checkbox-label:hover {
+    border-color: #6b7280; /* gray-500 */
+    background-color: transparent; /* Set background to transparent */
+}
+
+/* Create the checkbox box using a ::before pseudo-element */
+.checkbox-label::before {
+    content: '';
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 16px;
+    height: 16px;
+    border: 2px solid #9ca3af; /* gray-400 */
+    border-radius: 4px;
+    background-color: white;
+    transition: all 0.2s ease-in-out;
+}
+.dark .checkbox-label::before {
+    border-color: #6b7280; /* gray-500 */
+    background-color: #374151; /* gray-700 */
+}
+
+/* --- Checked State Styling --- */
+
+/* Use the adjacent sibling selector (+) to style the label when the input is checked */
+.checkbox-input:checked + .checkbox-label {
+    background-color: #eff6ff; /* blue-50 */
+    color: #1e40af; /* blue-800 */
+    border-color: #93c5fd; /* blue-300 */
+    font-weight: 600;
+}
+.dark .checkbox-input:checked + .checkbox-label {
+    background-color: #1e3a8a; /* blue-900 */
+    color: #bfdbfe; /* blue-200 */
+    border-color: #3b82f6; /* blue-500 */
+}
+
+/* Style the box in the checked state */
+.checkbox-input:checked + .checkbox-label::before {
+    background-color: #3b82f6; /* blue-500 */
+    border-color: #2563eb; /* blue-600 */
+}
+.dark .checkbox-input:checked + .checkbox-label::before {
+    background-color: #60a5fa; /* blue-400 */
+    border-color: #3b82f6; /* blue-500 */
+}
+
+/* Create the checkmark using an ::after pseudo-element */
+.checkbox-label::after {
+    content: '';
+    position: absolute;
+    left: 15px; /* Position inside the box */
+    top: 48%;
+    width: 5px;
+    height: 9px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    /* Start rotated and invisible */
+    transform: translateY(-60%) rotate(45deg) scale(0);
+    opacity: 0;
+    transition: all 0.2s ease-in-out;
+}
+
+/* Show the checkmark when the input is checked */
+.checkbox-input:checked + .checkbox-label::after {
+    transform: translateY(-60%) rotate(45deg) scale(1);
+    opacity: 1;
+}

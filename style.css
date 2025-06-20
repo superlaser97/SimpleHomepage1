@@ -12,6 +12,7 @@
     --color-red-700: oklch(50.5% 0.213 27.518);
     --color-orange-500: oklch(70.5% 0.213 47.604);
     --color-orange-600: oklch(64.6% 0.222 41.116);
+    --color-green-400: oklch(79.2% 0.209 151.711);
     --color-green-500: oklch(72.3% 0.219 149.579);
     --color-green-600: oklch(62.7% 0.194 149.214);
     --color-cyan-500: oklch(71.5% 0.143 215.221);
@@ -794,6 +795,9 @@
   .text-green-500 {
     color: var(--color-green-500);
   }
+  .text-green-600 {
+    color: var(--color-green-600);
+  }
   .text-sky-600 {
     color: var(--color-sky-600);
   }
@@ -1134,6 +1138,11 @@
   .dark\:text-gray-500 {
     &:where(.dark, .dark *) {
       color: var(--color-gray-500);
+    }
+  }
+  .dark\:text-green-400 {
+    &:where(.dark, .dark *) {
+      color: var(--color-green-400);
     }
   }
   .dark\:text-sky-200 {
@@ -1871,6 +1880,31 @@ mark {
   padding: 0.75rem;
   border-radius: 0.5rem;
 }
+.reminder-card.completed {
+  opacity: 0.6;
+  border-style: dashed;
+  background-color: rgba(243, 244, 246, 0.6);
+}
+.dark .reminder-card.completed {
+  background-color: rgba(55, 65, 81, 0.4);
+}
+.reminder-card.completed:hover {
+  opacity: 1;
+}
+.reminder-card.completed.triggered {
+  animation: none;
+  border-color: #d1d5db;
+}
+.dark .reminder-card.completed.triggered {
+  border-color: #4b5563;
+}
+.reminder-card.completed .font-semibold {
+  text-decoration: line-through;
+  color: #6b7280;
+}
+.dark .reminder-card.completed .font-semibold {
+  color: #9ca3af;
+}
 .reminder-card.triggered {
   border-color: #ef4444;
   border-width: 2px;
@@ -1913,6 +1947,85 @@ mark {
 }
 .control-btn.delete-btn:hover {
   background-color: rgba(239, 68, 68, 0.5);
+}
+.checkbox-input {
+  display: none;
+}
+.checkbox-label {
+  display: inline-flex;
+  align-items: center;
+  position: relative;
+  padding: 6px 12px 6px 32px;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  color: #374151;
+  padding: 4px 10px 4px 30px;
+}
+.dark .checkbox-label {
+  color: #d1d5db;
+}
+.checkbox-label:hover {
+  background-color: transparent;
+}
+.dark .checkbox-label:hover {
+  border-color: #6b7280;
+  background-color: transparent;
+}
+.checkbox-label::before {
+  content: '';
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  border: 2px solid #9ca3af;
+  border-radius: 4px;
+  background-color: white;
+  transition: all 0.2s ease-in-out;
+}
+.dark .checkbox-label::before {
+  border-color: #6b7280;
+  background-color: #374151;
+}
+.checkbox-input:checked + .checkbox-label {
+  background-color: #eff6ff;
+  color: #1e40af;
+  border-color: #93c5fd;
+  font-weight: 600;
+}
+.dark .checkbox-input:checked + .checkbox-label {
+  background-color: #1e3a8a;
+  color: #bfdbfe;
+  border-color: #3b82f6;
+}
+.checkbox-input:checked + .checkbox-label::before {
+  background-color: #3b82f6;
+  border-color: #2563eb;
+}
+.dark .checkbox-input:checked + .checkbox-label::before {
+  background-color: #60a5fa;
+  border-color: #3b82f6;
+}
+.checkbox-label::after {
+  content: '';
+  position: absolute;
+  left: 15px;
+  top: 48%;
+  width: 5px;
+  height: 9px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: translateY(-60%) rotate(45deg) scale(0);
+  opacity: 0;
+  transition: all 0.2s ease-in-out;
+}
+.checkbox-input:checked + .checkbox-label::after {
+  transform: translateY(-60%) rotate(45deg) scale(1);
+  opacity: 1;
 }
 @property --tw-translate-x {
   syntax: "*";

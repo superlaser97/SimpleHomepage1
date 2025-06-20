@@ -207,6 +207,7 @@
         let config = loadConfig();
         config.icons = icons; 
         let { pageTitle, notes, shortcuts, reminders, categoryConfig } = config;
+        let showCompletedReminders = false;
 
         function renderFavicon() {
             const link = document.createElement('link');
@@ -517,17 +518,34 @@
             container.innerHTML = '';
             const lowerCaseQuery = query.toLowerCase();
 
-            const filteredReminders = config.reminders.filter(rem => !rem.dismissed && rem.message.toLowerCase().includes(lowerCaseQuery));
+            // Filter based on the 'showCompletedReminders' flag
+            const filteredReminders = config.reminders.filter(rem => {
+                const matchesQuery = rem.message.toLowerCase().includes(lowerCaseQuery);
+                if (showCompletedReminders) {
+                    return matchesQuery; // Show all that match query
+                }
+                return !rem.dismissed && matchesQuery; // Default: show only non-dismissed that match query
+            });
             
-            // Sort: triggered first, then by date
+            // Sort: completed last, then triggered, then by date
             filteredReminders.sort((a, b) => {
+                if (a.dismissed && !b.dismissed) return 1;  // a is completed, b is not -> b comes first
+                if (!a.dismissed && b.dismissed) return -1; // b is completed, a is not -> a comes first
                 if (a.triggered && !b.triggered) return -1;
                 if (!a.triggered && b.triggered) return 1;
                 return new Date(a.datetime) - new Date(b.datetime);
             });
 
             if (filteredReminders.length === 0) {
-                const message = query ? `No reminders found for "${query}".` : 'No reminders scheduled.';
+                let message = '';
+                if (query) {
+                    message = `No reminders found for "${query}".`;
+                } else if (!showCompletedReminders && config.reminders.some(r => r.dismissed)) {
+                    // No active reminders, but there are completed ones hidden
+                    message = 'No active reminders. Toggle "Show Completed" to see your history.';
+                } else {
+                    message = 'No reminders scheduled.';
+                }
                 container.innerHTML = `<p class="text-gray-500 dark:text-gray-400 p-4 text-center col-span-full">${message}</p>`;
                 return;
             }
@@ -535,32 +553,39 @@
             let delay = 0;
             filteredReminders.forEach(reminder => {
                 const isTriggered = reminder.triggered && !reminder.dismissed;
+                const isCompleted = reminder.dismissed;
+
                 const reminderCard = document.createElement('div');
                 reminderCard.className = 'reminder-card relative group flex flex-col justify-between';
                 reminderCard.style.animationDelay = `${delay}s`;
                 delay += 0.1;
 
-                if (isTriggered) {
-                    reminderCard.classList.add('triggered');
-                }
+                if (isTriggered) reminderCard.classList.add('triggered');
+                if (isCompleted) reminderCard.classList.add('completed'); // Add class for styling
                 
-                let cardContent = `
-                    <div class="flex-grow">
-                        <p class="font-semibold text-gray-800 dark:text-gray-100 style-compact:text-sm mb-1">${highlightText(reminder.message, query)}</p>
-                        <p class="text-sm text-gray-500 dark:text-gray-400 style-compact:text-xs">${isTriggered ? 'Due now' : formatRelativeTime(reminder.datetime)}</p>
-                    </div>
-                `;
+                let dueText = '';
+                if (isCompleted) {
+                    dueText = `Completed: ${new Date(reminder.datetime).toLocaleDateString()}`;
+                } else if (isTriggered) {
+                    dueText = 'Due now';
+                } else {
+                    dueText = formatRelativeTime(reminder.datetime);
+                }
 
                 const cardBody = document.createElement('div');
                 cardBody.className = "flex-grow flex flex-col";
-                cardBody.innerHTML = cardContent;
+                cardBody.innerHTML = `
+                    <div class="flex-grow">
+                        <p class="font-semibold text-gray-800 dark:text-gray-100 style-compact:text-sm mb-1">${highlightText(reminder.message, query)}</p>
+                        <p class="text-sm text-gray-500 dark:text-gray-400 style-compact:text-xs">${dueText}</p>
+                    </div>`;
 
                 const cardFooter = document.createElement('div');
                 cardFooter.className = "flex items-center justify-between mt-3";
-
+                
                 const repeatText = document.createElement('div');
                 repeatText.className = "text-xs text-gray-400 dark:text-gray-500 capitalize";
-                if(reminder.repeat !== 'none') {
+                if(reminder.repeat !== 'none' && !isCompleted) {
                     repeatText.textContent = `Repeats ${reminder.repeat}`;
                 }
 
@@ -570,12 +595,18 @@
                     dismissBtn.className = 'btn btn-primary btn-sm bg-red-600 hover:bg-red-700';
                     dismissBtn.onclick = (e) => { e.stopPropagation(); dismissReminder(reminder.id); };
                     cardFooter.appendChild(dismissBtn);
+                } else if (isCompleted) {
+                    const completedText = document.createElement('div');
+                    completedText.className = "text-xs font-semibold text-green-600 dark:text-green-400";
+                    completedText.textContent = "Completed";
+                    cardFooter.appendChild(completedText);
                 } else {
-                     cardFooter.appendChild(repeatText);
+                    cardFooter.appendChild(repeatText);
                 }
                 
                 reminderCard.appendChild(cardBody);
                 reminderCard.appendChild(cardFooter);
+                // The delete button is part of createItemControls, which will still be added
                 reminderCard.appendChild(createItemControls(reminder, 'reminder'));
                 container.appendChild(reminderCard);
             });
@@ -980,6 +1011,7 @@
                 reminders: { btn: document.getElementById('tab-reminders'), container: document.getElementById('reminders-container'), addBtn: document.getElementById('add-reminder-btn'), render: renderReminders }
             };
             const searchInput = document.getElementById('search-input');
+            const reminderControls = document.getElementById('reminders-controls'); // ADD this line
 
             function updateTabState(activeTabKey) {
                 const query = searchInput.value;
@@ -989,6 +1021,9 @@
                     tabs[key].container.classList.toggle('hidden', !is_active);
                     tabs[key].addBtn.classList.toggle('hidden', !is_active);
                 });
+                
+                reminderControls.classList.toggle('hidden', activeTabKey !== 'reminders'); // ADD this line
+
                 searchInput.placeholder = `Search ${activeTabKey}... (Press '/' to focus)`;
                 tabs[activeTabKey].render(query);
             }
@@ -998,6 +1033,7 @@
                 tabs[key].btn.addEventListener('click', () => updateTabState(key));
             });
         }
+
         // ... (rest of the setup functions: setupThemeSwitcher, setupDisplayStyleSwitcher, setupConfigActions remain the same)
         function setupThemeSwitcher() {
             const themeBtn = document.getElementById('theme-switcher');
@@ -1016,6 +1052,17 @@
             const savedTheme = localStorage.getItem('theme');
             const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
             applyTheme(savedTheme === 'dark' || (!savedTheme && systemPrefersDark));
+        }
+
+        function setupReminderControls() {
+            const toggle = document.getElementById('show-completed-reminders-toggle');
+            if (!toggle) return;
+
+            toggle.addEventListener('change', (e) => {
+                showCompletedReminders = e.target.checked;
+                const currentQuery = document.getElementById('search-input').value;
+                renderReminders(currentQuery); // Re-render with the new setting
+            });
         }
 
         function setupDisplayStyleSwitcher() {
@@ -1306,6 +1353,7 @@
             setupModal();
             setupEditing();
             setupConfigActions();
+            setupReminderControls();
             window.addEventListener('keydown', (event) => {
                 if (event.key === '/' && document.activeElement.tagName.toLowerCase() !== 'input' && document.activeElement.tagName.toLowerCase() !== 'textarea') {
                     event.preventDefault();
@@ -1415,11 +1463,22 @@
             <button id="tab-shortcuts" class="tab-button px-4 py-2 text-sm font-semibold border-b-2 border-transparent transition-colors duration-300 text-gray-500 hover:text-gray-800 dark:hover:text-gray-200">Shortcuts</button>
             <button id="tab-notes" class="tab-button px-4 py-2 text-sm font-semibold border-b-2 border-transparent transition-colors duration-300 text-gray-500 hover:text-gray-800 dark:hover:text-gray-200">Notes</button>
             <button id="tab-reminders" class="tab-button px-4 py-2 text-sm font-semibold border-b-2 border-transparent transition-colors duration-300 text-gray-500 hover:text-gray-800 dark:hover:text-gray-200">Reminders</button>
-            <div class="ml-auto">
+            <div class="ml-auto flex items-center gap-4">
+            <div id="reminders-controls" class="hidden items-center gap-2">
+                <div class="flex items-center">
+                    <input type="checkbox" id="show-completed-reminders-toggle" class="checkbox-input">
+                    <label for="show-completed-reminders-toggle" class="checkbox-label">
+                        Show Completed
+                    </label>
+                </div>
+            </div>
+
+            <div id="add-buttons-container">
                 <button id="add-shortcut-btn" class="hidden cursor-pointer flex items-center gap-2 px-3 py-1.5 rounded-lg bg-sky-500/10 hover:bg-sky-500/20 dark:bg-sky-400/10 dark:hover:bg-sky-400/20 transition-colors"><span class="text-sm font-semibold text-sky-700 dark:text-sky-200">Add Shortcut</span></button>
                 <button id="add-note-btn" class="hidden cursor-pointer flex items-center gap-2 px-3 py-1.5 rounded-lg bg-sky-500/10 hover:bg-sky-500/20 dark:bg-sky-400/10 dark:hover:bg-sky-400/20 transition-colors"><span class="text-sm font-semibold text-sky-700 dark:text-sky-200">Add Note</span></button>
                 <button id="add-reminder-btn" class="hidden cursor-pointer flex items-center gap-2 px-3 py-1.5 rounded-lg bg-sky-500/10 hover:bg-sky-500/20 dark:bg-sky-400/10 dark:hover:bg-sky-400/20 transition-colors"><span class="text-sm font-semibold text-sky-700 dark:text-sky-200">Add Reminder</span></button>
             </div>
+        </div>
         </div>
 
         <div id="shortcuts-container" class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-3 mb-6 style-compact:gap-2 style-compact:mb-4 hidden"></div>
