@@ -1,112 +1,107 @@
-![screenshot1](./screenshots/screenshot1.png)
+# A Modern, Self-Contained Homepage
 
-# !! WORK IN PROGRESS !!
+A fast, modern, and highly customizable homepage that runs entirely from a single HTML file. No databases, no complicated setup. Organize your links, manage notes, and keep track of reminders with an intuitive interface. All your data is securely stored in your browser's local storage.
 
-# Simple Homepage
+![screenshot1](screenshot1.png)
+![screenshot2](screenshot2.png)
+![screenshot3](screenshot3.png)
 
-A simple, customizable homepage for quick access to your links and notes. All settings are right in the `homepage.html` file, making it super easy to use and deploy.
+## Table of Contents
+
+- [Features](#features)
+- [Live Demo](#live-demo)
+- [Getting Started](#getting-started)
+- [How to Use the Homepage](#how-to-use-the-homepage)
+  - [Editing Content](#editing-content)
+  - [Customizing the View](#customizing-the-view)
+  - [Managing Your Data](#managing-your-data)
+- [Development](#development)
 
 ## Features
 
-* **Quick Links:** Organize your favorite websites by category with custom names, links, and icons.
-* **Notes:** Keep important thoughts and lists directly on your homepage. Supports basic headings.
-* **Theme Switcher:** Go between **light** and **dark** mode.
-* **Display Styles:** Choose between a **"Comfortable"** spacious view and a **"Compact"** view for more content.
-* **Self-Contained:** No separate JavaScript files needed. Everything is in `homepage.html`.
-* **Modern Design:** Built with Tailwind CSS for a clean look.
+* **Zero-Dependency Deployment:** Works out of the box from a single `homepage.html` and `style.css` file.
+* **Interactive On-Page Editing:** No more manual JSON editing. Add, edit, and delete items directly through a user-friendly interface.
+* **Organized Shortcuts:** Group your favorite links into customizable categories, each with a unique color and icon.
+* **Rich Note-Taking:** A dedicated notes tab that supports Markdown-like syntax for headers and lists.
+* **Powerful Reminders:** Set one-time or complex recurring reminders (daily, weekly, monthly) with specific end conditions.
+* **Data Portability:** Easily import and export your entire configuration as a JSON file or a clipboard string.
+* **Customizable UI:**
+    * Switch between **Light** and **Dark** themes.
+    * Toggle between **Comfortable** and **Compact** display styles to fit more on the screen.
+* **Self-Contained & Private:** Everything is stored in your browser's local storage. Your data stays with you.
 
----
+## Live Demo
 
-## Deployment
+**(Optional)** If you host a live version, you can add the link here.
+`[Link to your live demo]`
 
-To use your homepage, just copy these two files to your web server or computer:
+## Getting Started
 
-* `homepage.html`
-* `style.css`
+Using this homepage is as simple as it gets.
 
-Then, open `homepage.html` in your web browser. That's it!
+1.  Download the `homepage.html` and `style.css` files.
+2.  Place them in a folder on your computer or on any web server.
+3.  Open `homepage.html` in your web browser.
 
----
+That's it! The page will load with a default set of example items that you can start customizing immediately.
 
-## User Guide: Make It Yours!
+## How to Use the Homepage
 
-All customization happens inside the `homepage.html` file, within the `<script>` section at the very top. Look for the `configJson` settings.
+All configuration is done directly on the page.
 
-### Customizing Your Page
+### Editing Content
 
-You'll edit the `configJson` area in `homepage.html`.
+* **Page Title:** The main title at the top of the page ("Dashboard") is editable. Just click on it, type your new title, and click away.
 
-![screenshot2](./screenshots/screenshot2.png)
+* **Adding Items:** Use the "Add Shortcut", "Add Note", or "Add Reminder" button located at the top right of each tab to create a new item.
 
-* **Page Title:**
-    Find `"pageTitle": "My Quick Links",` and change `"My Quick Links"` to whatever you want your page title to be.
+* **Editing & Deleting:** Hover your mouse over any shortcut, note, or reminder card. Edit (`✎`) and Delete (`🗑️`) icons will appear in the top-right corner of the card.
 
-* **Quick Links (Shortcuts):**
-    Find the `"shortcuts": [` section.
-    * **Add:** Add a new line like this:
-        ```json
-        { "name": "Google", "category": "Search", "url": "[https://www.google.com](https://www.google.com)", "icon": "google" },
-        ```
-        Change `name`, `category`, `url`, and `icon` as needed.
-    * **Edit:** Change any detail for an existing shortcut.
-    * **Remove:** Delete the entire `{ ... },` line for a shortcut.
-    * **Icons:** Use names like `"google"`, `"youtube"`, `"github"`. You can add your own (see "Custom Icons" below).
+*Caption: Editing a shortcut using the on-page modal.*
 
-* **Category Colors:**
-    Find the `"categoryConfig": {` section.
-    * Add or change colors for your categories here. For example, `"Search": { "color": "sky" },`.
-    * Use any [Tailwind CSS color name](https://tailwindcss.com/docs/customizing-colors) (e.g., `sky`, `red`, `violet`).
+* **Managing Categories:**
+    * When adding or editing a shortcut, you can assign it to a category.
+    * To add a new category, click the "+ New" button in the category selector.
+    * To edit or delete an existing category, hover over its name in the category selector to reveal controls.
 
-* **Notes:**
-    Find the `"notes": [` section.
-    * **Add:** Add a new note:
-        ```json
-        { "title": "My Note", "content": "#Groceries#\nMilk\nBread" },
-        ```
-        `title` is optional.
-    * **Content:** Write your note content. Use `#Header#` or `##Subheader##` for headings. Empty lines create new paragraphs.
-    * **Edit/Remove:** Change or delete existing note entries.
+### Customizing the View
 
-### Interacting with the Page
+Use the icons in the absolute top-right corner of the page to customize your experience.
 
-* **Quick Links:** Click any link to open it in a new tab.
-* **Notes:** If a note is too long, click its card to open a pop-up with the full text. Close it with `X`, by clicking outside the note, or by pressing `Escape`.
-* **Theme Switcher:** Click the sun/moon icon (top right) to toggle light/dark mode. The page remembers your choice.
-* **Display Style:** Click the "Compact"/"Comfortable" button (top right) to change the page layout. This also remembers your choice.
+* **Theme Switcher (☀️/🌙):** Instantly toggle between light and dark modes.
+* **Style Switcher (Compact/Comfortable):** Change the layout density. "Compact" is great for smaller screens or showing more information at once.
 
-### Custom Icons
+Your theme and style preferences are automatically saved in your browser.
 
-Want to use your own icons for shortcuts?
+### Managing Your Data
 
-* Find the `"icons": {` section in `configJson`.
-* Add a new entry like `"my_icon_name": "YOUR_SVG_PATH_DATA"`.
-* You can get SVG path data from places like [Material Design Icons](https://materialdesignicons.com/). Just copy the `d="..."` part.
-* Then use `"icon": "my_icon_name"` in your shortcut entry.
+You have full control over your configuration. Use the menu icons in the top-right corner to manage your setup.
 
----
+*Caption: Easily import or export your configuration.*
 
-## Development (For CSS Customization)
+* **Export (⬇️):** Save your current setup (all shortcuts, notes, and reminders) to a JSON file or copy it to your clipboard. This is perfect for making backups or moving to a new computer.
+* **Import (⬆️):** Load a configuration from a JSON file or a string you've previously exported.
+* **Reset (🔄):** This will completely wipe your current configuration and restore the page to its original default settings. **Use with caution!**
 
-This section is only if you want to change the visual styling (CSS) of the homepage.
+## Development
 
-### What you need
+This section is for users who want to make significant changes to the visual style of the page by modifying the underlying CSS.
 
-* Node.js
+#### Prerequisites
 
-### How to set up
+* You must have **Node.js** and **npm** installed.
 
-1.  **Install Tailwind CSS:**
-    Open your terminal in the project folder and run:
+#### Setup
+
+1.  **Install Dependencies:**
+    Open a terminal in the project's root directory and run the following command to install Tailwind CSS:
     ```bash
-    npm install tailwindcss @tailwindcss/cli
+    npm install tailwindcss
     ```
 
-2.  **Start Tailwind CSS Watcher:**
-    Keep this command running while you edit `homepage.html` or `input.css`. It will automatically update `style.css`.
+2.  **Start the Tailwind Watcher:**
+    Run this command in your terminal. It will watch for any changes you make to the class names in `homepage.html` and automatically rebuild the `style.css` file.
     ```bash
     npx tailwindcss -i ./input.css -o ./style.css --watch
     ```
-    * `input.css`: This is where Tailwind gets its styles from.
-    * `style.css`: This is the final CSS file used by `homepage.html`.
-
-**Note:** Most styling is done directly in `homepage.html` using Tailwind classes.
+    Keep this process running while you are making style edits.
