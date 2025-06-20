@@ -1480,6 +1480,7 @@
 }
 .tab-button {
   cursor: pointer;
+  position: relative;
 }
 .tab-button.active-tab {
   border-color: #0ea5e9 !important;
@@ -2092,6 +2093,25 @@ body.screen-glow-active::after {
   pointer-events: none;
   z-index: 99999;
   animation: pulse-screen-glow 2.5s infinite;
+}
+.reminder-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  min-width: 20px;
+  height: 20px;
+  background-color: #ef4444;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
+  padding: 0 6px;
+}
+.dark .reminder-badge {
+  border-color: #111827;
 }
 .tab-button.has-triggered-reminders:not(.active-tab) {
   color: #ef4444;
