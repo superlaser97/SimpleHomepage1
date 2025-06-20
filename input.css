@@ -253,15 +253,38 @@ mark { background-color: #fef08a; color: inherit; padding: 0 2px; border-radius:
  * === ADDED: Visual Cue for Triggered Reminders ===
  * ===============================================
  */
-@keyframes pulse-red-glow {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
-    50% { box-shadow: inset 0 0 8px rgba(239, 68, 68, 0.15), 0 0 6px rgba(239, 68, 68, 0.2); }
+
+/* Keyframes for the new blinking red tab background */
+@keyframes blink-red-tab {
+    50% { background-color: rgba(239, 68, 68, 0.2); }
 }
 
+/* Keyframes for the new screen edge glow */
+@keyframes pulse-screen-glow {
+    0%, 100% {
+        box-shadow: inset 0 0 20px 8px rgba(239, 68, 68, 0.4);
+    }
+    50% {
+        box-shadow: inset 0 0 30px 15px rgba(239, 68, 68, 0.6);
+    }
+}
+
+/* Apply the blinking animation to the tab */
 .tab-button.has-triggered-reminders {
-    animation: pulse-red-glow 2.5s infinite;
+    animation: blink-red-tab 1.5s infinite ease-in-out;
     border-radius: 6px 6px 0 0; /* Rounded top corners to contain the glow */
 }
+
+/* Add the screen edge glow when body has the class */
+body.screen-glow-active::after {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    pointer-events: none; /* Prevent interference with clicks */
+    z-index: 99999;
+    animation: pulse-screen-glow 2.5s infinite;
+}
+
 
 /* If the tab is NOT active, also make the text red */
 .tab-button.has-triggered-reminders:not(.active-tab) {

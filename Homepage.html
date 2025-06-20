@@ -57,7 +57,7 @@
                         <h4 class="font-bold">${title}</h4>
                         <p class="text-sm">${message}</p>
                     </div>
-                    <button id="message-box-close" class="ml-4 p-1 rounded-full hover:bg-white/20">&times;</button>
+                    <button id="message-box-close" class="ml-4 p-1 rounded-full hover:bg-white/20">×</button>
                 </div>
             `;
             document.body.appendChild(messageBox);
@@ -898,8 +898,8 @@
             const internalIcons = ['search', 'edit', 'delete', 'add', 'copy', 'check', 'clipboard', 'upload', 'download', 'reset', 'question'];
             
             const iconNames = Object.keys(config.icons)
-                                      .filter(icon => !internalIcons.includes(icon))
-                                      .sort();
+                                        .filter(icon => !internalIcons.includes(icon))
+                                        .sort();
 
             const noneTag = document.createElement('button');
             noneTag.type = 'button';
@@ -1497,7 +1497,7 @@
                     try {
                         const parsedConfig = JSON.parse(e.target.result);
                          if (!parsedConfig.hasOwnProperty('pageTitle') || !parsedConfig.hasOwnProperty('shortcuts')) {
-                                  throw new Error("Invalid or incomplete configuration file.");
+                                   throw new Error("Invalid or incomplete configuration file.");
                          }
                         
                         config.pageTitle = parsedConfig.pageTitle || 'My Homepage';
@@ -1656,8 +1656,10 @@
         function updateReminderTabIndicator() {
             const reminderTab = document.getElementById('tab-reminders');
             if (!reminderTab) return;
-
             const hasTriggered = config.reminders.some(r => r.triggered && !r.dismissed);
+
+            // Toggle class on body for screen edge glow
+            document.body.classList.toggle('screen-glow-active', hasTriggered);
 
             if (hasTriggered) {
                 reminderTab.classList.add('has-triggered-reminders');
