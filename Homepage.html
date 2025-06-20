@@ -188,14 +188,14 @@
         let { pageTitle, notes, shortcuts, categoryConfig } = config;
 
         // --- RENDER DYNAMIC FAVICON ---
-        function renderFavicon() {
-            const link = document.createElement('link');
-            link.rel = 'icon';
-            // FIXED: Replaced non-existent 'vercel' icon with the 'browser' icon
-            const svgFavicon = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='currentColor'><path d='${icons.browser}'/></svg>`;
-            link.href = `data:image/svg+xml,${encodeURIComponent(svgFavicon)}`;
-            document.head.appendChild(link);
-        }
+        function renderFavicon() {
+            const link = document.createElement('link');
+            link.rel = 'icon';
+            // FIXED: Replaced non-existent 'vercel' icon with the 'browser' icon
+            const svgFavicon = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='currentColor'><path d='${icons.browser}'/></svg>`;
+            link.href = `data:image/svg+xml,${encodeURIComponent(svgFavicon)}`;
+            document.head.appendChild(link);
+        }
 
         // --- RENDER FUNCTIONS ---
         function renderTitle() {
@@ -282,8 +282,8 @@
             a.target = '_blank';
             a.rel = 'noopener noreferrer';
             a.className = 'flex items-center gap-4 p-4 rounded-lg shadow-lg hover:shadow-cyan-500/10 hover:-translate-y-1 transition-all duration-300 text-gray-700 dark:text-gray-200 border border-gray-300/80 dark:border-gray-700/80 ' +
-              'bg-gray-100/50 dark:bg-gray-800/50 hover:bg-gray-200/60 dark:hover:bg-gray-700/80 ' +
-              'style-compact:gap-2 style-compact:p-2 style-compact:text-sm style-compact:bg-white/60 style-compact:dark:bg-gray-800/60';
+                      'bg-gray-100/50 dark:bg-gray-800/50 hover:bg-gray-200/60 dark:hover:bg-gray-700/80 ' +
+                      'style-compact:gap-2 style-compact:p-2 style-compact:text-sm style-compact:bg-white/60 style-compact:dark:bg-gray-800/60';
 
             if (shortcut.icon && icons[shortcut.icon]) {
                 const iconContainer = document.createElement('div');
@@ -404,42 +404,42 @@
 
         function parseNoteContent(rawContent, isPreview = false, query = '') {
              const lines = rawContent.split('\\n');
-                let processedLines = [];
-                let currentParagraph = [];
-                let inList = false;
-                const flushParagraph = () => {
-                    if (currentParagraph.length > 0) {
-                        const paragraphText = currentParagraph.join(' ').trim();
-                        processedLines.push(`<p class="text-gray-600 dark:text-gray-300 mb-2 style-compact:mb-1 style-compact:text-sm">${highlightText(paragraphText, query)}</p>`);
-                        currentParagraph = [];
-                    }
-                };
-                const closeList = () => { if (inList) { processedLines.push('</ul>'); inList = false; } };
-                lines.forEach(line => {
-                    const headerMatch = line.match(/^(#{1,6})(.*?)\1?$/);
-                    const listItemMatch = line.match(/^[\-\*]\s(.*)/);
-                    if (headerMatch && headerMatch[2].trim() !== '') {
-                        flushParagraph(); closeList();
-                        const hashes = headerMatch[1];
-                        const content = headerMatch[2].trim();
-                        const headingLevel = Math.min(hashes.length + 1, 6);
-                        let classes = 'font-bold';
-                        if (isPreview) { classes += ' text-sm text-gray-500 dark:text-gray-400 mt-2 mb-1 style-compact:text-xs'; } 
-                        else { classes += ` text-sky-600 dark:text-sky-300 ${['text-2xl','text-xl','text-lg','text-base'][headingLevel-2] || 'text-base'} mb-2`; }
-                        processedLines.push(`<h${headingLevel} class="${classes}">${highlightText(content, query)}</h${headingLevel}>`);
-                    } else if (listItemMatch) {
-                        flushParagraph();
-                        if (!inList) { processedLines.push('<ul class="list-disc list-inside space-y-1 pl-2 mb-2 style-compact:text-sm">'); inList = true; }
-                        const listItemText = listItemMatch[1].trim();
-                        processedLines.push(`<li class="text-gray-600 dark:text-gray-300">${highlightText(listItemText, query)}</li>`);
-                    } else if (line.trim() === '') {
-                        flushParagraph(); closeList();
-                    } else {
-                        closeList(); currentParagraph.push(line);
-                    }
-                });
-                flushParagraph(); closeList();
-                return processedLines.join('');
+                 let processedLines = [];
+                 let currentParagraph = [];
+                 let inList = false;
+                 const flushParagraph = () => {
+                     if (currentParagraph.length > 0) {
+                         const paragraphText = currentParagraph.join(' ').trim();
+                         processedLines.push(`<p class="text-gray-600 dark:text-gray-300 mb-2 style-compact:mb-1 style-compact:text-sm">${highlightText(paragraphText, query)}</p>`);
+                         currentParagraph = [];
+                     }
+                 };
+                 const closeList = () => { if (inList) { processedLines.push('</ul>'); inList = false; } };
+                 lines.forEach(line => {
+                     const headerMatch = line.match(/^(#{1,6})(.*?)\1?$/);
+                     const listItemMatch = line.match(/^[\-\*]\s(.*)/);
+                     if (headerMatch && headerMatch[2].trim() !== '') {
+                         flushParagraph(); closeList();
+                         const hashes = headerMatch[1];
+                         const content = headerMatch[2].trim();
+                         const headingLevel = Math.min(hashes.length + 1, 6);
+                         let classes = 'font-bold';
+                         if (isPreview) { classes += ' text-sm text-gray-500 dark:text-gray-400 mt-2 mb-1 style-compact:text-xs'; } 
+                         else { classes += ` text-sky-600 dark:text-sky-300 ${['text-2xl','text-xl','text-lg','text-base'][headingLevel-2] || 'text-base'} mb-2`; }
+                         processedLines.push(`<h${headingLevel} class="${classes}">${highlightText(content, query)}</h${headingLevel}>`);
+                     } else if (listItemMatch) {
+                         flushParagraph();
+                         if (!inList) { processedLines.push('<ul class="list-disc list-inside space-y-1 pl-2 mb-2 style-compact:text-sm">'); inList = true; }
+                         const listItemText = listItemMatch[1].trim();
+                         processedLines.push(`<li class="text-gray-600 dark:text-gray-300">${highlightText(listItemText, query)}</li>`);
+                     } else if (line.trim() === '') {
+                         flushParagraph(); closeList();
+                     } else {
+                         closeList(); currentParagraph.push(line);
+                     }
+                 });
+                 flushParagraph(); closeList();
+                 return processedLines.join('');
         }
         
         function renderNotes(query = '') {
@@ -484,10 +484,10 @@
                 noteCard.addEventListener('click', (e) => {
                     if (e.target.closest('button')) return;
                      showNoteModal(
-                        highlightText(note.title, query), 
-                        parseNoteContent(note.content, false, query), 
-                        note.content
-                    );
+                         highlightText(note.title, query), 
+                         parseNoteContent(note.content, false, query), 
+                         note.content
+                     );
                 });
                 notesContainer.appendChild(noteCard);
             });
@@ -611,41 +611,41 @@
         }
 
         function renderIconSelector(container, hiddenInput, selectedIcon = '') {
-            container.innerHTML = '';
-            // ADDED: Define icons that are for internal UI use only
-            const internalIcons = ['search', 'edit', 'delete', 'add', 'copy', 'check', 'clipboard', 'upload', 'download', 'reset'];
-            
-            // UPDATED: Filter the main icon list to exclude internal icons
-            const iconNames = Object.keys(config.icons)
-                                .filter(icon => !internalIcons.includes(icon))
-                                .sort();
+            container.innerHTML = '';
+            // ADDED: Define icons that are for internal UI use only
+            const internalIcons = ['search', 'edit', 'delete', 'add', 'copy', 'check', 'clipboard', 'upload', 'download', 'reset'];
+            
+            // UPDATED: Filter the main icon list to exclude internal icons
+            const iconNames = Object.keys(config.icons)
+                                      .filter(icon => !internalIcons.includes(icon))
+                                      .sort();
 
-            const noneTag = document.createElement('button');
-            noneTag.type = 'button';
-            noneTag.className = 'icon-tag-btn none-btn';
-            noneTag.textContent = 'None';
-            noneTag.dataset.icon = '';
-            if (selectedIcon === '' || !selectedIcon) { noneTag.classList.add('active'); }
-            container.appendChild(noneTag);
-            
-            iconNames.forEach(iconName => {
-                const tag = document.createElement('button');
-                tag.type = 'button';
-                tag.className = 'icon-tag-btn';
-                tag.dataset.icon = iconName;
-                tag.title = iconName;
-                const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-                svg.setAttribute('viewBox', '0 0 24 24');
-                svg.setAttribute('fill', 'currentColor');
-                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-                path.setAttribute('d', config.icons[iconName]);
-                svg.appendChild(path);
-                tag.appendChild(svg);
-                if (iconName === selectedIcon) { tag.classList.add('active'); }
-                container.appendChild(tag);
-            });
-            hiddenInput.value = selectedIcon || '';
-        }
+            const noneTag = document.createElement('button');
+            noneTag.type = 'button';
+            noneTag.className = 'icon-tag-btn none-btn';
+            noneTag.textContent = 'None';
+            noneTag.dataset.icon = '';
+            if (selectedIcon === '' || !selectedIcon) { noneTag.classList.add('active'); }
+            container.appendChild(noneTag);
+            
+            iconNames.forEach(iconName => {
+                const tag = document.createElement('button');
+                tag.type = 'button';
+                tag.className = 'icon-tag-btn';
+                tag.dataset.icon = iconName;
+                tag.title = iconName;
+                const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                svg.setAttribute('viewBox', '0 0 24 24');
+                svg.setAttribute('fill', 'currentColor');
+                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                path.setAttribute('d', config.icons[iconName]);
+                svg.appendChild(path);
+                tag.appendChild(svg);
+                if (iconName === selectedIcon) { tag.classList.add('active'); }
+                container.appendChild(tag);
+            });
+            hiddenInput.value = selectedIcon || '';
+        }
 
         function showCategoryModal(categoryName = null) {
             editingCategoryName = categoryName;
@@ -960,13 +960,48 @@
         }
 
         function setupConfigActions() {
-            const exportBtn = document.getElementById('export-config-btn');
-            const importBtn = document.getElementById('import-config-btn');
+            // Menu Buttons & Dropdowns
+            const importMenuBtn = document.getElementById('import-menu-btn');
+            const importMenuDropdown = document.getElementById('import-menu-dropdown');
+            const exportMenuBtn = document.getElementById('export-menu-btn');
+            const exportMenuDropdown = document.getElementById('export-menu-dropdown');
+            
+            // Submenu Items
+            const exportClipboardBtn = document.getElementById('export-clipboard-btn');
+            const exportFileBtn = document.getElementById('export-file-btn');
+            const importClipboardBtn = document.getElementById('import-clipboard-btn');
+            const importFileBtn = document.getElementById('import-file-btn');
+            
+            // Other elements
+            const importFileInput = document.getElementById('import-file-input');
             const importModal = document.getElementById('import-config-modal');
             const resetBtn = document.getElementById('reset-config-btn');
+
+            // --- MENU TOGGLE LOGIC ---
+            const hideMenus = () => {
+                importMenuDropdown.classList.add('hidden');
+                exportMenuDropdown.classList.add('hidden');
+            };
+
+            importMenuBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                exportMenuDropdown.classList.add('hidden'); // Close other menu
+                importMenuDropdown.classList.toggle('hidden');
+            });
+
+            exportMenuBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                importMenuDropdown.classList.add('hidden'); // Close other menu
+                exportMenuDropdown.classList.toggle('hidden');
+            });
+
+            // Global listener to close menus when clicking elsewhere
+            window.addEventListener('click', hideMenus);
             
-            // Export
-            exportBtn.addEventListener('click', () => {
+            // --- EXPORT ---
+            exportClipboardBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                hideMenus();
                 const configToSave = {
                     pageTitle: config.pageTitle,
                     notes: config.notes,
@@ -983,10 +1018,78 @@
                 });
             });
 
-            // Import
+            exportFileBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                hideMenus();
+                const configToSave = {
+                    pageTitle: config.pageTitle,
+                    notes: config.notes,
+                    shortcuts: config.shortcuts,
+                    categoryConfig: config.categoryConfig,
+                };
+                const jsonString = JSON.stringify(configToSave, null, 4); // Pretty print
+                const blob = new Blob([jsonString], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'homepage-config.json';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                showMessage('Export Successful', 'Configuration file is being downloaded.', 'success');
+            });
+
+
+            // --- IMPORT ---
             const showImportModal = () => { importModal.classList.add('is-active'); document.body.style.overflow = 'hidden'; };
             const hideImportModal = () => { importModal.classList.remove('is-active'); document.body.style.overflow = ''; };
-            importBtn.addEventListener('click', showImportModal);
+            
+            importClipboardBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                hideMenus();
+                showImportModal();
+            });
+
+            importFileBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                hideMenus();
+                importFileInput.click();
+            });
+            
+            importFileInput.addEventListener('change', (event) => {
+                const file = event.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        const parsedConfig = JSON.parse(e.target.result);
+                         if (!parsedConfig.hasOwnProperty('pageTitle') || !parsedConfig.hasOwnProperty('shortcuts')) {
+                             throw new Error("Invalid or incomplete configuration file.");
+                        }
+                        
+                        config.pageTitle = parsedConfig.pageTitle || 'My Homepage';
+                        config.notes = parsedConfig.notes || [];
+                        config.shortcuts = parsedConfig.shortcuts || [];
+                        config.categoryConfig = parsedConfig.categoryConfig || {};
+
+                        saveConfig();
+                        showMessage('Import Successful', 'Configuration has been loaded and saved.', 'success');
+                        
+                        renderTitle();
+                        renderShortcuts();
+                        renderNotes();
+                    } catch (err) {
+                        showMessage('Import Failed', 'The selected file is not a valid configuration file.', 'error');
+                        console.error('Failed to import config from file:', err);
+                    }
+                };
+                reader.readAsText(file);
+                event.target.value = ''; // Reset input
+            });
+
+            // Import Modal Logic (for clipboard)
             document.getElementById('import-modal-cancel').addEventListener('click', hideImportModal);
             importModal.addEventListener('click', (e) => { if(e.target === e.currentTarget) hideImportModal(); });
             
@@ -1020,8 +1123,9 @@
                 }
             });
 
-            // Reset
+            // --- RESET ---
             resetBtn.addEventListener('click', () => {
+                hideMenus();
                 showConfirmation('Reset Configuration', 'Are you sure you want to reset all settings to their default values? This action cannot be undone.', () => {
                     localStorage.removeItem('homepageConfig');
                     showMessage('Configuration Reset', 'The page will now reload with default settings.', 'success');
@@ -1066,16 +1170,31 @@
 </head>
 <body class="bg-gray-200 text-gray-800 dark:bg-gray-900 dark:text-white transition-colors duration-300">
     
-    <div class="fixed top-4 right-4 flex space-x-2 z-50">
+    <div class="fixed top-4 right-4 flex items-center space-x-2 z-50">
         <button id="reset-config-btn" class="p-2 rounded-full bg-gray-500/20 hover:bg-gray-500/40 backdrop-blur-sm transition-colors cursor-pointer" title="Reset Configuration" aria-label="Reset Configuration">
             <svg class="w-5 h-5 text-gray-200" fill="currentColor" viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg>
         </button>
-        <button id="import-config-btn" class="p-2 rounded-full bg-gray-500/20 hover:bg-gray-500/40 backdrop-blur-sm transition-colors cursor-pointer" title="Import Configuration" aria-label="Import Configuration">
-            <svg class="w-5 h-5 text-gray-200" fill="currentColor" viewBox="0 0 24 24"><path d="M9 16h6v-6h4l-8-8-8 8h4v6zm-4 2h14v2H5v-2z"/></svg>
-        </button>
-        <button id="export-config-btn" class="p-2 rounded-full bg-gray-500/20 hover:bg-gray-500/40 backdrop-blur-sm transition-colors cursor-pointer" title="Export Configuration" aria-label="Export Configuration">
-            <svg class="w-5 h-5 text-gray-200" fill="currentColor" viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
-        </button>
+
+        <div class="relative">
+            <button id="import-menu-btn" class="p-2 rounded-full bg-gray-500/20 hover:bg-gray-500/40 backdrop-blur-sm transition-colors cursor-pointer" title="Import Configuration" aria-label="Import Configuration">
+                <svg class="w-5 h-5 text-gray-200" fill="currentColor" viewBox="0 0 24 24"><path d="M9 16h6v-6h4l-8-8-8 8h4v6zm-4 2h14v2H5v-2z"/></svg>
+            </button>
+            <div id="import-menu-dropdown" class="absolute top-full right-0 mt-2 w-48 rounded-md shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 py-1 z-10 hidden config-submenu">
+                <a href="#" id="import-clipboard-btn" class="config-submenu-item">From Clipboard</a>
+                <a href="#" id="import-file-btn" class="config-submenu-item">From File...</a>
+            </div>
+        </div>
+
+        <div class="relative">
+            <button id="export-menu-btn" class="p-2 rounded-full bg-gray-500/20 hover:bg-gray-500/40 backdrop-blur-sm transition-colors cursor-pointer" title="Export Configuration" aria-label="Export Configuration">
+                <svg class="w-5 h-5 text-gray-200" fill="currentColor" viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+            </button>
+             <div id="export-menu-dropdown" class="absolute top-full right-0 mt-2 w-48 rounded-md shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 py-1 z-10 hidden config-submenu">
+                <a href="#" id="export-clipboard-btn" class="config-submenu-item">To Clipboard</a>
+                <a href="#" id="export-file-btn" class="config-submenu-item">To File...</a>
+            </div>
+        </div>
+
         <button id="theme-switcher" class="p-2 rounded-full bg-gray-500/20 hover:bg-gray-500/40 backdrop-blur-sm transition-colors cursor-pointer" aria-label="Toggle theme"><svg id="sun-icon" class="w-5 h-5 text-yellow-500 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg><svg id="moon-icon" class="w-5 h-5 text-gray-200 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg></button>
         <button id="style-switcher" class="p-2 rounded-full bg-gray-500/20 hover:bg-gray-500/40 backdrop-blur-sm transition-colors cursor-pointer" aria-label="Toggle display style"><span id="style-text" class="text-sm font-semibold">Compact</span></button>
     </div>
@@ -1097,5 +1216,6 @@
     <div id="import-config-modal" class="edit-modal"><div class="edit-modal-content"><h2 class="text-2xl font-bold mb-6 text-gray-800 dark:text-gray-100">Import Configuration</h2><form id="import-config-form"><div class="form-field"><label for="import-config-string">Paste Configuration String</label><textarea id="import-config-string" required placeholder="Paste your exported configuration string here..."></textarea></div><div class="form-actions"><button type="button" id="import-modal-cancel" class="btn btn-secondary">Cancel</button><button type="submit" class="btn btn-primary">Load Configuration</button></div></form></div></div>
 
     <div id="link-preview" class="fixed pointer-events-none z-50 rounded-lg bg-gray-800 px-3 py-1.5 text-sm font-medium text-white shadow-lg transition-opacity duration-200 opacity-0" role="tooltip"></div>
+    <input type="file" id="import-file-input" class="hidden" accept=".json,application/json">
 </body>
 </html>

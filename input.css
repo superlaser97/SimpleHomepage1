@@ -384,3 +384,41 @@ mark {
     background-color: #facc15; /* A darker yellow for better contrast in dark mode */
     color: #1f2937; /* Dark text for readability on the yellow background */
 }
+
+/* Added for new Import/Export sub-menu */
+.config-submenu {
+    transform-origin: top right;
+    animation: scale-in-tr 0.1s ease-out;
+}
+
+.config-submenu-item {
+    display: block;
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    color: #1f2937; /* gray-800 */
+    text-decoration: none;
+    transition: background-color 0.15s ease-in-out;
+}
+
+.dark .config-submenu-item {
+    color: #f3f4f6; /* gray-100 */
+}
+
+.config-submenu-item:hover {
+    background-color: #f3f4f6; /* gray-100 */
+}
+
+.dark .config-submenu-item:hover {
+    background-color: #374151; /* gray-700 */
+}
+
+@keyframes scale-in-tr {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
