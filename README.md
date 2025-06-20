@@ -2,9 +2,9 @@
 
 A fast, modern, and highly customizable homepage that runs entirely from a single HTML file. No databases, no complicated setup. Organize your links, manage notes, and keep track of reminders with an intuitive interface. All your data is securely stored in your browser's local storage.
 
-![screenshot1](screenshot1.png)
-![screenshot2](screenshot2.png)
-![screenshot3](screenshot3.png)
+![screenshot1](screenshots/screenshot1.png)
+![screenshot2](screenshots/screenshot2.png)
+![screenshot3](screenshots/screenshot3.png)
 
 ## Table of Contents
 
@@ -29,11 +29,6 @@ A fast, modern, and highly customizable homepage that runs entirely from a singl
     * Switch between **Light** and **Dark** themes.
     * Toggle between **Comfortable** and **Compact** display styles to fit more on the screen.
 * **Self-Contained & Private:** Everything is stored in your browser's local storage. Your data stays with you.
-
-## Live Demo
-
-**(Optional)** If you host a live version, you can add the link here.
-`[Link to your live demo]`
 
 ## Getting Started
 
