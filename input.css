@@ -425,6 +425,8 @@ kbd {
     height: 1em;
 }
 
+/* --- Added for Cursor Fix (v3) --- */
+#notes-container > .group, /* <-- FIX for Note Widgets */
 .tab-button,
 .control-btn,
 .category-tag-btn,
@@ -439,7 +441,7 @@ kbd {
 #style-switcher,
 .config-submenu-item,
 #modal-copy-btn,
-#help-modal-close-btn /* <--- FIX for the Help Modal Close Button */ {
+#help-modal-close-btn {
     cursor: pointer;
 }
 
@@ -449,10 +451,38 @@ kbd {
     cursor: pointer;
 }
 
-/* For elements that reveal controls on hover */
+/* Default for groups, which can be overridden by more specific rules */
 .group {
-    cursor: default; /* Default cursor for the group container */
+    cursor: default;
 }
+
+/* Ensure main shortcut links have a pointer */
 a.flex.items-center.gap-4 {
-     cursor: pointer; /* Ensure main shortcut links have pointer */
+     cursor: pointer;
+}
+
+/* Target the specific form field DIV that contains the content textarea.
+   We make this DIV a flex container that can grow. */
+#edit-note-modal .form-field:has(#note-content-input) {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1; /* This is the key change: allows this field to expand */
+    min-height: 0; /* Prevents overflow issues in some flexbox scenarios */
+    margin-bottom: 0;
+}
+
+/* Ensure the textarea itself grows to fill its parent DIV.
+   The existing flex-grow rule on it will now work as intended. */
+#edit-note-modal #note-content-input {
+    height: 100%;
+}
+
+/* Add margin-top to the buttons to ensure proper spacing. */
+#edit-note-modal .form-actions {
+    margin-top: 1rem;
+}
+
+#notes-container .group,
+.reminder-card {
+    cursor: pointer;
 }

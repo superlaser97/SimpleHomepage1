@@ -2199,7 +2199,7 @@ kbd {
   width: 1em;
   height: 1em;
 }
-.tab-button, .control-btn, .category-tag-btn, .icon-tag-btn, .color-tag-btn, .checkbox-label, #help-menu-btn, #reset-config-btn, #import-menu-btn, #export-menu-btn, #theme-switcher, #style-switcher, .config-submenu-item, #modal-copy-btn, #help-modal-close-btn {
+#notes-container > .group, .tab-button, .control-btn, .category-tag-btn, .icon-tag-btn, .color-tag-btn, .checkbox-label, #help-menu-btn, #reset-config-btn, #import-menu-btn, #export-menu-btn, #theme-switcher, #style-switcher, .config-submenu-item, #modal-copy-btn, #help-modal-close-btn {
   cursor: pointer;
 }
 .category-edit-btn, .category-delete-btn {
@@ -2209,6 +2209,22 @@ kbd {
   cursor: default;
 }
 a.flex.items-center.gap-4 {
+  cursor: pointer;
+}
+#edit-note-modal .form-field:has(#note-content-input) {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  min-height: 0;
+  margin-bottom: 0;
+}
+#edit-note-modal #note-content-input {
+  height: 100%;
+}
+#edit-note-modal .form-actions {
+  margin-top: 1rem;
+}
+#notes-container .group, .reminder-card {
   cursor: pointer;
 }
 @property --tw-translate-x {
