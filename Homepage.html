@@ -126,22 +126,63 @@
             const now = new Date();
             const date = new Date(dateString);
             const diffSeconds = (date - now) / 1000;
-            const diffDays = Math.round(diffSeconds / (3600 * 24));
-
             const timeOptions = { hour: 'numeric', minute: '2-digit', hour12: true };
             const timeStr = date.toLocaleTimeString('en-US', timeOptions);
 
-            if (diffDays === 0) return `Today at ${timeStr}`;
-            if (diffDays === 1) return `Tomorrow at ${timeStr}`;
-            if (diffDays === -1) return `Yesterday at ${timeStr}`;
-            
+            // --- Handle Past Dates ---
             if (diffSeconds < 0) {
-                 return `${date.toLocaleDateString(undefined, { month: 'short', day: 'numeric'})} (Due)`;
+                const yesterday = new Date();
+                yesterday.setDate(now.getDate() - 1);
+                if (date.toDateString() === yesterday.toDateString()) {
+                    return `Yesterday at ${timeStr}`;
+                }
+                return `${date.toLocaleDateString(undefined, { month: 'short', day: 'numeric'})} (Due)`;
             }
 
-            const weekdayOptions = { weekday: 'long', month: 'short', day: 'numeric' };
-            return `${date.toLocaleDateString(undefined, weekdayOptions)} at ${timeStr}`;
+            // --- Handle Future Dates ---
+            const tomorrow = new Date();
+            tomorrow.setDate(now.getDate() + 1);
+
+            if (date.toDateString() === now.toDateString()) {
+                const diffMinutes = diffSeconds / 60;
+                const diffHours = diffMinutes / 60;
+                if (diffHours < 1) {
+                    const minutes = Math.round(diffMinutes);
+                    if (minutes < 1) return 'in a moment';
+                    return `in ${minutes} minute${minutes > 1 ? 's' : ''}`;
+                }
+                if (diffHours < 5) {
+                    const hours = Math.round(diffHours);
+                    return `in ${hours} hour${hours > 1 ? 's' : ''}`;
+                }
+                return `Today at ${timeStr}`;
+            }
+            if (date.toDateString() === tomorrow.toDateString()) {
+                return `Tomorrow at ${timeStr}`;
+            }
+
+            const diffDays = diffSeconds / (3600 * 24);
+            const diffWeeks = diffDays / 7;
+            const diffMonths = diffDays / 30.44; // Average days in a month
+
+            if (diffDays < 7) {
+                const days = Math.round(diffDays);
+                return `in ${days} day${days > 1 ? 's' : ''}`;
+            }
+            if (diffWeeks < 4.345) { // ~4.345 weeks in a month
+                const weeks = Math.round(diffWeeks);
+                return `in ${weeks} week${weeks > 1 ? 's' : ''}`;
+            }
+            if (diffMonths < 12) {
+                const months = Math.round(diffMonths);
+                return `in ${months} month${months > 1 ? 's' : ''}`;
+            }
+
+            // Default for over a year away
+            const weekdayOptions = { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' };
+            return `${date.toLocaleDateString(undefined, weekdayOptions)}`;
         }
+
 
         function saveConfig() {
             const configToSave = {
@@ -189,23 +230,91 @@
 
         function loadConfig() {
             const defaultConfig = {
-                pageTitle: "My Homepage",
-                notes: [{ title: "Welcome!", content: "This is your new homepage.\\nYour configuration is now saved automatically to your browser's local storage.\\n\\n- Use the controls in the top right to change the theme, style, or import/export your settings.\\n- Click the page title to edit it." }],
-                shortcuts: [{ name: "Google", category: "Search", url: "https://www.google.com", icon: "browser" }],
-                reminders: [{ 
-                    id: `rem_${Date.now()}`,
-                    message: "Check out the new granular Reminders feature!",
-                    start_datetime: new Date(Date.now() + 3600 * 1000).toISOString().slice(0, 16),
-                    occurrence_count: 0,
-                    recurrence: {
-                        frequency: 'none',
-                        interval: 1,
-                        ends: { type: 'never', value: null }
+                pageTitle: "Dashboard",
+                notes: [
+                    {
+                        title: "Welcome to your Dashboard!",
+                        content: "This is a customizable, self-contained homepage. All your data is saved in your browser's local storage.\\n\\n- Click the title above to edit it.\\n- Use the controls in the top right to import/export, change themes, or reset.\\n- Hover over items to find edit and delete controls."
                     },
-                    triggered: false,
-                    dismissed: false
-                }],
-                categoryConfig: { "Search": { "color": "sky" }, "General": { "color": "gray" } }
+                    {
+                        title: "Markdown Demo",
+                        content: "## Note-Taking Features\\nNotes support simple formatting for better organization.\\n\\n- Use `-` or `*` to create a list.\\n- Add another item for good measure.\\n\\n## Sub-headings\\nUse `##` to create a sub-heading, just like this one. Separate paragraphs with a blank line in the editor."
+                    }
+                ],
+                shortcuts: [
+                    { name: "Google", category: "Search", url: "https://www.google.com", icon: "browser" },
+                    { name: "DuckDuckGo", category: "Search", url: "https://www.duckduckgo.com", icon: "browser" },
+                    { name: "Reddit", category: "Social", url: "https://www.reddit.com", icon: "bell" },
+                    { name: "Twitter / X", category: "Social", url: "https://www.twitter.com", icon: "bell" },
+                    { name: "YouTube", category: "Media", url: "https://www.youtube.com", icon: "browser" },
+                    { name: "Spotify", category: "Media", url: "https://www.spotify.com", icon: "browser" },
+                    { name: "GitHub", category: "Developer", url: "https://www.github.com", icon: "folder" },
+                    { name: "Stack Overflow", category: "Developer", url: "https://stackoverflow.com", icon: "question" }
+                ],
+                reminders: [
+                    {
+                        id: `rem_${Date.now() + 1}`,
+                        message: "Check out the project report",
+                        start_datetime: new Date(Date.now() - 86400000).toISOString().slice(0, 16), // Yesterday
+                        occurrence_count: 1,
+                        recurrence: { frequency: 'none', interval: 1, ends: { type: 'never', value: null } },
+                        triggered: true,
+                        dismissed: true
+                    },
+                    {
+                        id: `rem_${Date.now() + 2}`,
+                        message: "Take a break and stretch!",
+                        start_datetime: new Date(Date.now() + 2 * 3600 * 1000).toISOString().slice(0, 16), // In 2 hours
+                        occurrence_count: 0,
+                        recurrence: { frequency: 'none', interval: 1, ends: { type: 'never', value: null } },
+                        triggered: false,
+                        dismissed: false
+                    },
+                    {
+                        id: `rem_${Date.now() + 3}`,
+                        message: "Daily stand-up meeting",
+                        start_datetime: new Date(new Date().setHours(9, 0, 0, 0) + 86400000).toISOString().slice(0, 16), // Tomorrow at 9am
+                        occurrence_count: 0,
+                        recurrence: { frequency: 'day', interval: 1, ends: { type: 'never', value: null } },
+                        triggered: false,
+                        dismissed: false
+                    },
+                    {
+                        id: `rem_${Date.now() + 4}`,
+                        message: "Plan the upcoming week",
+                        start_datetime: (() => {
+                            const d = new Date();
+                            d.setDate(d.getDate() + (1 + 7 - d.getDay()) % 7); // Next Monday
+                            d.setHours(10, 0, 0, 0);
+                            return d.toISOString().slice(0, 16);
+                        })(),
+                        occurrence_count: 0,
+                        recurrence: { frequency: 'week', interval: 1, ends: { type: 'after_occurrences', value: 4 } },
+                        triggered: false,
+                        dismissed: false
+                    },
+                    {
+                        id: `rem_${Date.now() + 5}`,
+                        message: "Review monthly budget",
+                        start_datetime: (() => {
+                            const d = new Date();
+                            d.setMonth(d.getMonth() + 1, 1); // 1st of next month
+                            d.setHours(12, 0, 0, 0);
+                            return d.toISOString().slice(0, 16);
+                        })(),
+                        occurrence_count: 0,
+                        recurrence: { frequency: 'month', interval: 1, ends: { type: 'never', value: null } },
+                        triggered: false,
+                        dismissed: false
+                    }
+                ],
+                categoryConfig: {
+                    "Search": { "color": "sky" },
+                    "Social": { "color": "blue" },
+                    "Media": { "color": "red" },
+                    "Developer": { "color": "indigo" },
+                    "General": { "color": "gray" }
+                }
             };
 
             const savedConfig = localStorage.getItem('homepageConfig');
@@ -454,42 +563,42 @@
 
         function parseNoteContent(rawContent, isPreview = false, query = '') {
              const lines = rawContent.split('\\n');
-               let processedLines = [];
-               let currentParagraph = [];
-               let inList = false;
-               const flushParagraph = () => {
-                   if (currentParagraph.length > 0) {
-                       const paragraphText = currentParagraph.join(' ').trim();
-                       processedLines.push(`<p class="text-gray-600 dark:text-gray-300 mb-2 style-compact:mb-1 style-compact:text-sm">${highlightText(paragraphText, query)}</p>`);
-                       currentParagraph = [];
-                   }
-               };
-               const closeList = () => { if (inList) { processedLines.push('</ul>'); inList = false; } };
-               lines.forEach(line => {
-                   const headerMatch = line.match(/^(#{1,6})(.*?)\1?$/);
-                   const listItemMatch = line.match(/^[\-\*]\s(.*)/);
-                   if (headerMatch && headerMatch[2].trim() !== '') {
-                       flushParagraph(); closeList();
-                       const hashes = headerMatch[1];
-                       const content = headerMatch[2].trim();
-                       const headingLevel = Math.min(hashes.length + 1, 6);
-                       let classes = 'font-bold';
-                       if (isPreview) { classes += ' text-sm text-gray-500 dark:text-gray-400 mt-2 mb-1 style-compact:text-xs'; } 
-                       else { classes += ` text-sky-600 dark:text-sky-300 ${['text-2xl','text-xl','text-lg','text-base'][headingLevel-2] || 'text-base'} mb-2`; }
-                       processedLines.push(`<h${headingLevel} class="${classes}">${highlightText(content, query)}</h${headingLevel}>`);
-                   } else if (listItemMatch) {
-                       flushParagraph();
-                       if (!inList) { processedLines.push('<ul class="list-disc list-inside space-y-1 pl-2 mb-2 style-compact:text-sm">'); inList = true; }
-                       const listItemText = listItemMatch[1].trim();
-                       processedLines.push(`<li class="text-gray-600 dark:text-gray-300">${highlightText(listItemText, query)}</li>`);
-                   } else if (line.trim() === '') {
-                       flushParagraph(); closeList();
-                   } else {
-                       closeList(); currentParagraph.push(line);
-                   }
-               });
-               flushParagraph(); closeList();
-               return processedLines.join('');
+                let processedLines = [];
+                let currentParagraph = [];
+                let inList = false;
+                const flushParagraph = () => {
+                    if (currentParagraph.length > 0) {
+                        const paragraphText = currentParagraph.join(' ').trim();
+                        processedLines.push(`<p class="text-gray-600 dark:text-gray-300 mb-2 style-compact:mb-1 style-compact:text-sm">${highlightText(paragraphText, query)}</p>`);
+                        currentParagraph = [];
+                    }
+                };
+                const closeList = () => { if (inList) { processedLines.push('</ul>'); inList = false; } };
+                lines.forEach(line => {
+                    const headerMatch = line.match(/^(#{1,6})(.*?)\1?$/);
+                    const listItemMatch = line.match(/^[\-\*]\s(.*)/);
+                    if (headerMatch && headerMatch[2].trim() !== '') {
+                        flushParagraph(); closeList();
+                        const hashes = headerMatch[1];
+                        const content = headerMatch[2].trim();
+                        const headingLevel = Math.min(hashes.length + 1, 6);
+                        let classes = 'font-bold';
+                        if (isPreview) { classes += ' text-sm text-gray-500 dark:text-gray-400 mt-2 mb-1 style-compact:text-xs'; } 
+                        else { classes += ` text-sky-600 dark:text-sky-300 ${['text-2xl','text-xl','text-lg','text-base'][headingLevel-2] || 'text-base'} mb-2`; }
+                        processedLines.push(`<h${headingLevel} class="${classes}">${highlightText(content, query)}</h${headingLevel}>`);
+                    } else if (listItemMatch) {
+                        flushParagraph();
+                        if (!inList) { processedLines.push('<ul class="list-disc list-inside space-y-1 pl-2 mb-2 style-compact:text-sm">'); inList = true; }
+                        const listItemText = listItemMatch[1].trim();
+                        processedLines.push(`<li class="text-gray-600 dark:text-gray-300">${highlightText(listItemText, query)}</li>`);
+                    } else if (line.trim() === '') {
+                        flushParagraph(); closeList();
+                    } else {
+                        closeList(); currentParagraph.push(line);
+                    }
+                });
+                flushParagraph(); closeList();
+                return processedLines.join('');
         }
         
         function renderNotes(query = '') {
@@ -636,6 +745,13 @@
                 reminderCard.appendChild(cardBody);
                 reminderCard.appendChild(cardFooter);
                 reminderCard.appendChild(createItemControls(reminder, 'reminder'));
+                // Add this block to make the whole card clickable
+                reminderCard.addEventListener('click', (e) => {
+                    // Don't trigger if a button inside the card was clicked (e.g., dismiss, edit, delete)
+                    if (e.target.closest('button')) return;
+                    showReminderModal(reminder);
+                });
+                // This line should already exist
                 container.appendChild(reminderCard);
             });
         }
@@ -1381,9 +1497,9 @@
                     try {
                         const parsedConfig = JSON.parse(e.target.result);
                          if (!parsedConfig.hasOwnProperty('pageTitle') || !parsedConfig.hasOwnProperty('shortcuts')) {
-                                 throw new Error("Invalid or incomplete configuration file.");
+                                  throw new Error("Invalid or incomplete configuration file.");
                          }
-                       
+                        
                         config.pageTitle = parsedConfig.pageTitle || 'My Homepage';
                         config.notes = parsedConfig.notes || [];
                         config.shortcuts = parsedConfig.shortcuts || [];
@@ -1392,7 +1508,7 @@
 
                         saveConfig();
                         showMessage('Import Successful', 'Configuration has been loaded and saved.', 'success');
-                       
+                        
                         renderTitle();
                         renderShortcuts();
                         renderNotes();
@@ -1419,7 +1535,7 @@
                 try {
                     const decodedJson = atob(importString);
                     const parsedConfig = JSON.parse(decodeURIComponent(escape(decodedJson)));
-                   
+                    
                     config.pageTitle = parsedConfig.pageTitle || 'My Homepage';
                     config.notes = parsedConfig.notes || [];
                     config.shortcuts = parsedConfig.shortcuts || [];
@@ -1429,7 +1545,7 @@
                     saveConfig();
                     hideImportModal();
                     showMessage('Import Successful', 'Configuration has been loaded and saved.', 'success');
-                   
+                    
                     renderTitle();
                     renderShortcuts();
                     renderNotes();
