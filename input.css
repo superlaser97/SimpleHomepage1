@@ -86,10 +86,10 @@
     gap: 0.5rem; /* gap-2 */
     padding: 0.25rem 0.5rem; /* py-1 px-2 */
     font-size: 0.75rem; /* text-xs */
-    background-color: rgba(255, 255, 255, 0.7);
+    /* background-color: rgba(255, 255, 255, 0.7); */ /* REMOVED */
 }
 .dark .container.style-compact .group.flex.items-center {
-    background-color: rgba(31, 41, 55, 0.7);
+    /* background-color: rgba(31, 41, 55, 0.7); */ /* REMOVED */
 }
 
 /* Reduce shortcut icon size */

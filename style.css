@@ -1310,10 +1310,6 @@
   gap: 0.5rem;
   padding: 0.25rem 0.5rem;
   font-size: 0.75rem;
-  background-color: rgba(255, 255, 255, 0.7);
-}
-.dark .container.style-compact .group.flex.items-center {
-  background-color: rgba(31, 41, 55, 0.7);
 }
 .container.style-compact .group.flex.items-center .flex-shrink-0 {
   width: 1rem;
