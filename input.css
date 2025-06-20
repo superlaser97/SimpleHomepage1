@@ -86,10 +86,6 @@
     gap: 0.5rem; /* gap-2 */
     padding: 0.25rem 0.5rem; /* py-1 px-2 */
     font-size: 0.75rem; /* text-xs */
-    /* background-color: rgba(255, 255, 255, 0.7); */ /* REMOVED */
-}
-.dark .container.style-compact .group.flex.items-center {
-    /* background-color: rgba(31, 41, 55, 0.7); */ /* REMOVED */
 }
 
 /* Reduce shortcut icon size */
@@ -176,9 +172,9 @@
 /*************************************************************/
 
 /*
-    * Custom Scrollbar Styling
-    * -----------------------------------
-    */
+ * Custom Scrollbar Styling
+ * -----------------------------------
+ */
 
 /* For Webkit-based browsers (Chrome, Safari, Edge) */
 .dark .custom-scrollbar::-webkit-scrollbar {
@@ -245,11 +241,6 @@
     transform: translateY(20px); /* Start slightly below for slide-up effect */
     z-index: 9999; /* Ensure it's on top of everything */
 }
-
-/*
-    The #note-modal-content block was removed as it was faulty and unused.
-    A new rule for #note-modal .edit-modal-content has been added below.
-*/
 
 /* Animation for modal content */
 #note-modal.is-active .edit-modal-content {
@@ -390,7 +381,7 @@ mark {
     color: #1f2937; /* Dark text for readability on the yellow background */
 }
 
-/* MODIFIED: Update Import/Export sub-menu styling */
+/* MODIFIED: Update Import/Export/Help sub-menu styling */
 .config-submenu {
     transform-origin: top right;
     animation: scale-in-tr 0.1s ease-out;
@@ -421,8 +412,15 @@ mark {
 }
 
 .dark .config-submenu-item:hover {
-    background-color: #374151; /* gray-700 */
+    background-color: #4b5563;
 }
+
+#help-menu-dropdown h3 { color: #1f2937; }
+.dark #help-menu-dropdown h3 { color: #f3f4f6; }
+#help-menu-dropdown ul { color: #4b5563; }
+.dark #help-menu-dropdown ul { color: #d1d5db; }
+#help-menu-dropdown li svg { vertical-align: -0.25em; color: #6b7280; }
+.dark #help-menu-dropdown li svg { color: #9ca3af; }
 
 @keyframes scale-in-tr {
     from {
@@ -474,6 +472,7 @@ mark {
 /* 1. Improve visibility of header icons in light mode */
 
 /* Change button background for better contrast against light page BG */
+#help-menu-btn,
 #reset-config-btn,
 #import-menu-btn,
 #export-menu-btn,
@@ -481,6 +480,7 @@ mark {
 #style-switcher {
     background-color: rgba(0, 0, 0, 0.05); /* Subtle dark background on light theme */
 }
+#help-menu-btn:hover,
 #reset-config-btn:hover,
 #import-menu-btn:hover,
 #export-menu-btn:hover,
@@ -490,6 +490,7 @@ mark {
 }
 
 /* Change icon/text color to be dark on light theme */
+#help-menu-btn svg,
 #reset-config-btn svg,
 #import-menu-btn svg,
 #export-menu-btn svg,
@@ -503,6 +504,7 @@ mark {
 
 
 /* Restore original styles for dark mode */
+.dark #help-menu-btn,
 .dark #reset-config-btn,
 .dark #import-menu-btn,
 .dark #export-menu-btn,
@@ -510,6 +512,7 @@ mark {
 .dark #style-switcher {
     background-color: rgba(107, 114, 128, 0.2); /* Original: bg-gray-500/20 */
 }
+.dark #help-menu-btn:hover,
 .dark #reset-config-btn:hover,
 .dark #import-menu-btn:hover,
 .dark #export-menu-btn:hover,
@@ -518,6 +521,7 @@ mark {
     background-color: rgba(107, 114, 128, 0.4); /* Original: hover:bg-gray-500/40 */
 }
 
+.dark #help-menu-btn svg,
 .dark #reset-config-btn svg,
 .dark #import-menu-btn svg,
 .dark #export-menu-btn svg,
