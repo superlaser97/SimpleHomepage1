@@ -122,7 +122,6 @@
             return text.replace(regex, '<mark>$1</mark>');
         }
         
-        // ADDED: New utility function for formatting dates
         function formatRelativeTime(dateString) {
             const now = new Date();
             const date = new Date(dateString);
@@ -149,7 +148,7 @@
                 pageTitle: config.pageTitle,
                 notes: config.notes,
                 shortcuts: config.shortcuts,
-                reminders: config.reminders, // ADDED
+                reminders: config.reminders,
                 categoryConfig: config.categoryConfig,
             };
             try {
@@ -167,7 +166,6 @@
                 pageTitle: "My Homepage",
                 notes: [{ title: "Welcome!", content: "This is your new homepage.\\nYour configuration is now saved automatically to your browser's local storage.\\n\\n- Use the controls in the top right to change the theme, style, or import/export your settings.\\n- Click the page title to edit it." }],
                 shortcuts: [{ name: "Google", category: "Search", url: "https://www.google.com", icon: "browser" }],
-                // ADDED: Reminders array with a sample
                 reminders: [{ 
                     id: `rem_${Date.now()}`, 
                     message: "Check out the new Reminders feature!", 
@@ -254,7 +252,7 @@
         
         function createItemControls(item, type) {
             const controlsContainer = document.createElement('div');
-            controlsContainer.className = 'item-controls'; // Simplified class name
+            controlsContainer.className = 'item-controls';
 
             const editBtn = document.createElement('button');
             editBtn.className = 'control-btn edit-btn';
@@ -263,7 +261,7 @@
                 e.preventDefault(); e.stopPropagation();
                 if (type === 'shortcut') showShortcutModal(item);
                 else if (type === 'note') showNoteEditModal(item);
-                else if (type === 'reminder') showReminderModal(item); // ADDED
+                else if (type === 'reminder') showReminderModal(item);
             };
 
             const deleteBtn = document.createElement('button');
@@ -281,10 +279,11 @@
                         index = config.notes.indexOf(item);
                         if (index > -1) config.notes.splice(index, 1);
                         renderNotes();
-                    } else if (type === 'reminder') { // ADDED
+                    } else if (type === 'reminder') {
                         index = config.reminders.findIndex(r => r.id === item.id);
                         if (index > -1) config.reminders.splice(index, 1);
                         renderReminders();
+                        updateReminderTabIndicator(); // Update tab state after deletion
                     }
                     saveConfig();
                 });
@@ -423,42 +422,42 @@
 
         function parseNoteContent(rawContent, isPreview = false, query = '') {
              const lines = rawContent.split('\\n');
-                let processedLines = [];
-                let currentParagraph = [];
-                let inList = false;
-                const flushParagraph = () => {
-                    if (currentParagraph.length > 0) {
-                        const paragraphText = currentParagraph.join(' ').trim();
-                        processedLines.push(`<p class="text-gray-600 dark:text-gray-300 mb-2 style-compact:mb-1 style-compact:text-sm">${highlightText(paragraphText, query)}</p>`);
-                        currentParagraph = [];
-                    }
-                };
-                const closeList = () => { if (inList) { processedLines.push('</ul>'); inList = false; } };
-                lines.forEach(line => {
-                    const headerMatch = line.match(/^(#{1,6})(.*?)\1?$/);
-                    const listItemMatch = line.match(/^[\-\*]\s(.*)/);
-                    if (headerMatch && headerMatch[2].trim() !== '') {
-                        flushParagraph(); closeList();
-                        const hashes = headerMatch[1];
-                        const content = headerMatch[2].trim();
-                        const headingLevel = Math.min(hashes.length + 1, 6);
-                        let classes = 'font-bold';
-                        if (isPreview) { classes += ' text-sm text-gray-500 dark:text-gray-400 mt-2 mb-1 style-compact:text-xs'; } 
-                        else { classes += ` text-sky-600 dark:text-sky-300 ${['text-2xl','text-xl','text-lg','text-base'][headingLevel-2] || 'text-base'} mb-2`; }
-                        processedLines.push(`<h${headingLevel} class="${classes}">${highlightText(content, query)}</h${headingLevel}>`);
-                    } else if (listItemMatch) {
-                        flushParagraph();
-                        if (!inList) { processedLines.push('<ul class="list-disc list-inside space-y-1 pl-2 mb-2 style-compact:text-sm">'); inList = true; }
-                        const listItemText = listItemMatch[1].trim();
-                        processedLines.push(`<li class="text-gray-600 dark:text-gray-300">${highlightText(listItemText, query)}</li>`);
-                    } else if (line.trim() === '') {
-                        flushParagraph(); closeList();
-                    } else {
-                        closeList(); currentParagraph.push(line);
-                    }
-                });
-                flushParagraph(); closeList();
-                return processedLines.join('');
+               let processedLines = [];
+               let currentParagraph = [];
+               let inList = false;
+               const flushParagraph = () => {
+                   if (currentParagraph.length > 0) {
+                       const paragraphText = currentParagraph.join(' ').trim();
+                       processedLines.push(`<p class="text-gray-600 dark:text-gray-300 mb-2 style-compact:mb-1 style-compact:text-sm">${highlightText(paragraphText, query)}</p>`);
+                       currentParagraph = [];
+                   }
+               };
+               const closeList = () => { if (inList) { processedLines.push('</ul>'); inList = false; } };
+               lines.forEach(line => {
+                   const headerMatch = line.match(/^(#{1,6})(.*?)\1?$/);
+                   const listItemMatch = line.match(/^[\-\*]\s(.*)/);
+                   if (headerMatch && headerMatch[2].trim() !== '') {
+                       flushParagraph(); closeList();
+                       const hashes = headerMatch[1];
+                       const content = headerMatch[2].trim();
+                       const headingLevel = Math.min(hashes.length + 1, 6);
+                       let classes = 'font-bold';
+                       if (isPreview) { classes += ' text-sm text-gray-500 dark:text-gray-400 mt-2 mb-1 style-compact:text-xs'; } 
+                       else { classes += ` text-sky-600 dark:text-sky-300 ${['text-2xl','text-xl','text-lg','text-base'][headingLevel-2] || 'text-base'} mb-2`; }
+                       processedLines.push(`<h${headingLevel} class="${classes}">${highlightText(content, query)}</h${headingLevel}>`);
+                   } else if (listItemMatch) {
+                       flushParagraph();
+                       if (!inList) { processedLines.push('<ul class="list-disc list-inside space-y-1 pl-2 mb-2 style-compact:text-sm">'); inList = true; }
+                       const listItemText = listItemMatch[1].trim();
+                       processedLines.push(`<li class="text-gray-600 dark:text-gray-300">${highlightText(listItemText, query)}</li>`);
+                   } else if (line.trim() === '') {
+                       flushParagraph(); closeList();
+                   } else {
+                       closeList(); currentParagraph.push(line);
+                   }
+               });
+               flushParagraph(); closeList();
+               return processedLines.join('');
         }
         
         function renderNotes(query = '') {
@@ -512,25 +511,22 @@
             });
         }
 
-        // ADDED: Function to render reminders
         function renderReminders(query = '') {
             const container = document.getElementById('reminders-container');
             container.innerHTML = '';
             const lowerCaseQuery = query.toLowerCase();
 
-            // Filter based on the 'showCompletedReminders' flag
             const filteredReminders = config.reminders.filter(rem => {
                 const matchesQuery = rem.message.toLowerCase().includes(lowerCaseQuery);
                 if (showCompletedReminders) {
-                    return matchesQuery; // Show all that match query
+                    return matchesQuery;
                 }
-                return !rem.dismissed && matchesQuery; // Default: show only non-dismissed that match query
+                return !rem.dismissed && matchesQuery;
             });
             
-            // Sort: completed last, then triggered, then by date
             filteredReminders.sort((a, b) => {
-                if (a.dismissed && !b.dismissed) return 1;  // a is completed, b is not -> b comes first
-                if (!a.dismissed && b.dismissed) return -1; // b is completed, a is not -> a comes first
+                if (a.dismissed && !b.dismissed) return 1; 
+                if (!a.dismissed && b.dismissed) return -1;
                 if (a.triggered && !b.triggered) return -1;
                 if (!a.triggered && b.triggered) return 1;
                 return new Date(a.datetime) - new Date(b.datetime);
@@ -541,7 +537,6 @@
                 if (query) {
                     message = `No reminders found for "${query}".`;
                 } else if (!showCompletedReminders && config.reminders.some(r => r.dismissed)) {
-                    // No active reminders, but there are completed ones hidden
                     message = 'No active reminders. Toggle "Show Completed" to see your history.';
                 } else {
                     message = 'No reminders scheduled.';
@@ -561,7 +556,7 @@
                 delay += 0.1;
 
                 if (isTriggered) reminderCard.classList.add('triggered');
-                if (isCompleted) reminderCard.classList.add('completed'); // Add class for styling
+                if (isCompleted) reminderCard.classList.add('completed');
                 
                 let dueText = '';
                 if (isCompleted) {
@@ -606,7 +601,6 @@
                 
                 reminderCard.appendChild(cardBody);
                 reminderCard.appendChild(cardFooter);
-                // The delete button is part of createItemControls, which will still be added
                 reminderCard.appendChild(createItemControls(reminder, 'reminder'));
                 container.appendChild(reminderCard);
             });
@@ -663,7 +657,7 @@
         let editingShortcut = null;
         let editingCategoryName = null;
         let editingNote = null;
-        let editingReminder = null; // ADDED
+        let editingReminder = null;
         
         function renderCategorySelector(container, hiddenInput, selectedCategory = '') {
             container.innerHTML = ''; 
@@ -866,7 +860,6 @@
             editingNote = null;
         }
 
-        // ADDED: Functions for reminder modal
         function showReminderModal(reminder = null) {
             editingReminder = reminder;
             const modal = document.getElementById('edit-reminder-modal');
@@ -881,7 +874,6 @@
                 document.getElementById('reminder-repeat-input').value = reminder.repeat;
             } else {
                 title.textContent = 'Add Reminder';
-                // Set default time to one hour from now
                 const oneHourFromNow = new Date(Date.now() + 3600 * 1000);
                 document.getElementById('reminder-datetime-input').value = oneHourFromNow.toISOString().slice(0, 16);
             }
@@ -897,20 +889,118 @@
         }
 
         function setupEditing() {
-            document.getElementById('page-title').addEventListener('blur', (e) => { /* ... no changes ... */ });
-            document.getElementById('edit-shortcut-form').addEventListener('submit', (e) => { /* ... no changes ... */ });
+            // Page Title Editing
+            document.getElementById('page-title').addEventListener('blur', (e) => {
+                const newTitle = e.target.textContent.trim();
+                if (newTitle && newTitle !== config.pageTitle) {
+                    config.pageTitle = newTitle;
+                    document.title = newTitle;
+                    saveConfig();
+                    showMessage('Success', 'Page title updated.', 'success');
+                } else {
+                    e.target.textContent = config.pageTitle;
+                }
+            });
+
+            // Shortcut Form
+            document.getElementById('edit-shortcut-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const updatedShortcut = {
+                    name: document.getElementById('shortcut-name-input').value,
+                    url: document.getElementById('shortcut-url-input').value,
+                    category: document.getElementById('shortcut-category-input').value,
+                    icon: document.getElementById('shortcut-icon-input').value,
+                };
+                if (editingShortcut) {
+                    Object.assign(editingShortcut, updatedShortcut);
+                } else {
+                    config.shortcuts.push(updatedShortcut);
+                }
+                hideShortcutModal();
+                saveConfig();
+                renderShortcuts();
+            });
             document.getElementById('edit-shortcut-modal').addEventListener('click', (e) => { if(e.target === e.currentTarget) hideShortcutModal() });
             document.getElementById('shortcut-modal-cancel').addEventListener('click', hideShortcutModal);
-            document.getElementById('shortcut-category-selector').addEventListener('click', (e) => { /* ... no changes ... */ });
-            document.getElementById('shortcut-icon-selector').addEventListener('click', (e) => { /* ... no changes ... */ });
-            document.getElementById('add-category-form').addEventListener('submit', (e) => { /* ... no changes ... */ });
-            document.getElementById('new-category-color-selector').addEventListener('click', (e) => { /* ... no changes ... */ });
+            document.getElementById('shortcut-category-selector').addEventListener('click', (e) => {
+                const target = e.target.closest('button[data-category]');
+                if (!target) return;
+                document.getElementById('shortcut-category-input').value = target.dataset.category;
+                document.querySelectorAll('#shortcut-category-selector button').forEach(btn => btn.classList.remove('active'));
+                target.classList.add('active');
+            });
+            document.getElementById('shortcut-icon-selector').addEventListener('click', (e) => {
+                const target = e.target.closest('button[data-icon]');
+                if (!target) return;
+                document.getElementById('shortcut-icon-input').value = target.dataset.icon;
+                document.querySelectorAll('#shortcut-icon-selector button').forEach(btn => btn.classList.remove('active'));
+                target.classList.add('active');
+            });
+            
+            // Category Form
+            document.getElementById('add-category-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const newName = document.getElementById('new-category-name-input').value.trim();
+                const newColor = document.getElementById('new-category-color-input').value;
+
+                if (!newName) {
+                    showMessage('Error', 'Category name cannot be empty.', 'error');
+                    return;
+                }
+                
+                if (Object.keys(config.categoryConfig).map(k => k.toLowerCase()).includes(newName.toLowerCase()) && newName.toLowerCase() !== editingCategoryName?.toLowerCase()) {
+                    showMessage('Error', `Category "${newName}" already exists.`, 'error');
+                    return;
+                }
+
+                if (editingCategoryName && editingCategoryName !== newName) {
+                    config.shortcuts.forEach(s => { if(s.category === editingCategoryName) s.category = newName; });
+                    delete config.categoryConfig[editingCategoryName];
+                }
+                
+                config.categoryConfig[newName] = { color: newColor };
+                
+                hideCategoryModal();
+                saveConfig();
+                renderShortcuts(); // Re-render shortcuts to reflect category name change
+
+                const shortcutModalActive = document.getElementById('edit-shortcut-modal').classList.contains('is-active');
+                if (shortcutModalActive) {
+                    const categoryContainer = document.getElementById('shortcut-category-selector');
+                    const categoryInput = document.getElementById('shortcut-category-input');
+                    renderCategorySelector(categoryContainer, categoryInput, newName);
+                }
+            });
+            document.getElementById('new-category-color-selector').addEventListener('click', (e) => {
+                 const target = e.target.closest('button[data-color]');
+                if (!target) return;
+                document.getElementById('new-category-color-input').value = target.dataset.color;
+                document.querySelectorAll('#new-category-color-selector button').forEach(btn => btn.classList.remove('active'));
+                target.classList.add('active');
+            });
             document.getElementById('category-modal-cancel').addEventListener('click', hideCategoryModal);
-            document.getElementById('edit-note-form').addEventListener('submit', (e) => { /* ... no changes ... */ });
+
+            // Note Form
+            document.getElementById('edit-note-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const updatedNote = {
+                    title: document.getElementById('note-title-input').value.trim(),
+                    content: document.getElementById('note-content-input').value.replace(/\n/g, '\\n'),
+                };
+
+                if (editingNote) {
+                    Object.assign(editingNote, updatedNote);
+                } else {
+                    config.notes.push(updatedNote);
+                }
+                hideNoteEditModal();
+                saveConfig();
+                renderNotes();
+            });
             document.getElementById('edit-note-modal').addEventListener('click', (e) => { if(e.target === e.currentTarget) hideNoteEditModal() });
             document.getElementById('note-modal-cancel').addEventListener('click', hideNoteEditModal);
             
-            // --- FIX: Logic for saving a reminder and updating the UI ---
+            // Reminder Form
             document.getElementById('edit-reminder-form').addEventListener('submit', (e) => {
                 e.preventDefault();
                 const updatedReminder = {
@@ -934,16 +1024,17 @@
                 hideReminderModal();
                 saveConfig();
                 
-                // Explicitly render reminders to show the new/edited item immediately
                 if (document.getElementById('tab-reminders').classList.contains('active-tab')) {
                     const currentQuery = document.getElementById('search-input').value;
                     renderReminders(currentQuery);
                 }
-                checkReminders(); // Also run a check in case the new time is in the past
+                checkReminders();
+                updateReminderTabIndicator();
             });
             document.getElementById('edit-reminder-modal').addEventListener('click', (e) => { if (e.target === e.currentTarget) hideReminderModal(); });
             document.getElementById('reminder-modal-cancel').addEventListener('click', hideReminderModal);
             
+            // Add Buttons
             document.getElementById('add-shortcut-btn').addEventListener('click', () => showShortcutModal());
             document.getElementById('add-note-btn').addEventListener('click', () => showNoteEditModal());
             document.getElementById('add-reminder-btn').addEventListener('click', () => showReminderModal());
@@ -953,7 +1044,7 @@
         function setupAddButtonIcons() {
             const addShortcutBtn = document.getElementById('add-shortcut-btn');
             const addNoteBtn = document.getElementById('add-note-btn');
-            const addReminderBtn = document.getElementById('add-reminder-btn'); // ADDED
+            const addReminderBtn = document.getElementById('add-reminder-btn');
             const createIcon = (iconPath) => {
                 const svgNS = 'http://www.w3.org/2000/svg';
                 const svg = document.createElementNS(svgNS, 'svg');
@@ -968,7 +1059,7 @@
             const addIcon = createIcon(icons.add);
             addShortcutBtn.prepend(addIcon.cloneNode(true));
             addNoteBtn.prepend(addIcon.cloneNode(true));
-            addReminderBtn.prepend(addIcon.cloneNode(true)); // ADDED
+            addReminderBtn.prepend(addIcon.cloneNode(true));
         }
 
         function setupHelpIcon() {
@@ -996,7 +1087,7 @@
                     renderShortcuts(query);
                 } else if (document.getElementById('tab-notes').classList.contains('active-tab')) {
                     renderNotes(query);
-                } else { // ADDED
+                } else {
                     renderReminders(query);
                 }
             });
@@ -1011,7 +1102,7 @@
                 reminders: { btn: document.getElementById('tab-reminders'), container: document.getElementById('reminders-container'), addBtn: document.getElementById('add-reminder-btn'), render: renderReminders }
             };
             const searchInput = document.getElementById('search-input');
-            const reminderControls = document.getElementById('reminders-controls'); // ADD this line
+            const reminderControls = document.getElementById('reminders-controls');
 
             function updateTabState(activeTabKey) {
                 const query = searchInput.value;
@@ -1022,7 +1113,7 @@
                     tabs[key].addBtn.classList.toggle('hidden', !is_active);
                 });
                 
-                reminderControls.classList.toggle('hidden', activeTabKey !== 'reminders'); // ADD this line
+                reminderControls.classList.toggle('hidden', activeTabKey !== 'reminders');
 
                 searchInput.placeholder = `Search ${activeTabKey}... (Press '/' to focus)`;
                 tabs[activeTabKey].render(query);
@@ -1034,7 +1125,6 @@
             });
         }
 
-        // ... (rest of the setup functions: setupThemeSwitcher, setupDisplayStyleSwitcher, setupConfigActions remain the same)
         function setupThemeSwitcher() {
             const themeBtn = document.getElementById('theme-switcher');
             const sunIcon = document.getElementById('sun-icon');
@@ -1061,7 +1151,7 @@
             toggle.addEventListener('change', (e) => {
                 showCompletedReminders = e.target.checked;
                 const currentQuery = document.getElementById('search-input').value;
-                renderReminders(currentQuery); // Re-render with the new setting
+                renderReminders(currentQuery);
             });
         }
 
@@ -1087,198 +1177,190 @@
         }
 
         function setupConfigActions() {
-             // Menu Buttons & Dropdowns
-            const importMenuBtn = document.getElementById('import-menu-btn');
-            const importMenuDropdown = document.getElementById('import-menu-dropdown');
-            const exportMenuBtn = document.getElementById('export-menu-btn');
-            const exportMenuDropdown = document.getElementById('export-menu-dropdown');
-            const helpMenuBtn = document.getElementById('help-menu-btn');
-            const helpMenuDropdown = document.getElementById('help-menu-dropdown');
+             const importMenuBtn = document.getElementById('import-menu-btn');
+             const importMenuDropdown = document.getElementById('import-menu-dropdown');
+             const exportMenuBtn = document.getElementById('export-menu-btn');
+             const exportMenuDropdown = document.getElementById('export-menu-dropdown');
+             const helpMenuBtn = document.getElementById('help-menu-btn');
+             const helpMenuDropdown = document.getElementById('help-menu-dropdown');
             
-            // Submenu Items
-            const exportClipboardBtn = document.getElementById('export-clipboard-btn');
-            const exportFileBtn = document.getElementById('export-file-btn');
-            const importClipboardBtn = document.getElementById('import-clipboard-btn');
-            const importFileBtn = document.getElementById('import-file-btn');
+             const exportClipboardBtn = document.getElementById('export-clipboard-btn');
+             const exportFileBtn = document.getElementById('export-file-btn');
+             const importClipboardBtn = document.getElementById('import-clipboard-btn');
+             const importFileBtn = document.getElementById('import-file-btn');
             
-            // Other elements
-            const importFileInput = document.getElementById('import-file-input');
-            const importModal = document.getElementById('import-config-modal');
-            const resetBtn = document.getElementById('reset-config-btn');
+             const importFileInput = document.getElementById('import-file-input');
+             const importModal = document.getElementById('import-config-modal');
+             const resetBtn = document.getElementById('reset-config-btn');
 
-            // --- MENU TOGGLE LOGIC ---
-            const hideMenus = () => {
-                importMenuDropdown.classList.add('hidden');
-                exportMenuDropdown.classList.add('hidden');
-                if (helpMenuDropdown) helpMenuDropdown.classList.add('hidden');
-            };
+             const hideMenus = () => {
+                 importMenuDropdown.classList.add('hidden');
+                 exportMenuDropdown.classList.add('hidden');
+                 if (helpMenuDropdown) helpMenuDropdown.classList.add('hidden');
+             };
 
-            importMenuBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                exportMenuDropdown.classList.add('hidden'); // Close other menu
-                if (helpMenuDropdown) helpMenuDropdown.classList.add('hidden');
-                importMenuDropdown.classList.toggle('hidden');
-            });
+             importMenuBtn.addEventListener('click', (e) => {
+                 e.stopPropagation();
+                 exportMenuDropdown.classList.add('hidden');
+                 if (helpMenuDropdown) helpMenuDropdown.classList.add('hidden');
+                 importMenuDropdown.classList.toggle('hidden');
+             });
 
-            exportMenuBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                importMenuDropdown.classList.add('hidden'); // Close other menu
-                if (helpMenuDropdown) helpMenuDropdown.classList.add('hidden');
-                exportMenuDropdown.classList.toggle('hidden');
-            });
+             exportMenuBtn.addEventListener('click', (e) => {
+                 e.stopPropagation();
+                 importMenuDropdown.classList.add('hidden');
+                 if (helpMenuDropdown) helpMenuDropdown.classList.add('hidden');
+                 exportMenuDropdown.classList.toggle('hidden');
+             });
 
-            if (helpMenuBtn) {
-                helpMenuBtn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    importMenuDropdown.classList.add('hidden');
-                    exportMenuDropdown.classList.add('hidden');
-                    helpMenuDropdown.classList.toggle('hidden');
-                });
-            }
+             if (helpMenuBtn) {
+                 helpMenuBtn.addEventListener('click', (e) => {
+                     e.stopPropagation();
+                     importMenuDropdown.classList.add('hidden');
+                     exportMenuDropdown.classList.add('hidden');
+                     helpMenuDropdown.classList.toggle('hidden');
+                 });
+             }
 
-            window.addEventListener('click', hideMenus);
+             window.addEventListener('click', hideMenus);
             
-            // --- EXPORT ---
-            exportClipboardBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                hideMenus();
-                const configToSave = {
-                    pageTitle: config.pageTitle,
-                    notes: config.notes,
-                    shortcuts: config.shortcuts,
-                    reminders: config.reminders,
-                    categoryConfig: config.categoryConfig,
-                };
-                const jsonString = JSON.stringify(configToSave);
-                const base64String = btoa(unescape(encodeURIComponent(jsonString)));
-                navigator.clipboard.writeText(base64String).then(() => {
-                    showMessage('Export Successful', 'Configuration string copied to clipboard.', 'success');
-                }).catch(err => {
-                    showMessage('Export Failed', 'Could not copy configuration to clipboard.', 'error');
-                    console.error('Failed to copy config: ', err);
-                });
-            });
+             exportClipboardBtn.addEventListener('click', (e) => {
+                 e.preventDefault();
+                 hideMenus();
+                 const configToSave = {
+                     pageTitle: config.pageTitle,
+                     notes: config.notes,
+                     shortcuts: config.shortcuts,
+                     reminders: config.reminders,
+                     categoryConfig: config.categoryConfig,
+                 };
+                 const jsonString = JSON.stringify(configToSave);
+                 const base64String = btoa(unescape(encodeURIComponent(jsonString)));
+                 navigator.clipboard.writeText(base64String).then(() => {
+                     showMessage('Export Successful', 'Configuration string copied to clipboard.', 'success');
+                 }).catch(err => {
+                     showMessage('Export Failed', 'Could not copy configuration to clipboard.', 'error');
+                     console.error('Failed to copy config: ', err);
+                 });
+             });
 
-            exportFileBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                hideMenus();
-                const configToSave = {
-                    pageTitle: config.pageTitle,
-                    notes: config.notes,
-                    shortcuts: config.shortcuts,
-                    reminders: config.reminders,
-                    categoryConfig: config.categoryConfig,
-                };
-                const jsonString = JSON.stringify(configToSave, null, 4);
-                const blob = new Blob([jsonString], { type: 'application/json' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = 'homepage-config.json';
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-                showMessage('Export Successful', 'Configuration file is being downloaded.', 'success');
-            });
+             exportFileBtn.addEventListener('click', (e) => {
+                 e.preventDefault();
+                 hideMenus();
+                 const configToSave = {
+                     pageTitle: config.pageTitle,
+                     notes: config.notes,
+                     shortcuts: config.shortcuts,
+                     reminders: config.reminders,
+                     categoryConfig: config.categoryConfig,
+                 };
+                 const jsonString = JSON.stringify(configToSave, null, 4);
+                 const blob = new Blob([jsonString], { type: 'application/json' });
+                 const url = URL.createObjectURL(blob);
+                 const a = document.createElement('a');
+                 a.href = url;
+                 a.download = 'homepage-config.json';
+                 document.body.appendChild(a);
+                 a.click();
+                 document.body.removeChild(a);
+                 URL.revokeObjectURL(url);
+                 showMessage('Export Successful', 'Configuration file is being downloaded.', 'success');
+             });
 
-
-            // --- IMPORT ---
-            const showImportModal = () => { importModal.classList.add('is-active'); document.body.style.overflow = 'hidden'; };
-            const hideImportModal = () => { importModal.classList.remove('is-active'); document.body.style.overflow = ''; };
+             const showImportModal = () => { importModal.classList.add('is-active'); document.body.style.overflow = 'hidden'; };
+             const hideImportModal = () => { importModal.classList.remove('is-active'); document.body.style.overflow = ''; };
             
-            importClipboardBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                hideMenus();
-                showImportModal();
-            });
+             importClipboardBtn.addEventListener('click', (e) => {
+                 e.preventDefault();
+                 hideMenus();
+                 showImportModal();
+             });
 
-            importFileBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                hideMenus();
-                importFileInput.click();
-            });
+             importFileBtn.addEventListener('click', (e) => {
+                 e.preventDefault();
+                 hideMenus();
+                 importFileInput.click();
+             });
             
-            importFileInput.addEventListener('change', (event) => {
-                const file = event.target.files[0];
-                if (!file) return;
+             importFileInput.addEventListener('change', (event) => {
+                 const file = event.target.files[0];
+                 if (!file) return;
 
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    try {
-                        const parsedConfig = JSON.parse(e.target.result);
-                         if (!parsedConfig.hasOwnProperty('pageTitle') || !parsedConfig.hasOwnProperty('shortcuts')) {
-                               throw new Error("Invalid or incomplete configuration file.");
-                         }
+                 const reader = new FileReader();
+                 reader.onload = function(e) {
+                     try {
+                         const parsedConfig = JSON.parse(e.target.result);
+                          if (!parsedConfig.hasOwnProperty('pageTitle') || !parsedConfig.hasOwnProperty('shortcuts')) {
+                                  throw new Error("Invalid or incomplete configuration file.");
+                          }
                         
-                        config.pageTitle = parsedConfig.pageTitle || 'My Homepage';
-                        config.notes = parsedConfig.notes || [];
-                        config.shortcuts = parsedConfig.shortcuts || [];
-                        config.reminders = parsedConfig.reminders || [];
-                        config.categoryConfig = parsedConfig.categoryConfig || {};
+                         config.pageTitle = parsedConfig.pageTitle || 'My Homepage';
+                         config.notes = parsedConfig.notes || [];
+                         config.shortcuts = parsedConfig.shortcuts || [];
+                         config.reminders = parsedConfig.reminders || [];
+                         config.categoryConfig = parsedConfig.categoryConfig || {};
 
-                        saveConfig();
-                        showMessage('Import Successful', 'Configuration has been loaded and saved.', 'success');
+                         saveConfig();
+                         showMessage('Import Successful', 'Configuration has been loaded and saved.', 'success');
                         
-                        renderTitle();
-                        renderShortcuts();
-                        renderNotes();
-                        checkReminders(); // check and render reminders
-                    } catch (err) {
-                        showMessage('Import Failed', 'The selected file is not a valid configuration file.', 'error');
-                        console.error('Failed to import config from file:', err);
-                    }
-                };
-                reader.readAsText(file);
-                event.target.value = ''; // Reset input
-            });
+                         renderTitle();
+                         renderShortcuts();
+                         renderNotes();
+                         checkReminders();
+                     } catch (err) {
+                         showMessage('Import Failed', 'The selected file is not a valid configuration file.', 'error');
+                         console.error('Failed to import config from file:', err);
+                     }
+                 };
+                 reader.readAsText(file);
+                 event.target.value = '';
+             });
 
-            document.getElementById('import-modal-cancel').addEventListener('click', hideImportModal);
-            importModal.addEventListener('click', (e) => { if(e.target === e.currentTarget) hideImportModal(); });
+             document.getElementById('import-modal-cancel').addEventListener('click', hideImportModal);
+             importModal.addEventListener('click', (e) => { if(e.target === e.currentTarget) hideImportModal(); });
             
-            document.getElementById('import-config-form').addEventListener('submit', (e) => {
-                e.preventDefault();
-                const importString = document.getElementById('import-config-string').value;
-                if (!importString) {
-                    showMessage('Import Error', 'Configuration string cannot be empty.', 'warning');
-                    return;
-                }
-                try {
-                    const decodedJson = atob(importString);
-                    const parsedConfig = JSON.parse(decodeURIComponent(escape(decodedJson)));
+             document.getElementById('import-config-form').addEventListener('submit', (e) => {
+                 e.preventDefault();
+                 const importString = document.getElementById('import-config-string').value;
+                 if (!importString) {
+                     showMessage('Import Error', 'Configuration string cannot be empty.', 'warning');
+                     return;
+                 }
+                 try {
+                     const decodedJson = atob(importString);
+                     const parsedConfig = JSON.parse(decodeURIComponent(escape(decodedJson)));
                     
-                    config.pageTitle = parsedConfig.pageTitle || 'My Homepage';
-                    config.notes = parsedConfig.notes || [];
-                    config.shortcuts = parsedConfig.shortcuts || [];
-                    config.reminders = parsedConfig.reminders || [];
-                    config.categoryConfig = parsedConfig.categoryConfig || {};
+                     config.pageTitle = parsedConfig.pageTitle || 'My Homepage';
+                     config.notes = parsedConfig.notes || [];
+                     config.shortcuts = parsedConfig.shortcuts || [];
+                     config.reminders = parsedConfig.reminders || [];
+                     config.categoryConfig = parsedConfig.categoryConfig || {};
 
-                    saveConfig();
-                    hideImportModal();
-                    showMessage('Import Successful', 'Configuration has been loaded and saved.', 'success');
+                     saveConfig();
+                     hideImportModal();
+                     showMessage('Import Successful', 'Configuration has been loaded and saved.', 'success');
                     
-                    renderTitle();
-                    renderShortcuts();
-                    renderNotes();
-                    checkReminders(); // check and render reminders
+                     renderTitle();
+                     renderShortcuts();
+                     renderNotes();
+                     checkReminders();
 
-                } catch (err) {
-                    showMessage('Import Failed', 'The provided configuration string is invalid.', 'error');
-                    console.error('Failed to import config:', err);
-                }
-            });
+                 } catch (err) {
+                     showMessage('Import Failed', 'The provided configuration string is invalid.', 'error');
+                     console.error('Failed to import config:', err);
+                 }
+             });
 
-            // --- RESET ---
-            resetBtn.addEventListener('click', () => {
-                hideMenus();
-                showConfirmation('Reset Configuration', 'Are you sure you want to reset all settings to their default values? This action cannot be undone.', () => {
-                    localStorage.removeItem('homepageConfig');
-                    showMessage('Configuration Reset', 'The page will now reload with default settings.', 'success');
-                    setTimeout(() => {
-                        location.reload();
-                    }, 1500);
-                });
-            });
+             resetBtn.addEventListener('click', () => {
+                 hideMenus();
+                 showConfirmation('Reset Configuration', 'Are you sure you want to reset all settings to their default values? This action cannot be undone.', () => {
+                     localStorage.removeItem('homepageConfig');
+                     showMessage('Configuration Reset', 'The page will now reload with default settings.', 'success');
+                     setTimeout(() => {
+                         location.reload();
+                     }, 1500);
+                 });
+             });
         }
         
         // --- REMINDER LOGIC ---
@@ -1294,12 +1376,12 @@
 
             if (needsRender) {
                 saveConfig();
-                // If the reminders tab is active, redraw it to show the newly triggered item
                 if (document.getElementById('tab-reminders').classList.contains('active-tab')) {
                     const currentQuery = document.getElementById('search-input').value;
-                    renderReminders(currentQuery); // Pass current search query to preserve search results
+                    renderReminders(currentQuery);
                 }
             }
+            updateReminderTabIndicator(); // Check and update the tab indicator every time
         }
 
         function dismissReminder(reminderId) {
@@ -1316,7 +1398,6 @@
                     case 'monthly': nextDate.setMonth(nextDate.getMonth() + 1); break;
                     case 'yearly': nextDate.setFullYear(nextDate.getFullYear() + 1); break;
                 }
-                // If the calculated next date is still in the past, keep adding intervals until it's in the future
                 while (nextDate <= new Date()) {
                      switch (reminder.repeat) {
                         case 'daily': nextDate.setDate(nextDate.getDate() + 1); break;
@@ -1330,6 +1411,22 @@
             }
             saveConfig();
             renderReminders();
+            updateReminderTabIndicator();
+        }
+
+        // ADDED: New function to handle the visual state of the reminder tab
+        function updateReminderTabIndicator() {
+            const reminderTab = document.getElementById('tab-reminders');
+            if (!reminderTab) return;
+
+            // Check if there are any reminders that are triggered but not yet dismissed
+            const hasTriggered = config.reminders.some(r => r.triggered && !r.dismissed);
+
+            if (hasTriggered) {
+                reminderTab.classList.add('has-triggered-reminders');
+            } else {
+                reminderTab.classList.remove('has-triggered-reminders');
+            }
         }
 
         // --- INITIALIZATION ---
@@ -1365,7 +1462,7 @@
                     if (document.getElementById('edit-note-modal').classList.contains('is-active')) hideNoteEditModal();
                     if (document.getElementById('add-category-modal').classList.contains('is-active')) hideCategoryModal();
                     if (document.getElementById('import-config-modal').classList.contains('is-active')) document.getElementById('import-config-modal').classList.remove('is-active');
-                    if (document.getElementById('edit-reminder-modal').classList.contains('is-active')) hideReminderModal(); // ADDED
+                    if (document.getElementById('edit-reminder-modal').classList.contains('is-active')) hideReminderModal();
                 }
             });
         };
