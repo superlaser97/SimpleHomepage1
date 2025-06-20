@@ -281,3 +281,178 @@ mark { background-color: #fef08a; color: inherit; padding: 0 2px; border-radius:
     border-color: #f87171 !important;
     color: #f87171 !important;
 }
+
+/* Custom-styled radio buttons */
+/*
+ * =========================================================
+ * === UPDATED: Custom Switch-Style Toggles for Reminders ===
+ * =========================================================
+ */
+
+/* The new switch-style toggle control */
+input[type="radio"].custom-switch {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    
+    position: relative;
+    display: inline-block;
+    width: 2.75rem;  /* 44px */
+    height: 1.5rem;   /* 24px */
+    border-radius: 9999px;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
+    vertical-align: middle; /* Ensures vertical alignment with labels */
+    flex-shrink: 0; /* Prevents the switch from shrinking */
+
+    /* "Off" state track color */
+    background-color: #4b5563; /* Tailwind gray-600 */
+}
+
+/* The thumb of the switch */
+input[type="radio"].custom-switch::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 1.25rem; /* 20px */
+    height: 1.25rem; /* 20px */
+    border-radius: 50%;
+    background-color: white;
+    transition: transform 0.2s ease-in-out;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+/* "On" state track color */
+input[type="radio"].custom-switch:checked {
+    background-color: #3b82f6; /* Tailwind blue-500 */
+}
+
+/* Move the thumb to the right when checked */
+input[type="radio"].custom-switch:checked::after {
+    transform: translateX(1.25rem);
+}
+
+/* Style the disabled inputs and their labels to look inactive */
+input:disabled {
+    cursor: not-allowed;
+    background-color: #e5e7eb !important; /* gray-200 */
+    opacity: 0.7;
+}
+.dark input:disabled {
+    background-color: #374151 !important; /* gray-700 */
+    opacity: 0.5;
+}
+
+/* Make labels for disabled inputs look disabled too */
+input[type="radio"]:not(:checked) + label + input:disabled + label {
+    opacity: 0.5;
+}
+
+.feature-card {
+    background-color: rgba(243, 244, 246, 0.5); /* gray-100/50 */
+    border: 1px solid rgba(209, 213, 219, 0.7); /* gray-300/70 */
+    border-radius: 0.75rem; /* rounded-xl */
+    padding: 1.25rem; /* p-5 */
+    transition: background-color 0.2s, border-color 0.2s;
+}
+
+.dark .feature-card {
+    background-color: rgba(55, 65, 81, 0.3); /* gray-700/30 */
+    border: 1px solid #4b5563; /* gray-600 */
+}
+
+.feature-card:hover {
+    background-color: rgba(229, 231, 235, 0.7); /* gray-200/70 */
+    border-color: rgba(156, 163, 175, 0.8); /* gray-400/80 */
+}
+
+.dark .feature-card:hover {
+    background-color: rgba(55, 65, 81, 0.5); /* gray-700/50 */
+    border-color: #6b7280; /* gray-500 */
+}
+
+.feature-title {
+    font-size: 1.125rem; /* text-lg */
+    font-weight: 700;
+    color: #0ea5e9; /* sky-500 */
+    margin-bottom: 0.75rem; /* mb-3 */
+}
+
+.dark .feature-title {
+    color: #38bdf8; /* sky-400 */
+}
+
+.feature-content {
+    font-size: 0.875rem; /* text-sm */
+    color: #374151; /* gray-700 */
+    line-height: 1.6;
+}
+
+.dark .feature-content {
+    color: #d1d5db; /* gray-300 */
+}
+
+.feature-content ul {
+    color: #4b5563; /* gray-600 */
+}
+
+.dark .feature-content ul {
+    color: #9ca3af; /* gray-400 */
+}
+
+/* Style for the KBD tag */
+kbd {
+    font-family: monospace;
+    background-color: #e5e7eb;
+    color: #374151;
+    padding: 0.125rem 0.375rem;
+    border-radius: 0.25rem;
+    border-bottom: 2px solid #d1d5db;
+    font-size: 0.8em;
+}
+
+.dark kbd {
+    background-color: #374151; /* gray-700 */
+    color: #e5e7eb; /* gray-200 */
+    border-bottom-color: #1f2937; /* gray-800 */
+}
+
+.feature-content svg {
+    display: inline-block;
+    vertical-align: -0.25em;
+    width: 1em;
+    height: 1em;
+}
+
+.tab-button,
+.control-btn,
+.category-tag-btn,
+.icon-tag-btn,
+.color-tag-btn,
+.checkbox-label,
+#help-menu-btn,
+#reset-config-btn,
+#import-menu-btn,
+#export-menu-btn,
+#theme-switcher,
+#style-switcher,
+.config-submenu-item,
+#modal-copy-btn,
+#help-modal-close-btn /* <--- FIX for the Help Modal Close Button */ {
+    cursor: pointer;
+}
+
+/* Ensure category control buttons have pointers */
+.category-edit-btn,
+.category-delete-btn {
+    cursor: pointer;
+}
+
+/* For elements that reveal controls on hover */
+.group {
+    cursor: default; /* Default cursor for the group container */
+}
+a.flex.items-center.gap-4 {
+     cursor: pointer; /* Ensure main shortcut links have pointer */
+}

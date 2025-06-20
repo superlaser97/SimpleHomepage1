@@ -80,7 +80,7 @@
 
             const confirmationModal = document.createElement('div');
             confirmationModal.id = 'confirmation-modal';
-            confirmationModal.className = 'edit-modal'; // Set base class, 'is-active' will be added later for transition
+            confirmationModal.className = 'edit-modal';
             
             confirmationModal.innerHTML = `
                 <div class="edit-modal-content !max-w-sm">
@@ -161,18 +161,49 @@
             }
         }
 
+        function migrateReminderData(reminders) {
+            reminders.forEach(r => {
+                // Check if this is an old-format reminder
+                if (r.datetime && typeof r.repeat === 'string') {
+                    r.start_datetime = r.datetime;
+                    r.occurrence_count = r.occurrence_count || 0;
+                    
+                    let frequency = 'none';
+                    if (r.repeat !== 'none') {
+                        frequency = r.repeat.replace('ly', ''); // 'daily' -> 'day'
+                    }
+
+                    r.recurrence = {
+                        frequency: frequency,
+                        interval: 1,
+                        ends: { type: 'never', value: null }
+                    };
+
+                    // remove old properties
+                    delete r.datetime;
+                    delete r.repeat;
+                }
+            });
+            return reminders;
+        }
+
         function loadConfig() {
             const defaultConfig = {
                 pageTitle: "My Homepage",
                 notes: [{ title: "Welcome!", content: "This is your new homepage.\\nYour configuration is now saved automatically to your browser's local storage.\\n\\n- Use the controls in the top right to change the theme, style, or import/export your settings.\\n- Click the page title to edit it." }],
                 shortcuts: [{ name: "Google", category: "Search", url: "https://www.google.com", icon: "browser" }],
                 reminders: [{ 
-                    id: `rem_${Date.now()}`, 
-                    message: "Check out the new Reminders feature!", 
-                    datetime: new Date(Date.now() + 3600 * 1000).toISOString().slice(0, 16), // In 1 hour
-                    repeat: 'none', 
-                    triggered: false, 
-                    dismissed: false 
+                    id: `rem_${Date.now()}`,
+                    message: "Check out the new granular Reminders feature!",
+                    start_datetime: new Date(Date.now() + 3600 * 1000).toISOString().slice(0, 16),
+                    occurrence_count: 0,
+                    recurrence: {
+                        frequency: 'none',
+                        interval: 1,
+                        ends: { type: 'never', value: null }
+                    },
+                    triggered: false,
+                    dismissed: false
                 }],
                 categoryConfig: { "Search": { "color": "sky" }, "General": { "color": "gray" } }
             };
@@ -203,6 +234,7 @@
         }
 
         let config = loadConfig();
+        config.reminders = migrateReminderData(config.reminders);
         config.icons = icons; 
         let { pageTitle, notes, shortcuts, reminders, categoryConfig } = config;
         let showCompletedReminders = false;
@@ -283,7 +315,7 @@
                         index = config.reminders.findIndex(r => r.id === item.id);
                         if (index > -1) config.reminders.splice(index, 1);
                         renderReminders();
-                        updateReminderTabIndicator(); // Update tab state after deletion
+                        updateReminderTabIndicator();
                     }
                     saveConfig();
                 });
@@ -529,7 +561,7 @@
                 if (!a.dismissed && b.dismissed) return -1;
                 if (a.triggered && !b.triggered) return -1;
                 if (!a.triggered && b.triggered) return 1;
-                return new Date(a.datetime) - new Date(b.datetime);
+                return new Date(a.start_datetime) - new Date(b.start_datetime);
             });
 
             if (filteredReminders.length === 0) {
@@ -560,11 +592,11 @@
                 
                 let dueText = '';
                 if (isCompleted) {
-                    dueText = `Completed: ${new Date(reminder.datetime).toLocaleDateString()}`;
+                    dueText = `Completed: ${new Date(reminder.start_datetime).toLocaleDateString()}`;
                 } else if (isTriggered) {
                     dueText = 'Due now';
                 } else {
-                    dueText = formatRelativeTime(reminder.datetime);
+                    dueText = formatRelativeTime(reminder.start_datetime);
                 }
 
                 const cardBody = document.createElement('div');
@@ -580,8 +612,10 @@
                 
                 const repeatText = document.createElement('div');
                 repeatText.className = "text-xs text-gray-400 dark:text-gray-500 capitalize";
-                if(reminder.repeat !== 'none' && !isCompleted) {
-                    repeatText.textContent = `Repeats ${reminder.repeat}`;
+                if(reminder.recurrence.frequency !== 'none' && !isCompleted) {
+                    const interval = reminder.recurrence.interval > 1 ? reminder.recurrence.interval : '';
+                    const frequency = reminder.recurrence.interval > 1 ? reminder.recurrence.frequency + 's' : reminder.recurrence.frequency;
+                    repeatText.textContent = `Every ${interval} ${frequency}`.trim();
                 }
 
                 if (isTriggered) {
@@ -626,6 +660,18 @@
             document.body.style.overflow = '';
         }
 
+        function showHelpModal() {
+            const modal = document.getElementById('help-modal');
+            modal.classList.add('is-active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function hideHelpModal() {
+            const modal = document.getElementById('help-modal');
+            modal.classList.remove('is-active');
+            document.body.style.overflow = '';
+        }
+
         function setupModal() {
             const modal = document.getElementById('note-modal');
             const closeBtn = document.getElementById('modal-close-btn');
@@ -652,6 +698,12 @@
                 }).catch(err => console.error('Failed to copy text: ', err));
             });
             modal.addEventListener('click', (event) => { if (event.target === modal) hideNoteModal(); });
+
+            // Help Modal listeners
+            const helpModal = document.getElementById('help-modal');
+            const helpModalCloseBtn = document.getElementById('help-modal-close-btn');
+            helpModal.addEventListener('click', (e) => { if (e.target === helpModal) hideHelpModal(); });
+            helpModalCloseBtn.addEventListener('click', hideHelpModal);
         }
         
         let editingShortcut = null;
@@ -867,16 +919,57 @@
             const form = document.getElementById('edit-reminder-form');
 
             form.reset();
+
+            const endsSection = document.getElementById('reminder-ends-section');
+            const freqInput = document.getElementById('reminder-frequency-input');
+            const intervalInput = document.getElementById('reminder-interval-input');
+            const endDateInput = document.getElementById('reminder-end-date-input');
+            const occurrencesInput = document.getElementById('reminder-occurrences-input');
+
             if (reminder) {
                 title.textContent = 'Edit Reminder';
                 document.getElementById('reminder-message-input').value = reminder.message;
-                document.getElementById('reminder-datetime-input').value = reminder.datetime;
-                document.getElementById('reminder-repeat-input').value = reminder.repeat;
+                document.getElementById('reminder-start-datetime-input').value = reminder.start_datetime;
+                
+                const rec = reminder.recurrence || { frequency: 'none', interval: 1, ends: { type: 'never' } };
+                freqInput.value = rec.frequency;
+                intervalInput.value = rec.interval || 1;
+                
+                document.querySelector(`input[name="end-type"][value="${rec.ends.type}"]`).checked = true;
+                if (rec.ends.type === 'on_date') {
+                    endDateInput.value = rec.ends.value;
+                } else if (rec.ends.type === 'after_occurrences') {
+                    occurrencesInput.value = rec.ends.value;
+                }
+
             } else {
                 title.textContent = 'Add Reminder';
                 const oneHourFromNow = new Date(Date.now() + 3600 * 1000);
-                document.getElementById('reminder-datetime-input').value = oneHourFromNow.toISOString().slice(0, 16);
+                document.getElementById('reminder-start-datetime-input').value = oneHourFromNow.toISOString().slice(0, 16);
+                document.querySelector('input[name="end-type"][value="never"]').checked = true;
             }
+
+            const manageEndInputs = () => {
+                const endType = document.querySelector('input[name="end-type"]:checked').value;
+                endDateInput.disabled = endType !== 'on_date';
+                occurrencesInput.disabled = endType !== 'after_occurrences';
+            };
+            
+            const manageRecurrenceSection = () => {
+                const isRepeating = freqInput.value !== 'none';
+                endsSection.classList.toggle('hidden', !isRepeating);
+                intervalInput.disabled = !isRepeating;
+            };
+            
+            form.querySelectorAll('input[name="end-type"]').forEach(radio => {
+                radio.onchange = manageEndInputs;
+            });
+
+            freqInput.onchange = manageRecurrenceSection;
+
+            manageEndInputs();
+            manageRecurrenceSection();
+
             modal.classList.add('is-active');
             document.body.style.overflow = 'hidden';
         }
@@ -889,7 +982,6 @@
         }
 
         function setupEditing() {
-            // Page Title Editing
             document.getElementById('page-title').addEventListener('blur', (e) => {
                 const newTitle = e.target.textContent.trim();
                 if (newTitle && newTitle !== config.pageTitle) {
@@ -902,7 +994,6 @@
                 }
             });
 
-            // Shortcut Form
             document.getElementById('edit-shortcut-form').addEventListener('submit', (e) => {
                 e.preventDefault();
                 const updatedShortcut = {
@@ -937,7 +1028,6 @@
                 target.classList.add('active');
             });
             
-            // Category Form
             document.getElementById('add-category-form').addEventListener('submit', (e) => {
                 e.preventDefault();
                 const newName = document.getElementById('new-category-name-input').value.trim();
@@ -962,7 +1052,7 @@
                 
                 hideCategoryModal();
                 saveConfig();
-                renderShortcuts(); // Re-render shortcuts to reflect category name change
+                renderShortcuts();
 
                 const shortcutModalActive = document.getElementById('edit-shortcut-modal').classList.contains('is-active');
                 if (shortcutModalActive) {
@@ -980,7 +1070,6 @@
             });
             document.getElementById('category-modal-cancel').addEventListener('click', hideCategoryModal);
 
-            // Note Form
             document.getElementById('edit-note-form').addEventListener('submit', (e) => {
                 e.preventDefault();
                 const updatedNote = {
@@ -1000,41 +1089,47 @@
             document.getElementById('edit-note-modal').addEventListener('click', (e) => { if(e.target === e.currentTarget) hideNoteEditModal() });
             document.getElementById('note-modal-cancel').addEventListener('click', hideNoteEditModal);
             
-            // Reminder Form
             document.getElementById('edit-reminder-form').addEventListener('submit', (e) => {
                 e.preventDefault();
+                
+                const endType = document.querySelector('input[name="end-type"]:checked').value;
+                const frequency = document.getElementById('reminder-frequency-input').value;
+
                 const updatedReminder = {
                     message: document.getElementById('reminder-message-input').value,
-                    datetime: document.getElementById('reminder-datetime-input').value,
-                    repeat: document.getElementById('reminder-repeat-input').value
+                    start_datetime: document.getElementById('reminder-start-datetime-input').value,
+                    triggered: false,
+                    dismissed: false,
+                    occurrence_count: editingReminder ? (editingReminder.occurrence_count || 0) : 0,
+                    recurrence: {
+                        frequency: frequency,
+                        interval: parseInt(document.getElementById('reminder-interval-input').value) || 1,
+                        ends: {
+                            type: frequency === 'none' ? 'never' : endType,
+                            value: endType === 'on_date' ? document.getElementById('reminder-end-date-input').value :
+                                (endType === 'after_occurrences' ? parseInt(document.getElementById('reminder-occurrences-input').value) : null)
+                        }
+                    }
                 };
+
                 if (editingReminder) {
                     Object.assign(editingReminder, updatedReminder);
-                    editingReminder.triggered = false;
-                    editingReminder.dismissed = false;
                 } else {
-                    const newReminder = {
-                        id: `rem_${Date.now()}`,
-                        ...updatedReminder,
-                        triggered: false,
-                        dismissed: false
-                    };
+                    const newReminder = { id: `rem_${Date.now()}`, ...updatedReminder };
                     config.reminders.push(newReminder);
                 }
+                
                 hideReminderModal();
                 saveConfig();
                 
                 if (document.getElementById('tab-reminders').classList.contains('active-tab')) {
-                    const currentQuery = document.getElementById('search-input').value;
-                    renderReminders(currentQuery);
+                    renderReminders();
                 }
                 checkReminders();
-                updateReminderTabIndicator();
             });
             document.getElementById('edit-reminder-modal').addEventListener('click', (e) => { if (e.target === e.currentTarget) hideReminderModal(); });
             document.getElementById('reminder-modal-cancel').addEventListener('click', hideReminderModal);
             
-            // Add Buttons
             document.getElementById('add-shortcut-btn').addEventListener('click', () => showShortcutModal());
             document.getElementById('add-note-btn').addEventListener('click', () => showNoteEditModal());
             document.getElementById('add-reminder-btn').addEventListener('click', () => showReminderModal());
@@ -1177,190 +1272,185 @@
         }
 
         function setupConfigActions() {
-             const importMenuBtn = document.getElementById('import-menu-btn');
-             const importMenuDropdown = document.getElementById('import-menu-dropdown');
-             const exportMenuBtn = document.getElementById('export-menu-btn');
-             const exportMenuDropdown = document.getElementById('export-menu-dropdown');
-             const helpMenuBtn = document.getElementById('help-menu-btn');
-             const helpMenuDropdown = document.getElementById('help-menu-dropdown');
+            const importMenuBtn = document.getElementById('import-menu-btn');
+            const importMenuDropdown = document.getElementById('import-menu-dropdown');
+            const exportMenuBtn = document.getElementById('export-menu-btn');
+            const exportMenuDropdown = document.getElementById('export-menu-dropdown');
+            const helpMenuBtn = document.getElementById('help-menu-btn');
             
-             const exportClipboardBtn = document.getElementById('export-clipboard-btn');
-             const exportFileBtn = document.getElementById('export-file-btn');
-             const importClipboardBtn = document.getElementById('import-clipboard-btn');
-             const importFileBtn = document.getElementById('import-file-btn');
+            const exportClipboardBtn = document.getElementById('export-clipboard-btn');
+            const exportFileBtn = document.getElementById('export-file-btn');
+            const importClipboardBtn = document.getElementById('import-clipboard-btn');
+            const importFileBtn = document.getElementById('import-file-btn');
             
-             const importFileInput = document.getElementById('import-file-input');
-             const importModal = document.getElementById('import-config-modal');
-             const resetBtn = document.getElementById('reset-config-btn');
+            const importFileInput = document.getElementById('import-file-input');
+            const importModal = document.getElementById('import-config-modal');
+            const resetBtn = document.getElementById('reset-config-btn');
 
-             const hideMenus = () => {
-                 importMenuDropdown.classList.add('hidden');
-                 exportMenuDropdown.classList.add('hidden');
-                 if (helpMenuDropdown) helpMenuDropdown.classList.add('hidden');
-             };
+            const hideMenus = () => {
+                importMenuDropdown.classList.add('hidden');
+                exportMenuDropdown.classList.add('hidden');
+            };
 
-             importMenuBtn.addEventListener('click', (e) => {
-                 e.stopPropagation();
-                 exportMenuDropdown.classList.add('hidden');
-                 if (helpMenuDropdown) helpMenuDropdown.classList.add('hidden');
-                 importMenuDropdown.classList.toggle('hidden');
-             });
+            importMenuBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                exportMenuDropdown.classList.add('hidden');
+                importMenuDropdown.classList.toggle('hidden');
+            });
 
-             exportMenuBtn.addEventListener('click', (e) => {
-                 e.stopPropagation();
-                 importMenuDropdown.classList.add('hidden');
-                 if (helpMenuDropdown) helpMenuDropdown.classList.add('hidden');
-                 exportMenuDropdown.classList.toggle('hidden');
-             });
+            exportMenuBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                importMenuDropdown.classList.add('hidden');
+                exportMenuDropdown.classList.toggle('hidden');
+            });
 
-             if (helpMenuBtn) {
-                 helpMenuBtn.addEventListener('click', (e) => {
-                     e.stopPropagation();
-                     importMenuDropdown.classList.add('hidden');
-                     exportMenuDropdown.classList.add('hidden');
-                     helpMenuDropdown.classList.toggle('hidden');
-                 });
-             }
+            if (helpMenuBtn) {
+                helpMenuBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    hideMenus();
+                    showHelpModal();
+                });
+            }
 
-             window.addEventListener('click', hideMenus);
+            window.addEventListener('click', hideMenus);
             
-             exportClipboardBtn.addEventListener('click', (e) => {
-                 e.preventDefault();
-                 hideMenus();
-                 const configToSave = {
-                     pageTitle: config.pageTitle,
-                     notes: config.notes,
-                     shortcuts: config.shortcuts,
-                     reminders: config.reminders,
-                     categoryConfig: config.categoryConfig,
-                 };
-                 const jsonString = JSON.stringify(configToSave);
-                 const base64String = btoa(unescape(encodeURIComponent(jsonString)));
-                 navigator.clipboard.writeText(base64String).then(() => {
-                     showMessage('Export Successful', 'Configuration string copied to clipboard.', 'success');
-                 }).catch(err => {
-                     showMessage('Export Failed', 'Could not copy configuration to clipboard.', 'error');
-                     console.error('Failed to copy config: ', err);
-                 });
-             });
+            exportClipboardBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                hideMenus();
+                const configToSave = {
+                    pageTitle: config.pageTitle,
+                    notes: config.notes,
+                    shortcuts: config.shortcuts,
+                    reminders: config.reminders,
+                    categoryConfig: config.categoryConfig,
+                };
+                const jsonString = JSON.stringify(configToSave);
+                const base64String = btoa(unescape(encodeURIComponent(jsonString)));
+                navigator.clipboard.writeText(base64String).then(() => {
+                    showMessage('Export Successful', 'Configuration string copied to clipboard.', 'success');
+                }).catch(err => {
+                    showMessage('Export Failed', 'Could not copy configuration to clipboard.', 'error');
+                    console.error('Failed to copy config: ', err);
+                });
+            });
 
-             exportFileBtn.addEventListener('click', (e) => {
-                 e.preventDefault();
-                 hideMenus();
-                 const configToSave = {
-                     pageTitle: config.pageTitle,
-                     notes: config.notes,
-                     shortcuts: config.shortcuts,
-                     reminders: config.reminders,
-                     categoryConfig: config.categoryConfig,
-                 };
-                 const jsonString = JSON.stringify(configToSave, null, 4);
-                 const blob = new Blob([jsonString], { type: 'application/json' });
-                 const url = URL.createObjectURL(blob);
-                 const a = document.createElement('a');
-                 a.href = url;
-                 a.download = 'homepage-config.json';
-                 document.body.appendChild(a);
-                 a.click();
-                 document.body.removeChild(a);
-                 URL.revokeObjectURL(url);
-                 showMessage('Export Successful', 'Configuration file is being downloaded.', 'success');
-             });
+            exportFileBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                hideMenus();
+                const configToSave = {
+                    pageTitle: config.pageTitle,
+                    notes: config.notes,
+                    shortcuts: config.shortcuts,
+                    reminders: config.reminders,
+                    categoryConfig: config.categoryConfig,
+                };
+                const jsonString = JSON.stringify(configToSave, null, 4);
+                const blob = new Blob([jsonString], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'homepage-config.json';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                showMessage('Export Successful', 'Configuration file is being downloaded.', 'success');
+            });
 
-             const showImportModal = () => { importModal.classList.add('is-active'); document.body.style.overflow = 'hidden'; };
-             const hideImportModal = () => { importModal.classList.remove('is-active'); document.body.style.overflow = ''; };
+            const showImportModal = () => { importModal.classList.add('is-active'); document.body.style.overflow = 'hidden'; };
+            const hideImportModal = () => { importModal.classList.remove('is-active'); document.body.style.overflow = ''; };
             
-             importClipboardBtn.addEventListener('click', (e) => {
-                 e.preventDefault();
-                 hideMenus();
-                 showImportModal();
-             });
+            importClipboardBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                hideMenus();
+                showImportModal();
+            });
 
-             importFileBtn.addEventListener('click', (e) => {
-                 e.preventDefault();
-                 hideMenus();
-                 importFileInput.click();
-             });
+            importFileBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                hideMenus();
+                importFileInput.click();
+            });
             
-             importFileInput.addEventListener('change', (event) => {
-                 const file = event.target.files[0];
-                 if (!file) return;
+            importFileInput.addEventListener('change', (event) => {
+                const file = event.target.files[0];
+                if (!file) return;
 
-                 const reader = new FileReader();
-                 reader.onload = function(e) {
-                     try {
-                         const parsedConfig = JSON.parse(e.target.result);
-                          if (!parsedConfig.hasOwnProperty('pageTitle') || !parsedConfig.hasOwnProperty('shortcuts')) {
-                                  throw new Error("Invalid or incomplete configuration file.");
-                          }
-                        
-                         config.pageTitle = parsedConfig.pageTitle || 'My Homepage';
-                         config.notes = parsedConfig.notes || [];
-                         config.shortcuts = parsedConfig.shortcuts || [];
-                         config.reminders = parsedConfig.reminders || [];
-                         config.categoryConfig = parsedConfig.categoryConfig || {};
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        const parsedConfig = JSON.parse(e.target.result);
+                         if (!parsedConfig.hasOwnProperty('pageTitle') || !parsedConfig.hasOwnProperty('shortcuts')) {
+                                 throw new Error("Invalid or incomplete configuration file.");
+                         }
+                       
+                        config.pageTitle = parsedConfig.pageTitle || 'My Homepage';
+                        config.notes = parsedConfig.notes || [];
+                        config.shortcuts = parsedConfig.shortcuts || [];
+                        config.reminders = parsedConfig.reminders || [];
+                        config.categoryConfig = parsedConfig.categoryConfig || {};
 
-                         saveConfig();
-                         showMessage('Import Successful', 'Configuration has been loaded and saved.', 'success');
-                        
-                         renderTitle();
-                         renderShortcuts();
-                         renderNotes();
-                         checkReminders();
-                     } catch (err) {
-                         showMessage('Import Failed', 'The selected file is not a valid configuration file.', 'error');
-                         console.error('Failed to import config from file:', err);
-                     }
-                 };
-                 reader.readAsText(file);
-                 event.target.value = '';
-             });
+                        saveConfig();
+                        showMessage('Import Successful', 'Configuration has been loaded and saved.', 'success');
+                       
+                        renderTitle();
+                        renderShortcuts();
+                        renderNotes();
+                        checkReminders();
+                    } catch (err) {
+                        showMessage('Import Failed', 'The selected file is not a valid configuration file.', 'error');
+                        console.error('Failed to import config from file:', err);
+                    }
+                };
+                reader.readAsText(file);
+                event.target.value = '';
+            });
 
-             document.getElementById('import-modal-cancel').addEventListener('click', hideImportModal);
-             importModal.addEventListener('click', (e) => { if(e.target === e.currentTarget) hideImportModal(); });
+            document.getElementById('import-modal-cancel').addEventListener('click', hideImportModal);
+            importModal.addEventListener('click', (e) => { if(e.target === e.currentTarget) hideImportModal(); });
             
-             document.getElementById('import-config-form').addEventListener('submit', (e) => {
-                 e.preventDefault();
-                 const importString = document.getElementById('import-config-string').value;
-                 if (!importString) {
-                     showMessage('Import Error', 'Configuration string cannot be empty.', 'warning');
-                     return;
-                 }
-                 try {
-                     const decodedJson = atob(importString);
-                     const parsedConfig = JSON.parse(decodeURIComponent(escape(decodedJson)));
-                    
-                     config.pageTitle = parsedConfig.pageTitle || 'My Homepage';
-                     config.notes = parsedConfig.notes || [];
-                     config.shortcuts = parsedConfig.shortcuts || [];
-                     config.reminders = parsedConfig.reminders || [];
-                     config.categoryConfig = parsedConfig.categoryConfig || {};
+            document.getElementById('import-config-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const importString = document.getElementById('import-config-string').value;
+                if (!importString) {
+                    showMessage('Import Error', 'Configuration string cannot be empty.', 'warning');
+                    return;
+                }
+                try {
+                    const decodedJson = atob(importString);
+                    const parsedConfig = JSON.parse(decodeURIComponent(escape(decodedJson)));
+                   
+                    config.pageTitle = parsedConfig.pageTitle || 'My Homepage';
+                    config.notes = parsedConfig.notes || [];
+                    config.shortcuts = parsedConfig.shortcuts || [];
+                    config.reminders = parsedConfig.reminders || [];
+                    config.categoryConfig = parsedConfig.categoryConfig || {};
 
-                     saveConfig();
-                     hideImportModal();
-                     showMessage('Import Successful', 'Configuration has been loaded and saved.', 'success');
-                    
-                     renderTitle();
-                     renderShortcuts();
-                     renderNotes();
-                     checkReminders();
+                    saveConfig();
+                    hideImportModal();
+                    showMessage('Import Successful', 'Configuration has been loaded and saved.', 'success');
+                   
+                    renderTitle();
+                    renderShortcuts();
+                    renderNotes();
+                    checkReminders();
 
-                 } catch (err) {
-                     showMessage('Import Failed', 'The provided configuration string is invalid.', 'error');
-                     console.error('Failed to import config:', err);
-                 }
-             });
+                } catch (err) {
+                    showMessage('Import Failed', 'The provided configuration string is invalid.', 'error');
+                    console.error('Failed to import config:', err);
+                }
+            });
 
-             resetBtn.addEventListener('click', () => {
-                 hideMenus();
-                 showConfirmation('Reset Configuration', 'Are you sure you want to reset all settings to their default values? This action cannot be undone.', () => {
-                     localStorage.removeItem('homepageConfig');
-                     showMessage('Configuration Reset', 'The page will now reload with default settings.', 'success');
-                     setTimeout(() => {
-                         location.reload();
-                     }, 1500);
-                 });
-             });
+            resetBtn.addEventListener('click', () => {
+                hideMenus();
+                showConfirmation('Reset Configuration', 'Are you sure you want to reset all settings to their default values? This action cannot be undone.', () => {
+                    localStorage.removeItem('homepageConfig');
+                    showMessage('Configuration Reset', 'The page will now reload with default settings.', 'success');
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1500);
+                });
+            });
         }
         
         // --- REMINDER LOGIC ---
@@ -1368,7 +1458,7 @@
             const now = new Date();
             let needsRender = false;
             config.reminders.forEach(r => {
-                if (!r.triggered && !r.dismissed && new Date(r.datetime) <= now) {
+                if (!r.triggered && !r.dismissed && new Date(r.start_datetime) <= now) {
                     r.triggered = true;
                     needsRender = true;
                 }
@@ -1381,45 +1471,76 @@
                     renderReminders(currentQuery);
                 }
             }
-            updateReminderTabIndicator(); // Check and update the tab indicator every time
+            updateReminderTabIndicator();
         }
 
         function dismissReminder(reminderId) {
             const reminder = config.reminders.find(r => r.id === reminderId);
             if (!reminder) return;
 
-            if (reminder.repeat === 'none') {
+            const rec = reminder.recurrence;
+            reminder.occurrence_count = (reminder.occurrence_count || 0) + 1;
+
+            if (rec.frequency === 'none') {
                 reminder.dismissed = true;
-            } else {
-                let nextDate = new Date(reminder.datetime);
-                switch (reminder.repeat) {
-                    case 'daily': nextDate.setDate(nextDate.getDate() + 1); break;
-                    case 'weekly': nextDate.setDate(nextDate.getDate() + 7); break;
-                    case 'monthly': nextDate.setMonth(nextDate.getMonth() + 1); break;
-                    case 'yearly': nextDate.setFullYear(nextDate.getFullYear() + 1); break;
-                }
-                while (nextDate <= new Date()) {
-                     switch (reminder.repeat) {
-                        case 'daily': nextDate.setDate(nextDate.getDate() + 1); break;
-                        case 'weekly': nextDate.setDate(nextDate.getDate() + 7); break;
-                        case 'monthly': nextDate.setMonth(nextDate.getMonth() + 1); break;
-                        case 'yearly': nextDate.setFullYear(nextDate.getFullYear() + 1); break;
-                    }
-                }
-                reminder.datetime = nextDate.toISOString().slice(0, 16);
-                reminder.triggered = false;
+                saveConfig();
+                renderReminders();
+                updateReminderTabIndicator();
+                return;
             }
+
+            if (rec.ends.type === 'after_occurrences' && reminder.occurrence_count >= rec.ends.value) {
+                reminder.dismissed = true;
+                saveConfig();
+                renderReminders();
+                updateReminderTabIndicator();
+                return;
+            }
+            
+            let nextDate = new Date(reminder.start_datetime);
+            const interval = rec.interval || 1;
+
+            switch (rec.frequency) {
+                case 'day': nextDate.setDate(nextDate.getDate() + interval); break;
+                case 'week': nextDate.setDate(nextDate.getDate() + (7 * interval)); break;
+                case 'month': nextDate.setMonth(nextDate.getMonth() + interval); break;
+                case 'year': nextDate.setFullYear(nextDate.getFullYear() + interval); break;
+            }
+            
+            const now = new Date();
+            while (nextDate <= now) {
+                switch (rec.frequency) {
+                    case 'day': nextDate.setDate(nextDate.getDate() + interval); break;
+                    case 'week': nextDate.setDate(nextDate.getDate() + (7 * interval)); break;
+                    case 'month': nextDate.setMonth(nextDate.getMonth() + interval); break;
+                    case 'year': nextDate.setFullYear(nextDate.getFullYear() + interval); break;
+                }
+            }
+
+            if (rec.ends.type === 'on_date') {
+                const endDate = new Date(rec.ends.value);
+                endDate.setHours(23, 59, 59, 999); 
+                if (nextDate > endDate) {
+                    reminder.dismissed = true;
+                    saveConfig();
+                    renderReminders();
+                    updateReminderTabIndicator();
+                    return;
+                }
+            }
+
+            reminder.start_datetime = nextDate.toISOString().slice(0, 16);
+            reminder.triggered = false;
+            
             saveConfig();
             renderReminders();
             updateReminderTabIndicator();
         }
 
-        // ADDED: New function to handle the visual state of the reminder tab
         function updateReminderTabIndicator() {
             const reminderTab = document.getElementById('tab-reminders');
             if (!reminderTab) return;
 
-            // Check if there are any reminders that are triggered but not yet dismissed
             const hasTriggered = config.reminders.some(r => r.triggered && !r.dismissed);
 
             if (hasTriggered) {
@@ -1438,8 +1559,8 @@
             renderClock();
             setInterval(renderClock, 1000);
             
-            checkReminders(); // Initial check
-            setInterval(checkReminders, 15000); // Check every 15 seconds
+            checkReminders();
+            setInterval(checkReminders, 15000);
             
             setupHelpIcon();
             setupAddButtonIcons();
@@ -1458,6 +1579,7 @@
                 }
                 if (event.key === 'Escape') {
                     if (document.getElementById('note-modal').classList.contains('is-active')) hideNoteModal();
+                    if (document.getElementById('help-modal').classList.contains('is-active')) hideHelpModal();
                     if (document.getElementById('edit-shortcut-modal').classList.contains('is-active')) hideShortcutModal();
                     if (document.getElementById('edit-note-modal').classList.contains('is-active')) hideNoteEditModal();
                     if (document.getElementById('add-category-modal').classList.contains('is-active')) hideCategoryModal();
@@ -1471,61 +1593,10 @@
 <body class="bg-gray-200 text-gray-800 dark:bg-gray-900 dark:text-white transition-colors duration-300">
     
     <div class="fixed top-4 right-4 flex items-center space-x-2 z-50">
-        <div class="relative">
-            <button id="help-menu-btn" class="p-2 rounded-full backdrop-blur-sm transition-colors cursor-pointer" title="Help" aria-label="Help"></button>
-            <div id="help-menu-dropdown" class="absolute top-full right-0 mt-2 w-80 rounded-md shadow-lg py-2 px-4 z-10 hidden config-submenu">
-                <h3 class="font-bold text-lg mb-3">Quick Tips & Features</h3>
-                <div class="space-y-4 text-sm">
-
-                    <div>
-                        <h4 class="font-semibold text-sky-600 dark:text-sky-400">Pro-Level Note Taking</h4>
-                        <p class="mt-1 text-gray-600 dark:text-gray-300">
-                            Your notes support simple markdown for formatting. Try these in the note editor:
-                        </p>
-                        <ul class="list-disc list-inside mt-2 space-y-1">
-                            <li>Start a line with `##` for a subheading.</li>
-                            <li>Start a line with `-` or `*` for a bullet point.</li>
-                            <li>Separate paragraphs with a blank line.</li>
-                        </ul>
-                    </div>
-
-                    <div>
-                        <h4 class="font-semibold text-sky-600 dark:text-sky-400">Keyboard Shortcuts</h4>
-                        <ul class="list-disc list-inside mt-1 space-y-1">
-                            <li>Press <strong class="font-mono bg-gray-200 dark:bg-gray-600 px-1.5 py-0.5 rounded">/</strong> at any time to instantly focus the search bar.</li>
-                            <li>Press <strong class="font-mono bg-gray-200 dark:bg-gray-600 px-1.5 py-0.5 rounded">Esc</strong> to close any open modal window (like this one).</li>
-                        </ul>
-                    </div>
-                    
-                    <div>
-                        <h4 class="font-semibold text-sky-600 dark:text-sky-400">Quick Edits & Management</h4>
-                        <ul class="list-disc list-inside mt-1 space-y-1">
-                            <li><strong>The page title is editable!</strong> Just click on it directly to change it.</li>
-                            <li>Hover over a category title on the main page to reveal a quick-edit <svg class="inline-block w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"></path></svg> button.</li>
-                            <li>In the shortcut editor, hover over a category tag to find its edit and delete controls.</li>
-                        </ul>
-                    </div>
-
-                    <div>
-                        <h4 class="font-semibold text-sky-600 dark:text-sky-400">Your Data, Your Control</h4>
-                        <p class="mt-1 text-gray-600 dark:text-gray-300">
-                            Your configuration isn't trapped in one browser. Use the <strong>Import / Export</strong> buttons to:
-                        </p>
-                        <ul class="list-disc list-inside mt-2 space-y-1">
-                            <li><strong>Save a backup</strong> of your setup using "Export to File".</li>
-                            <li><strong>Move your setup</strong> to another computer using "Export to Clipboard" and "Import from Clipboard".</li>
-                            <li><strong>Reset everything</strong> to a clean slate with the Reset <svg class="inline-block w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"></path></svg> button.</li>
-                        </ul>
-                    </div>
-
-                </div>
-            </div>
-        </div>
-
+        <button id="help-menu-btn" class="p-2 rounded-full backdrop-blur-sm transition-colors cursor-pointer" title="Help" aria-label="Help"></button>
         <button id="reset-config-btn" class="p-2 rounded-full backdrop-blur-sm transition-colors cursor-pointer" title="Reset Configuration" aria-label="Reset Configuration">
             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"></path></svg>
         </button>
-
         <div class="relative">
             <button id="import-menu-btn" class="p-2 rounded-full backdrop-blur-sm transition-colors cursor-pointer" title="Import Configuration" aria-label="Import Configuration">
                 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M9 16h6v-6h4l-8-8-8 8h4v6zm-4 2h14v2H5v-2z"></path></svg>
@@ -1535,7 +1606,6 @@
                 <a href="#" id="import-file-btn" class="config-submenu-item">From File...</a>
             </div>
         </div>
-
         <div class="relative">
             <button id="export-menu-btn" class="p-2 rounded-full backdrop-blur-sm transition-colors cursor-pointer" title="Export Configuration" aria-label="Export Configuration">
                 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"></path></svg>
@@ -1545,7 +1615,6 @@
                 <a href="#" id="export-file-btn" class="config-submenu-item">To File...</a>
             </div>
         </div>
-
         <button id="theme-switcher" class="p-2 rounded-full backdrop-blur-sm transition-colors cursor-pointer" aria-label="Toggle theme"><svg id="sun-icon" class="w-5 h-5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg><svg id="moon-icon" class="w-5 h-5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg></button>
         <button id="style-switcher" class="p-2 rounded-full backdrop-blur-sm transition-colors cursor-pointer" aria-label="Toggle display style"><span id="style-text" class="text-sm font-semibold">Compact</span></button>
     </div>
@@ -1588,8 +1657,87 @@
     <div id="edit-note-modal" class="edit-modal"><div class="edit-modal-content"><h2 id="edit-note-modal-title" class="text-2xl font-bold mb-6 text-gray-800 dark:text-gray-100"></h2><form id="edit-note-form"><div class="form-field"><label for="note-title-input">Title (Optional)</label><input id="note-title-input" type="text"></div><div class="form-field"><label for="note-content-input">Content</label><textarea id="note-content-input" required></textarea></div><div class="form-actions"><button type="button" id="note-modal-cancel" class="btn btn-secondary">Cancel</button><button type="submit" class="btn btn-primary">Save</button></div></form></div></div>
     <div id="add-category-modal" class="edit-modal"><div class="edit-modal-content"><h2 class="text-2xl font-bold mb-6 text-gray-800 dark:text-gray-100">Add New Category</h2><form id="add-category-form"><div class="form-field"><label for="new-category-name-input">Category Name</label><input id="new-category-name-input" type="text" required></div><div class="form-field"><label>Color</label><div id="new-category-color-selector" class="color-selector-container"></div><input id="new-category-color-input" type="hidden" required></div><div class="form-actions"><button type="button" id="category-modal-cancel" class="btn btn-secondary">Cancel</button><button type="submit" class="btn btn-primary">Save Category</button></div></form></div></div>
     <div id="import-config-modal" class="edit-modal"><div class="edit-modal-content"><h2 class="text-2xl font-bold mb-6 text-gray-800 dark:text-gray-100">Import Configuration</h2><form id="import-config-form"><div class="form-field"><label for="import-config-string">Paste Configuration String</label><textarea id="import-config-string" required placeholder="Paste your exported configuration string here..."></textarea></div><div class="form-actions"><button type="button" id="import-modal-cancel" class="btn btn-secondary">Cancel</button><button type="submit" class="btn btn-primary">Load Configuration</button></div></form></div></div>
+    <div id="edit-reminder-modal" class="edit-modal"><div class="edit-modal-content"><h2 id="edit-reminder-modal-title" class="text-2xl font-bold mb-6 text-gray-800 dark:text-gray-100"></h2><form id="edit-reminder-form" class="flex flex-col h-full"><div class="flex-grow overflow-y-auto pr-2 -mr-2 custom-scrollbar"><div class="form-field"><label for="reminder-message-input">Message</label><textarea id="reminder-message-input" required rows="2"></textarea></div><div class="form-field"><label for="reminder-start-datetime-input">Starts</label><input id="reminder-start-datetime-input" type="datetime-local" required></div><div class="form-field"><label>Repeats every</label><div class="grid grid-cols-3 gap-x-2"><input id="reminder-interval-input" type="number" min="1" value="1" class="col-span-1" required><select id="reminder-frequency-input" class="col-span-2" required><option value="none">Does not repeat</option><option value="day">Day(s)</option><option value="week">Week(s)</option><option value="month">Month(s)</option><option value="year">Year(s)</option></select></div></div><div id="reminder-ends-section" class="form-field hidden"><label class="mb-3">Ends</label><div class="space-y-3 text-sm"><div class="flex items-center"><input type="radio" id="end-type-never" name="end-type" value="never" class="custom-switch" checked><label for="end-type-never" class="ml-3 cursor-pointer">Never</label></div><div class="flex items-center"><input type="radio" id="end-type-on" name="end-type" value="on_date" class="custom-switch"><label for="end-type-on" class="ml-3 cursor-pointer w-12 shrink-0">On</label><input type="date" id="reminder-end-date-input" class="flex-grow w-full text-sm p-1.5 rounded-md" disabled></div><div class="flex items-center"><input type="radio" id="end-type-after" name="end-type" value="after_occurrences" class="custom-switch"><label for="end-type-after" class="ml-3 cursor-pointer w-12 shrink-0">After</label><input type="number" id="reminder-occurrences-input" min="1" class="flex-grow w-full text-sm p-1.5 rounded-md" disabled><label for="reminder-occurrences-input" class="ml-2 whitespace-nowrap text-gray-500 dark:text-gray-400">occurrences</label></div></div></div></div><div class="form-actions mt-auto"><button type="button" id="reminder-modal-cancel" class="btn btn-secondary">Cancel</button><button type="submit" class="btn btn-primary">Save Reminder</button></div></form></div></div>
     
-    <div id="edit-reminder-modal" class="edit-modal"><div class="edit-modal-content"><h2 id="edit-reminder-modal-title" class="text-2xl font-bold mb-6 text-gray-800 dark:text-gray-100"></h2><form id="edit-reminder-form"><div class="form-field"><label for="reminder-message-input">Message</label><textarea id="reminder-message-input" required rows="3"></textarea></div><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><div class="form-field"><label for="reminder-datetime-input">Date and Time</label><input id="reminder-datetime-input" type="datetime-local" required></div><div class="form-field"><label for="reminder-repeat-input">Repeat</label><select id="reminder-repeat-input" required><option value="none">Does not repeat</option><option value="daily">Daily</option><option value="weekly">Weekly</option><option value="monthly">Monthly</option><option value="yearly">Yearly</option></select></div></div><div class="form-actions"><button type="button" id="reminder-modal-cancel" class="btn btn-secondary">Cancel</button><button type="submit" class="btn btn-primary">Save Reminder</button></div></form></div></div>
+    <div id="help-modal" class="edit-modal">
+        <div class="edit-modal-content !max-w-5xl h-[90vh] !p-0 flex flex-col">
+            <div class="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700 shrink-0">
+                <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-100">Quick Tips & Features</h2>
+                <button id="help-modal-close-btn" class="text-gray-400 hover:text-gray-800 dark:hover:text-white transition-colors">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <div class="p-6 overflow-y-auto grow custom-scrollbar">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    
+                    <div class="feature-card">
+                        <h3 class="feature-title">Pro-Level Note Taking</h3>
+                        <div class="feature-content">
+                            <p>Your notes support simple markdown. Try these in the note editor:</p>
+                            <ul class="list-disc list-inside mt-2 space-y-1">
+                                <li>Start a line with `##` for a subheading.</li>
+                                <li>Start a line with `-` or `*` for a bullet point.</li>
+                                <li>Separate paragraphs with a blank line.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="feature-card">
+                        <h3 class="feature-title">Keyboard Shortcuts</h3>
+                        <div class="feature-content">
+                            <ul class="list-disc list-inside space-y-2">
+                                <li>Press <kbd>/</kbd> at any time to instantly focus the search bar.</li>
+                                <li>Press <kbd>Esc</kbd> to close any open modal window.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="feature-card">
+                        <h3 class="feature-title">Quick Edits & Management</h3>
+                        <div class="feature-content">
+                             <ul class="list-disc list-inside mt-2 space-y-1">
+                                <li><strong>The page title is editable!</strong> Just click on it directly.</li>
+                                <li>Hover over a category title to reveal a quick-edit <svg class="inline-block w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"></path></svg> button.</li>
+                                <li>In the shortcut editor, hover over a category tag to find its edit/delete controls.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="feature-card">
+                        <h3 class="feature-title">Your Data, Your Control</h3>
+                        <div class="feature-content">
+                            <p>Use the <strong>Import / Export</strong> buttons to save a backup or move your setup to another computer.</p>
+                            <p class="mt-2">Use the <svg class="inline-block w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"></path></svg> button to reset everything to default.</p>
+                        </div>
+                    </div>
+
+                    <div class="feature-card">
+                        <h3 class="feature-title">Advanced Reminders</h3>
+                        <div class="feature-content">
+                            <p>Set up complex repeating reminders.</p>
+                            <ul class="list-disc list-inside mt-2 space-y-1">
+                                <li>Repeat every N days, weeks, months, or years.</li>
+                                <li>Set reminders to end on a specific date or after a number of occurrences.</li>
+                                <li>Triggered reminders will make the tab glow until you dismiss them.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="feature-card">
+                        <h3 class="feature-title">Display & Theme</h3>
+                        <div class="feature-content">
+                            <p>Use the controls in the top-right to customize your view.</p>
+                             <ul class="list-disc list-inside mt-2 space-y-1">
+                                <li>Toggle between Light and Dark themes.</li>
+                                <li>Switch between <strong>Compact</strong> and <strong>Comfortable</strong> display styles.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
 
     <div id="link-preview" class="fixed pointer-events-none z-50 rounded-lg bg-gray-800 px-3 py-1.5 text-sm font-medium text-white shadow-lg transition-opacity duration-200 opacity-0" role="tooltip"></div>
     <input type="file" id="import-file-input" class="hidden" accept=".json,application/json">
