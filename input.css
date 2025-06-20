@@ -61,7 +61,8 @@
 
 /* Reduce the gap between all cards */
 .container.style-compact #shortcuts-container,
-.container.style-compact #notes-container {
+.container.style-compact #notes-container,
+.container.style-compact #reminders-container {
     gap: 0.375rem; /* gap-1.5 */
     margin-bottom: 0.75rem;
 }
@@ -209,7 +210,7 @@
     animation: fadeIn 0.5s ease-out forwards;
 }
 /* Stagger the animation for each category */
-#shortcuts-container > div, #notes-container > div {
+#shortcuts-container > div, #notes-container > div, #reminders-container > div {
     animation: fadeIn 0.5s ease-out forwards;
     opacity: 0;
 }
@@ -318,11 +319,23 @@
 .form-field { margin-bottom: 1rem; }
 .form-field label { display: block; font-weight: 600; margin-bottom: 0.5rem; color: #4a5568; }
 .dark .form-field label { color: #cbd5e0; }
-.form-field input, .form-field textarea { width: 100%; padding: 0.6rem 0.8rem; border-radius: 0.5rem; border: 1px solid #d1d5db; background-color: #f9fafb; color: #1f2937; }
-.dark .form-field input, .dark .form-field textarea { border-color: #4b5563; background-color: #374151; color: #f3f4f6; }
+.form-field input, .form-field textarea, .form-field select { width: 100%; padding: 0.6rem 0.8rem; border-radius: 0.5rem; border: 1px solid #d1d5db; background-color: #f9fafb; color: #1f2937; }
+.dark .form-field input, .dark .form-field textarea, .dark .form-field select { border-color: #4b5563; background-color: #374151; color: #f3f4f6; }
+/* ADDED: Style select arrow for dark mode */
+.dark .form-field select {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 0.5rem center;
+    background-repeat: no-repeat;
+    background-size: 1.5em 1.5em;
+    padding-right: 2.5rem;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+}
 .form-field textarea { min-height: 120px; resize: vertical; }
 .form-actions { display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.5rem; }
 .btn { padding: 0.5rem 1rem; border-radius: 0.5rem; font-weight: 600; cursor: pointer; transition: background-color 0.2s; }
+.btn.btn-sm { padding: 0.25rem 0.75rem; font-size: 0.875rem; }
 .btn-primary { background-color: #3b82f6; color: white; border: none; }
 .btn-primary:hover { background-color: #2563eb; }
 .btn-secondary { background-color: #e5e7eb; color: #1f2937; border: none; }
@@ -369,7 +382,7 @@ body:not(.dark) .color-tag-btn.active { border-color: #d1d5db; }
 
 /* Styles for Search Highlighting */
 mark {
-    background-color: #fef08a; /* A bright, non-intrusive yellow */
+    background-color: #fef08a;
     color: inherit;
     padding: 0 2px;
     border-radius: 3px;
@@ -377,38 +390,38 @@ mark {
 }
 
 .dark mark {
-    background-color: #facc15; /* A darker yellow for better contrast in dark mode */
-    color: #1f2937; /* Dark text for readability on the yellow background */
+    background-color: #facc15;
+    color: #1f2937;
 }
 
 /* MODIFIED: Update Import/Export/Help sub-menu styling */
 .config-submenu {
     transform-origin: top right;
     animation: scale-in-tr 0.1s ease-out;
-    border: 1px solid #e5e7eb; /* gray-200 */
-    background-color: #ffffff; /* white */
+    border: 1px solid #e5e7eb;
+    background-color: #ffffff;
 }
 
 .dark .config-submenu {
-    border-color: #4b5563; /* gray-600 */
-    background-color: #374151; /* gray-700 */
+    border-color: #4b5563;
+    background-color: #374151;
 }
 
 .config-submenu-item {
     display: block;
     padding: 0.5rem 1rem;
     font-size: 0.875rem;
-    color: #1f2937; /* gray-800 */
+    color: #1f2937;
     text-decoration: none;
     transition: background-color 0.15s ease-in-out;
 }
 
 .dark .config-submenu-item {
-    color: #f3f4f6; /* gray-100 */
+    color: #f3f4f6;
 }
 
 .config-submenu-item:hover {
-    background-color: #f3f4f6; /* gray-100 */
+    background-color: #f3f4f6;
 }
 
 .dark .config-submenu-item:hover {
@@ -470,15 +483,13 @@ mark {
  */
 
 /* 1. Improve visibility of header icons in light mode */
-
-/* Change button background for better contrast against light page BG */
 #help-menu-btn,
 #reset-config-btn,
 #import-menu-btn,
 #export-menu-btn,
 #theme-switcher,
 #style-switcher {
-    background-color: rgba(0, 0, 0, 0.05); /* Subtle dark background on light theme */
+    background-color: rgba(0, 0, 0, 0.05);
 }
 #help-menu-btn:hover,
 #reset-config-btn:hover,
@@ -489,19 +500,17 @@ mark {
     background-color: rgba(0, 0, 0, 0.1);
 }
 
-/* Change icon/text color to be dark on light theme */
 #help-menu-btn svg,
 #reset-config-btn svg,
 #import-menu-btn svg,
 #export-menu-btn svg,
 #theme-switcher #moon-icon,
 #style-switcher #style-text {
-    color: #374151; /* gray-700 */
+    color: #374151;
 }
 #theme-switcher #sun-icon {
-    color: #f59e0b; /* amber-500 */
+    color: #f59e0b;
 }
-
 
 /* Restore original styles for dark mode */
 .dark #help-menu-btn,
@@ -510,7 +519,7 @@ mark {
 .dark #export-menu-btn,
 .dark #theme-switcher,
 .dark #style-switcher {
-    background-color: rgba(107, 114, 128, 0.2); /* Original: bg-gray-500/20 */
+    background-color: rgba(107, 114, 128, 0.2);
 }
 .dark #help-menu-btn:hover,
 .dark #reset-config-btn:hover,
@@ -518,7 +527,7 @@ mark {
 .dark #export-menu-btn:hover,
 .dark #theme-switcher:hover,
 .dark #style-switcher:hover {
-    background-color: rgba(107, 114, 128, 0.4); /* Original: hover:bg-gray-500/40 */
+    background-color: rgba(107, 114, 128, 0.4);
 }
 
 .dark #help-menu-btn svg,
@@ -527,9 +536,70 @@ mark {
 .dark #export-menu-btn svg,
 .dark #theme-switcher #moon-icon,
 .dark #style-switcher #style-text {
-    color: #e5e7eb; /* Original: text-gray-200 */
+    color: #e5e7eb;
 }
-/* Keep sun-icon yellow in dark mode */
 .dark #theme-switcher #sun-icon {
-    color: #f59e0b; /* amber-500 */
+    color: #f59e0b;
 }
+
+/*
+ * ============================================
+ * === ADDED: Styles for Reminder Feature ===
+ * ============================================
+ */
+
+.reminder-card {
+    padding: 1rem;
+    border-radius: 0.75rem; /* rounded-xl */
+    border: 1px solid #d1d5db; /* border-gray-300 */
+    background-color: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(4px);
+    transition: all 0.3s ease-in-out;
+}
+.dark .reminder-card {
+    border-color: #4b5563; /* dark:border-gray-600 */
+    background-color: rgba(55, 65, 81, 0.5); /* dark:bg-gray-700/50 */
+}
+.style-compact .reminder-card {
+    padding: 0.75rem;
+    border-radius: 0.5rem; /* rounded-lg */
+}
+
+/* Triggered State */
+.reminder-card.triggered {
+    border-color: #ef4444; /* red-500 */
+    border-width: 2px;
+    animation: pulse-border 2s infinite;
+}
+.dark .reminder-card.triggered {
+    border-color: #f87171; /* dark:red-400 */
+}
+@keyframes pulse-border {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+    50% { box-shadow: 0 0 0 5px rgba(239, 68, 68, 0); }
+}
+
+/* Item Controls (Edit/Delete Buttons) */
+.item-controls {
+    position: absolute;
+    top: 0.25rem;
+    right: 0.25rem;
+    display: flex;
+    gap: 0.25rem;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+.group:hover .item-controls {
+    opacity: 1;
+}
+.control-btn {
+    padding: 0.25rem;
+    border-radius: 9999px;
+    background-color: rgba(209, 213, 219, 0.5); /* bg-gray-300/50 */
+    cursor: pointer;
+}
+.dark .control-btn {
+    background-color: rgba(75, 85, 99, 0.5); /* dark:bg-gray-600/50 */
+}
+.control-btn.edit-btn:hover { background-color: rgba(59, 130, 246, 0.5); }
+.control-btn.delete-btn:hover { background-color: rgba(239, 68, 68, 0.5); }
