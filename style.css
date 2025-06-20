@@ -1458,7 +1458,7 @@
   color: #eee;
 }
 #modal-title {
-  font-size: 2rem;
+  font-size: 1.5rem;
   margin-bottom: 1rem;
   color: #2c5282;
 }
@@ -1466,8 +1466,20 @@
   color: #90cdf4;
 }
 #modal-body {
-  font-size: 1.1rem;
+  font-size: 1rem;
   line-height: 1.6;
+}
+#modal-body h2 {
+  font-size: 1.25rem;
+  margin-bottom: 0.75rem;
+}
+#modal-body h3 {
+  font-size: 1.125rem;
+  margin-bottom: 0.5rem;
+}
+#modal-body h4, #modal-body h5, #modal-body h6 {
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
 }
 .tab-button {
   cursor: pointer;
@@ -1511,7 +1523,7 @@
   position: relative;
 }
 #note-modal .edit-modal-content {
-  max-width: 800px;
+  max-width: 700px;
   max-height: 80vh;
   display: flex;
   flex-direction: column;
@@ -1806,6 +1818,28 @@ mark {
     opacity: 1;
     transform: scale(1);
   }
+}
+.container.style-compact ~ #note-modal .edit-modal-content {
+  max-width: 600px;
+  max-height: 85vh;
+}
+.container.style-compact ~ #note-modal #modal-title {
+  font-size: 1.25rem;
+  margin-bottom: 0.75rem;
+}
+.container.style-compact ~ #note-modal #modal-body {
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+.container.style-compact ~ #note-modal #modal-body h2 {
+  font-size: 1.125rem;
+}
+.container.style-compact ~ #note-modal #modal-body h3 {
+  font-size: 1rem;
+}
+.container.style-compact ~ #note-modal #modal-body h4, .container.style-compact ~ #note-modal #modal-body h5, .container.style-compact ~ #note-modal #modal-body h6 {
+  font-size: 0.875rem;
+  font-weight: 700;
 }
 @property --tw-translate-x {
   syntax: "*";

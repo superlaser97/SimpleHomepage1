@@ -280,7 +280,7 @@
 
 /* Modal title and body styling */
 #modal-title {
-    font-size: 2rem; /* Larger title */
+    font-size: 1.5rem; /* CHANGED: Was 2rem */
     margin-bottom: 1rem;
     color: #2c5282; /* A shade of blue for the title */
 }
@@ -290,9 +290,14 @@
 }
 
 #modal-body {
-    font-size: 1.1rem; /* Slightly larger body text */
+    font-size: 1rem; /* CHANGED: Was 1.1rem */
     line-height: 1.6;
 }
+
+/* FIXED: Override heading sizes within the note modal for better proportions */
+#modal-body h2 { font-size: 1.25rem; margin-bottom: 0.75rem; }
+#modal-body h3 { font-size: 1.125rem; margin-bottom: 0.5rem; }
+#modal-body h4, #modal-body h5, #modal-body h6 { font-size: 1rem; margin-bottom: 0.5rem; }
 
 
 .tab-button { cursor: pointer; }
@@ -303,9 +308,9 @@
 .edit-modal.is-active { opacity: 1; visibility: visible; }
 .edit-modal-content { background-color: #f9fafb; /* Changed from white to gray-50 */ padding: 1.5rem 2rem; border-radius: 0.75rem; width: 90%; max-width: 500px; transform: scale(0.95); transition: transform 0.3s; position: relative; }
 
-/* ++ ADDED ++ Make Note View modal wider */
+/* ++ MODIFIED ++ Make Note View modal wider but more proportional */
 #note-modal .edit-modal-content {
-    max-width: 800px;
+    max-width: 700px; /* CHANGED: Was 800px */
     max-height: 80vh;
     display: flex;
     flex-direction: column;
@@ -421,4 +426,34 @@ mark {
         opacity: 1;
         transform: scale(1);
     }
+}
+
+/* ADDED: Note Modal styling for Compact View */
+.container.style-compact ~ #note-modal .edit-modal-content {
+    max-width: 600px;
+    max-height: 85vh;
+}
+
+.container.style-compact ~ #note-modal #modal-title {
+    font-size: 1.25rem; /* text-xl */
+    margin-bottom: 0.75rem; /* mb-3 */
+}
+
+.container.style-compact ~ #note-modal #modal-body {
+    font-size: 0.875rem; /* text-sm */
+    line-height: 1.5;
+}
+
+/* Override heading sizes for compact modal view */
+.container.style-compact ~ #note-modal #modal-body h2 {
+    font-size: 1.125rem; /* text-lg */
+}
+.container.style-compact ~ #note-modal #modal-body h3 {
+    font-size: 1rem; /* text-base */
+}
+.container.style-compact ~ #note-modal #modal-body h4,
+.container.style-compact ~ #note-modal #modal-body h5,
+.container.style-compact ~ #note-modal #modal-body h6 {
+    font-size: 0.875rem; /* text-sm */
+    font-weight: 700;
 }
