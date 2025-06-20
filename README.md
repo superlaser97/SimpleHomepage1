@@ -6,6 +6,8 @@ A fast, modern, and highly customizable homepage that runs entirely from a singl
 ![screenshot2](screenshots/screenshot2.png)
 ![screenshot3](screenshots/screenshot3.png)
 
+---
+
 ## Table of Contents
 
 - [Features](#features)
@@ -16,6 +18,8 @@ A fast, modern, and highly customizable homepage that runs entirely from a singl
   - [Customizing the View](#customizing-the-view)
   - [Managing Your Data](#managing-your-data)
 - [Development](#development)
+
+---
 
 ## Features
 
@@ -30,6 +34,8 @@ A fast, modern, and highly customizable homepage that runs entirely from a singl
     * Toggle between **Comfortable** and **Compact** display styles to fit more on the screen.
 * **Self-Contained & Private:** Everything is stored in your browser's local storage. Your data stays with you.
 
+---
+
 ## Getting Started
 
 Using this homepage is as simple as it gets.
@@ -40,9 +46,13 @@ Using this homepage is as simple as it gets.
 
 That's it! The page will load with a default set of example items that you can start customizing immediately.
 
+---
+
 ## How to Use the Homepage
 
 All configuration is done directly on the page.
+
+---
 
 ### Editing Content
 
@@ -59,6 +69,8 @@ All configuration is done directly on the page.
     * To add a new category, click the "+ New" button in the category selector.
     * To edit or delete an existing category, hover over its name in the category selector to reveal controls.
 
+---
+
 ### Customizing the View
 
 Use the icons in the absolute top-right corner of the page to customize your experience.
@@ -67,6 +79,8 @@ Use the icons in the absolute top-right corner of the page to customize your exp
 * **Style Switcher (Compact/Comfortable):** Change the layout density. "Compact" is great for smaller screens or showing more information at once.
 
 Your theme and style preferences are automatically saved in your browser.
+
+---
 
 ### Managing Your Data
 
@@ -77,6 +91,8 @@ You have full control over your configuration. Use the menu icons in the top-rig
 * **Export (⬇️):** Save your current setup (all shortcuts, notes, and reminders) to a JSON file or copy it to your clipboard. This is perfect for making backups or moving to a new computer.
 * **Import (⬆️):** Load a configuration from a JSON file or a string you've previously exported.
 * **Reset (🔄):** This will completely wipe your current configuration and restore the page to its original default settings. **Use with caution!**
+
+---
 
 ## Development
 
