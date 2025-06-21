@@ -39,6 +39,20 @@
         const encodedConfig = ``;
 
         // --- UTILITY FUNCTIONS ---
+        function setFavicon(iconName, color = 'currentColor') {
+            let link = document.getElementById('favicon-link');
+            // If the link doesn't exist, create it
+            if (!link) {
+                link = document.createElement('link');
+                link.rel = 'icon';
+                link.id = 'favicon-link';
+                document.head.appendChild(link);
+            }
+            // Generate the SVG and set it as the href
+            const svgFavicon = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='${color}'><path d='${icons[iconName]}'/></svg>`;
+            link.href = `data:image/svg+xml,${encodeURIComponent(svgFavicon)}`;
+        }
+
         function escapeHTML(str) {
             if (!str) return '';
             return str.replace(/&/g, '&amp;')
@@ -440,7 +454,7 @@
 
         function renderTitle() {
             document.getElementById('page-title').textContent = config.pageTitle;
-            document.title = config.pageTitle;
+            updateReminderTabIndicator(); // This will set the document title correctly
         }
 
         function renderGreeter() {
@@ -1312,8 +1326,9 @@
                 const newTitle = e.target.textContent.trim();
                 if (newTitle && newTitle !== config.pageTitle) {
                     config.pageTitle = newTitle;
-                    document.title = newTitle;
+                    // document.title = newTitle; // REMOVE THIS LINE
                     saveConfig();
+                    updateReminderTabIndicator(); // ADD THIS LINE to correctly format the title
                     showMessage('Success', 'Page title updated.', 'success');
                 } else {
                     e.target.textContent = config.pageTitle;
@@ -1841,7 +1856,6 @@
                 document.body.classList.remove('screen-glow-active');
             }
 
-
             // Update badge visibility and count
             if (hasTriggered) {
                 reminderTab.classList.add('has-triggered-reminders');
@@ -1850,6 +1864,20 @@
             } else {
                 reminderTab.classList.remove('has-triggered-reminders');
                 reminderBadge.classList.add('hidden');
+            }
+
+            // --- NEWLY ADDED CODE ---
+            // This block will control the browser tab's appearance
+            if (hasTriggered) {
+                // Prepend the reminder count to the page title
+                document.title = `(${triggeredCount}) ${config.pageTitle}`;
+                // Set the favicon to a red bell icon
+                setFavicon('bell', SAFE_COLORS.red);
+            } else {
+                // Revert the page title to its original state
+                document.title = config.pageTitle;
+                // Revert the favicon to the default browser icon
+                setFavicon('browser');
             }
         }
 
