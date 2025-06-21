@@ -275,15 +275,16 @@
             return `${date.toLocaleDateString(undefined, weekdayOptions)}`;
         }
 
-        // --- NEW --- Ensures all shortcuts have a persistent, unique ID for sorting
-        function ensureShortcutIds(shortcuts) {
-            shortcuts.forEach(s => {
-                if (!s.id) {
-                    s.id = `sc_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        // --- NEW --- Ensures all items have a persistent, unique ID for sorting
+        function ensureItemIds(items, prefix) {
+            items.forEach(item => {
+                if (!item.id) {
+                    item.id = `${prefix}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
                 }
             });
-            return shortcuts;
+            return items;
         }
+
 
         function saveConfig() {
             const configToSave = {
@@ -339,10 +340,12 @@
                 customIcons: {},
                 notes: [
                     {
+                        id: `note_${Date.now() + 1}`,
                         title: "Welcome to your Dashboard!",
                         content: "This is a customizable, self-contained homepage. All your data is saved in your browser's local storage.\\n\\n- Click the title above to edit it.\\n- Use the controls in the top right to import/export, change themes, or reset.\\n- Hover over items to find edit and delete controls.\\n- You can now drag-and-drop shortcuts and categories to reorder them!"
                     },
                     {
+                        id: `note_${Date.now() + 2}`,
                         title: "Markdown Demo",
                         content: "## Note-Taking Features\\nNotes support simple formatting for better organization.\\n\\n- Use `-` or `*` to create a list.\\n- Add another item for good measure.\\n\\n## Sub-headings\\nUse `##` to create a sub-heading, just like this one. Separate paragraphs with a blank line in the editor."
                     }
@@ -424,15 +427,21 @@
                 shortcutCategoryOrder: ["Search", "Social", "Media", "Developer", "General"]
             };
             
-            // --- MODIFIED --- Ensure default shortcuts have IDs
-            defaultConfig.shortcuts = ensureShortcutIds(defaultConfig.shortcuts);
+            // --- MODIFIED --- Ensure default items have IDs
+            defaultConfig.shortcuts = ensureItemIds(defaultConfig.shortcuts, 'sc');
+            defaultConfig.notes = ensureItemIds(defaultConfig.notes, 'note');
+            defaultConfig.reminders = ensureItemIds(defaultConfig.reminders, 'rem');
+
 
             const savedConfig = localStorage.getItem('homepageConfig');
             if (savedConfig) {
                 try {
                     const parsedConfig = JSON.parse(savedConfig);
                     // --- MODIFIED --- Ensure loaded data has necessary properties
-                    parsedConfig.shortcuts = ensureShortcutIds(parsedConfig.shortcuts || []);
+                    parsedConfig.shortcuts = ensureItemIds(parsedConfig.shortcuts || [], 'sc');
+                    parsedConfig.notes = ensureItemIds(parsedConfig.notes || [], 'note');
+                    parsedConfig.reminders = ensureItemIds(parsedConfig.reminders || [], 'rem');
+
                     if (!parsedConfig.shortcutCategoryOrder) {
                         const allCategories = [...new Set(Object.keys(parsedConfig.categoryConfig || {}).concat(parsedConfig.shortcuts.map(s => s.category)))].filter(Boolean);
                         parsedConfig.shortcutCategoryOrder = allCategories.sort();
@@ -449,7 +458,9 @@
                     const decodedJson = atob(encodedConfig);
                     const parsedConfig = JSON.parse(decodedJson);
                     // --- MODIFIED --- Also handle legacy encoded config
-                    parsedConfig.shortcuts = ensureShortcutIds(parsedConfig.shortcuts || []);
+                    parsedConfig.shortcuts = ensureItemIds(parsedConfig.shortcuts || [], 'sc');
+                    parsedConfig.notes = ensureItemIds(parsedConfig.notes || [], 'note');
+                    parsedConfig.reminders = ensureItemIds(parsedConfig.reminders || [], 'rem');
                     if (!parsedConfig.shortcutCategoryOrder) {
                         const allCategories = [...new Set(Object.keys(parsedConfig.categoryConfig || {}).concat(parsedConfig.shortcuts.map(s => s.category)))].filter(Boolean);
                         parsedConfig.shortcutCategoryOrder = allCategories.sort();
@@ -466,6 +477,7 @@
         
         // --- NEW --- Reads the DOM after a drag-drop to update the config object
         function updateConfigFromDOM() {
+            // --- Shortcut & Category Order ---
             const newShortcuts = [];
             const newCategoryOrder = [];
             const categoryElements = document.querySelectorAll('#shortcuts-container > div[data-category]');
@@ -477,68 +489,91 @@
                 const shortcutElements = catEl.querySelectorAll('.links-grid > div[data-shortcut-id]');
                 shortcutElements.forEach(scEl => {
                     const shortcutId = scEl.dataset.shortcutId;
-                    // Find the original shortcut data from the config
-                    const originalShortcut = config.shortcuts.find(s => s.id === shortcutId) || config.shortcuts.find(s => s.url === scEl.querySelector('a')?.href);
+                    const originalShortcut = config.shortcuts.find(s => s.id === shortcutId);
                     
                     if (originalShortcut) {
-                        // Push a new object with the potentially updated category
-                        newShortcuts.push({
-                            ...originalShortcut,
-                            category: categoryName
-                        });
+                        newShortcuts.push({ ...originalShortcut, category: categoryName });
                     }
                 });
+            });
+
+            // --- Notes Order ---
+            const newNotes = [];
+            const noteElements = document.querySelectorAll('#notes-container > div[data-note-id]');
+            noteElements.forEach(noteEl => {
+                const noteId = noteEl.dataset.noteId;
+                const originalNote = config.notes.find(n => n.id === noteId);
+                if (originalNote) newNotes.push(originalNote);
+            });
+
+            // --- Reminders Order ---
+            const newReminders = [];
+            const reminderElements = document.querySelectorAll('#reminders-container > div[data-reminder-id]');
+            reminderElements.forEach(remEl => {
+                const reminderId = remEl.dataset.reminderId;
+                const originalReminder = config.reminders.find(r => r.id === reminderId);
+                if (originalReminder) newReminders.push(originalReminder);
             });
 
             // Update the config with the new, sorted data
             config.shortcuts = newShortcuts;
             config.shortcutCategoryOrder = newCategoryOrder;
+            if (newNotes.length > 0) config.notes = newNotes;
+            if (newReminders.length > 0) config.reminders = newReminders;
             
-            // Save the changes to localStorage
             saveConfig();
-            
-            // Re-rendering is not needed as SortableJS updated the DOM.
-            // A small notification can provide good user feedback.
-            // showMessage('Layout Saved', 'Your new layout has been saved.', 'success');
         }
 
-        // --- NEW --- Initializes the SortableJS functionality
+        // --- MODIFIED --- Initializes SortableJS functionality for multiple containers
         function setupSortable() {
-            // Check if Sortable is available
             if (typeof Sortable === 'undefined') {
                 console.error("SortableJS is not loaded. Drag and drop will not be available.");
                 return;
             }
 
-            const shortcutsContainer = document.getElementById('shortcuts-container');
-            if (!shortcutsContainer) return;
-
             // 1. Make categories sortable
-            new Sortable(shortcutsContainer, {
-                animation: 150,
-                handle: '.category-header', // Use the category title area as the drag handle
-                onEnd: function (evt) {
-                    updateConfigFromDOM();
-                }
-            });
-
-            // 2. Make shortcuts sortable (within and between categories)
-            const linksGrids = shortcutsContainer.querySelectorAll('.links-grid');
-            linksGrids.forEach(grid => {
-                new Sortable(grid, {
-                    group: 'shared-shortcuts', // A common group name allows moving items between lists
+            const shortcutsContainer = document.getElementById('shortcuts-container');
+            if (shortcutsContainer) {
+                new Sortable(shortcutsContainer, {
                     animation: 150,
-                    onEnd: function (evt) {
-                        updateConfigFromDOM();
-                    }
+                    handle: '.category-header',
+                    onEnd: updateConfigFromDOM
                 });
-            });
+
+                // 2. Make shortcuts sortable (within and between categories)
+                const linksGrids = shortcutsContainer.querySelectorAll('.links-grid');
+                linksGrids.forEach(grid => {
+                    new Sortable(grid, {
+                        group: 'shared-shortcuts',
+                        animation: 150,
+                        onEnd: updateConfigFromDOM
+                    });
+                });
+            }
+
+            // 3. Make notes sortable
+            const notesContainer = document.getElementById('notes-container');
+            if (notesContainer) {
+                new Sortable(notesContainer, {
+                    animation: 150,
+                    onEnd: updateConfigFromDOM
+                });
+            }
+
+            // 4. Make reminders sortable
+            const remindersContainer = document.getElementById('reminders-container');
+            if (remindersContainer) {
+                new Sortable(remindersContainer, {
+                    animation: 150,
+                    onEnd: updateConfigFromDOM
+                });
+            }
         }
 
 
         let config = loadConfig();
         config.reminders = migrateReminderData(config.reminders);
-        config.icons = icons; 
+        config.icons = icons;
         let { pageTitle, notes, shortcuts, reminders, categoryConfig } = config;
         let showCompletedReminders = false;
 
@@ -607,12 +642,11 @@
                 showConfirmation('Confirm Deletion', `Are you sure you want to delete this ${type}?`, () => {
                     let index = -1;
                     if (type === 'shortcut') {
-                        // --- MODIFIED --- Use ID for deletion
                         index = config.shortcuts.findIndex(s => s.id === item.id);
                         if (index > -1) config.shortcuts.splice(index, 1);
                         renderShortcuts();
                     } else if (type === 'note'){
-                        index = config.notes.indexOf(item);
+                        index = config.notes.findIndex(n => n.id === item.id);
                         if (index > -1) config.notes.splice(index, 1);
                         renderNotes();
                     } else if (type === 'reminder') {
@@ -633,7 +667,6 @@
         function createShortcutElement(shortcut, query = '') {
             const container = document.createElement('div');
             container.className = 'relative group';
-            // --- MODIFIED --- Add data-attribute for SortableJS
             container.dataset.shortcutId = shortcut.id; 
 
             const a = document.createElement('a');
@@ -641,8 +674,8 @@
             a.target = '_blank';
             a.rel = 'noopener noreferrer';
             a.className = 'flex items-center gap-4 p-4 rounded-lg shadow-lg hover:shadow-cyan-500/10 hover:-translate-y-1 transition-all duration-300 text-gray-700 dark:text-gray-200 border border-gray-300/80 dark:border-gray-700/80 ' +
-                          'bg-gray-100/50 dark:bg-gray-800/50 hover:bg-gray-200/60 dark:hover:bg-gray-700/80 ' +
-                          'style-compact:gap-2 style-compact:p-2 style-compact:text-sm style-compact:bg-white/60 style-compact:dark:bg-gray-800/60';
+                                'bg-gray-100/50 dark:bg-gray-800/50 hover:bg-gray-200/60 dark:hover:bg-gray-700/80 ' +
+                                'style-compact:gap-2 style-compact:p-2 style-compact:text-sm style-compact:bg-white/60 style-compact:dark:bg-gray-800/60';
 
             const allBuiltIn = config.icons;
             const allCustom = config.customIcons;
@@ -656,12 +689,10 @@
                 svg.className = 'text-gray-500 dark:text-gray-400 group-hover:text-black dark:group-hover:text-white transition-colors duration-300';
 
                 if (allCustom[shortcut.icon]) {
-                    // It's a custom icon (new object format)
                     const iconData = allCustom[shortcut.icon];
                     svg.setAttribute('viewBox', iconData.viewBox);
                     svg.innerHTML = iconData.content;
                 } else {
-                    // It's a built-in icon (old string format)
                     const iconData = allBuiltIn[shortcut.icon];
                     svg.setAttribute('viewBox', '0 0 24 24');
                     const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
@@ -739,7 +770,6 @@
                 // If new categories were added (e.g. "General" for the first time), add them to the canonical order array
                 if (unordered.length > 0) {
                     config.shortcutCategoryOrder.push(...unordered);
-                    // No need to save here, a drag-drop action will trigger a save.
                 }
             }
 
@@ -748,7 +778,6 @@
                 const configData = config.categoryConfig[category] || { color: 'gray' };
                 const colorClass = configData.color;
                 const categoryWrapper = document.createElement('div');
-                // Add a data-attribute to identify the category for sorting
                 categoryWrapper.dataset.category = category;
                 categoryWrapper.className = `p-5 rounded-xl border border-gray-300/80 dark:border-gray-700/80 bg-gray-50/40 dark:bg-gray-800/40 backdrop-blur-sm shadow-2xl transition-all duration-300 style-compact:p-3 style-compact:rounded-lg style-compact:shadow-lg style-compact:bg-white/50 style-compact:dark:bg-gray-800/50`;
 
@@ -756,7 +785,6 @@
                 delay += 0.1;
 
                 const categoryHeader = document.createElement('div');
-                // Add a class to use as a drag handle for SortableJS
                 categoryHeader.className = `category-header group flex items-center gap-3 mb-4 border-b-2 pb-2`; 
                 if(!query) categoryHeader.classList.add('cursor-grab'); // Add grab cursor when not searching
                 categoryHeader.style.borderColor = (SAFE_COLORS[colorClass] || '#6b7280') + '80';
@@ -772,18 +800,26 @@
                 categoryHeader.appendChild(categoryColorDot);
                 categoryHeader.appendChild(categoryTitle);
 
-                if (category !== 'General') {
+                // --- NEW --- Direct edit/delete on category header
+                 if (category !== 'General') {
+                    const controls = document.createElement('div');
+                    controls.className = 'ml-auto flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity';
+
                     const editCategoryBtn = document.createElement('button');
-                    editCategoryBtn.className = 'ml-2 p-1 rounded-full hover:bg-gray-500/20 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer';
+                    editCategoryBtn.className = 'p-1 rounded-full hover:bg-gray-500/20';
                     editCategoryBtn.title = `Edit "${category}" category`;
                     editCategoryBtn.innerHTML = `<svg class="w-4 h-4 text-gray-500 dark:text-gray-400" fill="currentColor" viewBox="0 0 24 24"><path d="${icons.edit}"/></svg>`;
+                    editCategoryBtn.onclick = (e) => { e.preventDefault(); e.stopPropagation(); showCategoryModal(category); };
+
+                    const deleteCategoryBtn = document.createElement('button');
+                    deleteCategoryBtn.className = 'p-1 rounded-full hover:bg-red-500/20';
+                    deleteCategoryBtn.title = `Delete "${category}" category`;
+                    deleteCategoryBtn.innerHTML = `<svg class="w-4 h-4 text-red-500 dark:text-red-400" fill="currentColor" viewBox="0 0 24 24"><path d="${icons.delete}"/></svg>`;
+                    deleteCategoryBtn.onclick = (e) => { e.preventDefault(); e.stopPropagation(); deleteCategory(category, true); };
                     
-                    editCategoryBtn.onclick = (e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        showCategoryModal(category);
-                    };
-                    categoryHeader.appendChild(editCategoryBtn);
+                    controls.appendChild(editCategoryBtn);
+                    controls.appendChild(deleteCategoryBtn);
+                    categoryHeader.appendChild(controls);
                 }
 
                 categoryWrapper.appendChild(categoryHeader);
@@ -806,42 +842,42 @@
 
         function parseNoteContent(rawContent, isPreview = false, query = '') {
              const lines = rawContent.split('\\n');
-                   let processedLines = [];
-                   let currentParagraph = [];
-                   let inList = false;
-                   const flushParagraph = () => {
-                       if (currentParagraph.length > 0) {
-                           const paragraphText = currentParagraph.join(' ').trim();
-                           processedLines.push(`<p class="text-gray-600 dark:text-gray-300 mb-2 style-compact:mb-1 style-compact:text-sm">${highlightText(paragraphText, query)}</p>`);
-                           currentParagraph = [];
-                       }
-                   };
-                   const closeList = () => { if (inList) { processedLines.push('</ul>'); inList = false; } };
-                   lines.forEach(line => {
-                       const headerMatch = line.match(/^(#{1,6})(.*?)\1?$/);
-                       const listItemMatch = line.match(/^[\-\*]\s(.*)/);
-                       if (headerMatch && headerMatch[2].trim() !== '') {
-                           flushParagraph(); closeList();
-                           const hashes = headerMatch[1];
-                           const content = headerMatch[2].trim();
-                           const headingLevel = Math.min(hashes.length + 1, 6);
-                           let classes = 'font-bold';
-                           if (isPreview) { classes += ' text-sm text-gray-500 dark:text-gray-400 mt-2 mb-1 style-compact:text-xs'; } 
-                           else { classes += ` text-sky-600 dark:text-sky-300 ${['text-2xl','text-xl','text-lg','text-base'][headingLevel-2] || 'text-base'} mb-2`; }
-                           processedLines.push(`<h${headingLevel} class="${classes}">${highlightText(content, query)}</h${headingLevel}>`);
-                       } else if (listItemMatch) {
-                           flushParagraph();
-                           if (!inList) { processedLines.push('<ul class="list-disc list-inside space-y-1 pl-2 mb-2 style-compact:text-sm">'); inList = true; }
-                           const listItemText = listItemMatch[1].trim();
-                           processedLines.push(`<li class="text-gray-600 dark:text-gray-300">${highlightText(listItemText, query)}</li>`);
-                       } else if (line.trim() === '') {
-                           flushParagraph(); closeList();
-                       } else {
-                           closeList(); currentParagraph.push(line);
-                       }
-                   });
-                   flushParagraph(); closeList();
-                   return processedLines.join('');
+                    let processedLines = [];
+                    let currentParagraph = [];
+                    let inList = false;
+                    const flushParagraph = () => {
+                        if (currentParagraph.length > 0) {
+                            const paragraphText = currentParagraph.join(' ').trim();
+                            processedLines.push(`<p class="text-gray-600 dark:text-gray-300 mb-2 style-compact:mb-1 style-compact:text-sm">${highlightText(paragraphText, query)}</p>`);
+                            currentParagraph = [];
+                        }
+                    };
+                    const closeList = () => { if (inList) { processedLines.push('</ul>'); inList = false; } };
+                    lines.forEach(line => {
+                        const headerMatch = line.match(/^(#{1,6})(.*?)\1?$/);
+                        const listItemMatch = line.match(/^[\-\*]\s(.*)/);
+                        if (headerMatch && headerMatch[2].trim() !== '') {
+                            flushParagraph(); closeList();
+                            const hashes = headerMatch[1];
+                            const content = headerMatch[2].trim();
+                            const headingLevel = Math.min(hashes.length + 1, 6);
+                            let classes = 'font-bold';
+                            if (isPreview) { classes += ' text-sm text-gray-500 dark:text-gray-400 mt-2 mb-1 style-compact:text-xs'; } 
+                            else { classes += ` text-sky-600 dark:text-sky-300 ${['text-2xl','text-xl','text-lg','text-base'][headingLevel-2] || 'text-base'} mb-2`; }
+                            processedLines.push(`<h${headingLevel} class="${classes}">${highlightText(content, query)}</h${headingLevel}>`);
+                        } else if (listItemMatch) {
+                            flushParagraph();
+                            if (!inList) { processedLines.push('<ul class="list-disc list-inside space-y-1 pl-2 mb-2 style-compact:text-sm">'); inList = true; }
+                            const listItemText = listItemMatch[1].trim();
+                            processedLines.push(`<li class="text-gray-600 dark:text-gray-300">${highlightText(listItemText, query)}</li>`);
+                        } else if (line.trim() === '') {
+                            flushParagraph(); closeList();
+                        } else {
+                            closeList(); currentParagraph.push(line);
+                        }
+                    });
+                    flushParagraph(); closeList();
+                    return processedLines.join('');
         }
         
         function renderNotes(query = '') {
@@ -849,6 +885,13 @@
             const maxLines = 6;
             const lowerCaseQuery = query.toLowerCase();
             const filteredNotes = config.notes.filter(note => query === '' || (note.title && note.title.toLowerCase().includes(lowerCaseQuery)) || note.content.toLowerCase().includes(lowerCaseQuery) );
+            
+            // --- NEW --- Sort notes according to the saved order if not searching
+            if (!query) {
+                const noteOrder = config.notes.map(n => n.id);
+                filteredNotes.sort((a, b) => noteOrder.indexOf(a.id) - noteOrder.indexOf(b.id));
+            }
+
             if (filteredNotes.length === 0) {
                 const message = query ? `No notes found for "${query}".` : 'No notes available.';
                 notesContainer.innerHTML = `<p class="text-gray-500 dark:text-gray-400 p-4 text-center col-span-full">${message}</p>`;
@@ -859,6 +902,7 @@
             filteredNotes.forEach(note => {
                 const noteCard = document.createElement('div');
                 noteCard.className = 'relative group p-5 rounded-xl border border-gray-300/80 dark:border-gray-700/80 bg-gray-50/40 dark:bg-gray-800/40 backdrop-blur-sm shadow-2xl flex flex-col transition-all duration-300 style-compact:p-3 style-compact:rounded-lg style-compact:shadow-lg style-compact:bg-white/50 style-compact:dark:bg-gray-800/50';
+                noteCard.dataset.noteId = note.id; // Add ID for SortableJS
 
                 noteCard.style.animationDelay = `${delay}s`;
                 delay += 0.1;
@@ -893,6 +937,8 @@
                 });
                 notesContainer.appendChild(noteCard);
             });
+            // Re-init sortable if not searching
+            if (!query) setupSortable();
         }
 
         function renderReminders(query = '') {
@@ -900,7 +946,7 @@
             container.innerHTML = '';
             const lowerCaseQuery = query.toLowerCase();
 
-            const filteredReminders = config.reminders.filter(rem => {
+            let filteredReminders = config.reminders.filter(rem => {
                 const matchesQuery = rem.message.toLowerCase().includes(lowerCaseQuery);
                 if (showCompletedReminders) {
                     return matchesQuery;
@@ -908,13 +954,20 @@
                 return !rem.dismissed && matchesQuery;
             });
             
-            filteredReminders.sort((a, b) => {
-                if (a.dismissed && !b.dismissed) return 1; 
-                if (!a.dismissed && b.dismissed) return -1;
-                if (a.triggered && !b.triggered) return -1;
-                if (!a.triggered && b.triggered) return 1;
-                return new Date(a.start_datetime) - new Date(b.start_datetime);
-            });
+            // --- MODIFIED --- Apply sorting based on query or saved order
+            if (query) {
+                 filteredReminders.sort((a, b) => {
+                    if (a.dismissed && !b.dismissed) return 1; 
+                    if (!a.dismissed && b.dismissed) return -1;
+                    if (a.triggered && !b.triggered) return -1;
+                    if (!a.triggered && b.triggered) return 1;
+                    return new Date(a.start_datetime) - new Date(b.start_datetime);
+                });
+            } else {
+                const reminderOrder = config.reminders.map(r => r.id);
+                filteredReminders.sort((a, b) => reminderOrder.indexOf(a.id) - reminderOrder.indexOf(b.id));
+            }
+
 
             if (filteredReminders.length === 0) {
                 let message = '';
@@ -936,6 +989,7 @@
 
                 const reminderCard = document.createElement('div');
                 reminderCard.className = 'reminder-card relative group flex flex-col justify-between';
+                reminderCard.dataset.reminderId = reminder.id; // Add ID for SortableJS
                 reminderCard.style.animationDelay = `${delay}s`;
                 delay += 0.1;
 
@@ -988,15 +1042,14 @@
                 reminderCard.appendChild(cardBody);
                 reminderCard.appendChild(cardFooter);
                 reminderCard.appendChild(createItemControls(reminder, 'reminder'));
-                // Add this block to make the whole card clickable
                 reminderCard.addEventListener('click', (e) => {
-                    // Don't trigger if a button inside the card was clicked (e.g., dismiss, edit, delete)
                     if (e.target.closest('button')) return;
                     showReminderModal(reminder);
                 });
-                // This line should already exist
                 container.appendChild(reminderCard);
             });
+            // Re-init sortable if not searching
+            if (!query) setupSortable();
         }
         
         // --- MODAL & EDITING LOGIC ---
@@ -1121,21 +1174,27 @@
             container.appendChild(addCatButton);
         }
 
-        function deleteCategory(categoryToDelete) {
-            showConfirmation('Delete Category', `Are you sure you want to delete the "${categoryToDelete}" category? All shortcuts in this category will be moved to "General".`, () => {
+        function deleteCategory(categoryToDelete, fromHeader = false) {
+            const message = `Are you sure you want to delete the "${categoryToDelete}" category? All shortcuts in this category will be moved to "General".`;
+            showConfirmation('Delete Category', message, () => {
                 config.shortcuts.forEach(shortcut => {
                     if (shortcut.category === categoryToDelete) { shortcut.category = 'General'; }
                 });
                 delete config.categoryConfig[categoryToDelete];
-                // --- MODIFIED --- Also remove from explicit order array
                 config.shortcutCategoryOrder = config.shortcutCategoryOrder.filter(c => c !== categoryToDelete);
 
-                const categoryContainer = document.getElementById('shortcut-category-selector');
-                const categoryInput = document.getElementById('shortcut-category-input');
-                const newSelectedCategory = categoryInput.value === categoryToDelete ? 'General' : categoryInput.value;
-                renderCategorySelector(categoryContainer, categoryInput, newSelectedCategory);
-                renderShortcuts();
                 saveConfig();
+                renderShortcuts();
+                
+                // If the shortcut modal is open, refresh its category list
+                const modalActive = document.getElementById('edit-shortcut-modal').classList.contains('is-active');
+                if (modalActive && !fromHeader) {
+                    const categoryContainer = document.getElementById('shortcut-category-selector');
+                    const categoryInput = document.getElementById('shortcut-category-input');
+                    const newSelectedCategory = categoryInput.value === categoryToDelete ? 'General' : categoryInput.value;
+                    renderCategorySelector(categoryContainer, categoryInput, newSelectedCategory);
+                }
+                 showMessage('Category Deleted', `The "${categoryToDelete}" category was removed.`, 'success');
             });
         }
         
@@ -1239,8 +1298,8 @@
             
             const internalIcons = ['search', 'edit', 'delete', 'add', 'copy', 'check', 'clipboard', 'upload', 'download', 'reset', 'question'];
             const iconNames = Object.keys(config.icons)
-                                      .filter(icon => !internalIcons.includes(icon))
-                                      .sort();
+                                        .filter(icon => !internalIcons.includes(icon))
+                                        .sort();
 
             const noneTag = document.createElement('button');
             noneTag.type = 'button';
@@ -1481,8 +1540,7 @@
                        config.shortcuts[index] = { ...editingShortcut, ...updatedShortcut };
                     }
                 } else {
-                    // --- MODIFIED --- Add with ID
-                    const newShortcutWithId = ensureShortcutIds([updatedShortcut])[0];
+                    const newShortcutWithId = ensureItemIds([updatedShortcut], 'sc')[0];
                     config.shortcuts.push(newShortcutWithId);
                 }
                 hideShortcutModal();
@@ -1531,7 +1589,6 @@
                 if (editingCategoryName && editingCategoryName !== newName) {
                     config.shortcuts.forEach(s => { if(s.category === editingCategoryName) s.category = newName; });
                     delete config.categoryConfig[editingCategoryName];
-                    // --- MODIFIED --- Update name in category order array
                     const index = config.shortcutCategoryOrder.indexOf(editingCategoryName);
                     if (index > -1) {
                         config.shortcutCategoryOrder[index] = newName;
@@ -1539,7 +1596,6 @@
                 }
                 
                 config.categoryConfig[newName] = { color: newColor };
-                // --- MODIFIED --- Add new category to order array if it doesn't exist
                 if (!config.shortcutCategoryOrder.includes(newName)) {
                     config.shortcutCategoryOrder.push(newName);
                 }
@@ -1572,9 +1628,11 @@
                 };
 
                 if (editingNote) {
-                    Object.assign(editingNote, updatedNote);
+                    const index = config.notes.findIndex(n => n.id === editingNote.id);
+                    if(index > -1) config.notes[index] = { ...editingNote, ...updatedNote };
                 } else {
-                    config.notes.push(updatedNote);
+                    const newNoteWithId = ensureItemIds([updatedNote], 'note')[0];
+                    config.notes.push(newNoteWithId);
                 }
                 hideNoteEditModal();
                 saveConfig();
@@ -1607,9 +1665,10 @@
                 };
 
                 if (editingReminder) {
-                    Object.assign(editingReminder, updatedReminder);
+                     const index = config.reminders.findIndex(r => r.id === editingReminder.id);
+                     if (index > -1) config.reminders[index] = { ...editingReminder, ...updatedReminder };
                 } else {
-                    const newReminder = { id: `rem_${Date.now()}`, ...updatedReminder };
+                    const newReminder = ensureItemIds([updatedReminder], 'rem')[0];
                     config.reminders.push(newReminder);
                 }
                 
@@ -2176,12 +2235,13 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     
                     <div class="feature-card">
-                        <h3 class="feature-title">Reorder Widgets</h3>
+                        <h3 class="feature-title">Reorder Everything</h3>
                         <div class="feature-content">
-                            <p>Easily arrange shortcuts and categories to fit your workflow. Your layout is saved automatically!</p>
+                            <p>Easily arrange shortcuts, notes, reminders, and categories to fit your workflow. Your layout is saved automatically!</p>
                             <ul class="list-disc list-inside mt-2 space-y-2">
-                                <li><strong>Reorder Categories & Shortcuts:</strong> Click and drag any category header to change its vertical order.</li>
-                                <li><strong>Move Shortcuts:</strong> Simply drag a shortcut from one group and drop it into another.</li>
+                                <li><strong>Reorder Categories:</strong> Click and drag any category header to change its vertical order.</li>
+                                <li><strong>Reorder Items:</strong> Drag any shortcut, note, or reminder card to a new position.</li>
+                                <li><strong>Move Shortcuts:</strong> Drag a shortcut from one group and drop it into another.</li>
                             </ul>
                         </div>
                     </div>
@@ -2192,8 +2252,8 @@
                             <ul class="list-disc list-inside mt-2 space-y-1">
                                 <li><strong>The page title is editable!</strong> Just click on it directly.</li>
                                 <li>Click directly on any <strong>Note</strong> or <strong>Reminder</strong> card to open its editor.</li>
-                                <li>Hover over a category title to reveal its <svg class="inline-block w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"></path></svg> edit button.</li>
-                                <li>In the shortcut editor, hover over category or custom icon tags to find their management controls.</li>
+                                <li>Hover over a category title to reveal its <svg class="inline-block w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"></path></svg> edit and <svg class="inline-block w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"></path></svg> delete buttons.</li>
+                                <li>In the shortcut editor, hover over category tags to find their management controls.</li>
                             </ul>
                         </div>
                     </div>
