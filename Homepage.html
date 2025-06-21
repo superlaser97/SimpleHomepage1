@@ -39,6 +39,15 @@
         const encodedConfig = ``;
 
         // --- UTILITY FUNCTIONS ---
+        function escapeHTML(str) {
+            if (!str) return '';
+            return str.replace(/&/g, '&amp;')
+                      .replace(/</g, '&lt;')
+                      .replace(/>/g, '&gt;')
+                      .replace(/"/g, '&quot;')
+                      .replace(/'/g, '&#039;');
+        }
+
         function showMessage(title, message, type = 'info') {
             const existingBox = document.getElementById('message-box');
             if (existingBox) existingBox.remove();
@@ -163,12 +172,32 @@
         }
 
         function highlightText(text, query) {
-            if (!query || !text) {
-                return text;
+            if (!text) return '';
+            
+            // If there's no query, just escape the whole text and return
+            if (!query) {
+                return escapeHTML(text);
             }
+            
             const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-            const regex = new RegExp(`(${escapedQuery})`, 'gi');
-            return text.replace(regex, '<mark>$1</mark>');
+            const regex = new RegExp(escapedQuery, 'gi');
+            let result = '';
+            let lastIndex = 0;
+            let match;
+
+            // Find all matches of the query in the original text
+            while ((match = regex.exec(text)) !== null) {
+                // Append the escaped text part that comes before the match
+                result += escapeHTML(text.substring(lastIndex, match.index));
+                // Append the highlighted, escaped version of the matched text
+                result += `<mark>${escapeHTML(match[0])}</mark>`;
+                lastIndex = regex.lastIndex;
+            }
+
+            // Append the rest of the escaped text after the last match
+            result += escapeHTML(text.substring(lastIndex));
+
+            return result;
         }
         
         function formatRelativeTime(dateString) {
