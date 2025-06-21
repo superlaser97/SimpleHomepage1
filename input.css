@@ -4,14 +4,6 @@
 
 @source "safelist.txt";
 
-/*
-    =================================================
-    === ULTRA-COMPACT STYLES (MODIFIED) ===
-    =================================================
-    The following styles are applied when the .container
-    element has the .style-compact class.
-*/
-
 /* --- General Container & Header --- */
 .container.style-compact { padding: 0.25rem; }
 .container.style-compact .mb-8 { margin-bottom: 0.75rem; }
@@ -110,7 +102,7 @@
 .dark .form-field select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e"); background-position: right 0.5rem center; background-repeat: no-repeat; background-size: 1.5em 1.5em; padding-right: 2.5rem; -webkit-appearance: none; -moz-appearance: none; appearance: none; }
 .form-field textarea { min-height: 120px; resize: vertical; }
 .form-actions { display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.5rem; }
-.btn { padding: 0.5rem 1rem; border-radius: 0.5rem; font-weight: 600; cursor: pointer; transition: background-color 0.2s; }
+.btn { padding: 0.5rem 1rem; border-radius: 0.5rem; font-weight: 600; cursor: pointer; transition: background-color 0.2s; display: inline-flex; align-items: center; }
 .btn.btn-sm { padding: 0.25rem 0.75rem; font-size: 0.875rem; }
 .btn-primary { background-color: #3b82f6; color: white; border: none; }
 .btn-primary:hover { background-color: #2563eb; }
@@ -157,20 +149,6 @@ body:not(.dark) .color-tag-btn.active { border-color: #d1d5db; }
 mark { background-color: #fef08a; color: inherit; padding: 0 2px; border-radius: 3px; font-weight: 600; }
 .dark mark { background-color: #facc15; color: #1f2937; }
 
-/* Config Menu Styles */
-.config-submenu { transform-origin: top right; animation: scale-in-tr 0.1s ease-out; border: 1px solid #e5e7eb; background-color: #ffffff; }
-.dark .config-submenu { border-color: #4b5563; background-color: #374151; }
-.config-submenu-item { display: block; padding: 0.5rem 1rem; font-size: 0.875rem; color: #1f2937; text-decoration: none; transition: background-color 0.15s ease-in-out; }
-.dark .config-submenu-item { color: #f3f4f6; }
-.config-submenu-item:hover { background-color: #f3f4f6; }
-.dark .config-submenu-item:hover { background-color: #4b5563; }
-#help-menu-dropdown h3 { color: #1f2937; }
-.dark #help-menu-dropdown h3 { color: #f3f4f6; }
-#help-menu-dropdown ul { color: #4b5563; }
-.dark #help-menu-dropdown ul { color: #d1d5db; }
-#help-menu-dropdown li svg { vertical-align: -0.25em; color: #6b7280; }
-.dark #help-menu-dropdown li svg { color: #9ca3af; }
-@keyframes scale-in-tr { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
 
 /* Compact View Modal Styles */
 .container.style-compact ~ #note-modal .edit-modal-content { max-width: 600px; max-height: 85vh; }
@@ -182,15 +160,6 @@ mark { background-color: #fef08a; color: inherit; padding: 0 2px; border-radius:
 .container.style-compact ~ #note-modal #modal-body h5,
 .container.style-compact ~ #note-modal #modal-body h6 { font-size: 0.875rem; font-weight: 700; }
 
-/* UI Visibility Fixes */
-#help-menu-btn, #reset-config-btn, #import-menu-btn, #export-menu-btn, #theme-switcher, #style-switcher { background-color: rgba(0, 0, 0, 0.05); }
-#help-menu-btn:hover, #reset-config-btn:hover, #import-menu-btn:hover, #export-menu-btn:hover, #theme-switcher:hover, #style-switcher:hover { background-color: rgba(0, 0, 0, 0.1); }
-#help-menu-btn svg, #reset-config-btn svg, #import-menu-btn svg, #export-menu-btn svg, #theme-switcher #moon-icon, #style-switcher #style-text { color: #374151; }
-#theme-switcher #sun-icon { color: #f59e0b; }
-.dark #help-menu-btn, .dark #reset-config-btn, .dark #import-menu-btn, .dark #export-menu-btn, .dark #theme-switcher, .dark #style-switcher { background-color: rgba(107, 114, 128, 0.2); }
-.dark #help-menu-btn:hover, .dark #reset-config-btn:hover, .dark #import-menu-btn:hover, .dark #export-menu-btn:hover, .dark #theme-switcher:hover, .dark #style-switcher:hover { background-color: rgba(107, 114, 128, 0.4); }
-.dark #help-menu-btn svg, .dark #reset-config-btn svg, .dark #import-menu-btn svg, .dark #export-menu-btn svg, .dark #theme-switcher #moon-icon, .dark #style-switcher #style-text { color: #e5e7eb; }
-.dark #theme-switcher #sun-icon { color: #f59e0b; }
 
 /* Reminder Styles */
 .reminder-card {
@@ -200,7 +169,6 @@ mark { background-color: #fef08a; color: inherit; padding: 0 2px; border-radius:
     background-color: rgba(255, 255, 255, 0.6);
     backdrop-filter: blur(4px);
     transition: all 0.3s ease-in-out;
-    /* ADD THIS LINE FOR THE DROP SHADOW */
     box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
 }
 .dark .reminder-card { border-color: #4b5563; background-color: rgba(55, 65, 81, 0.5); }
@@ -216,11 +184,9 @@ mark { background-color: #fef08a; color: inherit; padding: 0 2px; border-radius:
 .dark .reminder-card.triggered { border-color: #f87171; }
 @keyframes pulse-border {
     0%, 100% {
-        /* Base shadow + pulse shadow */
         box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1), 0 0 0 0 rgba(239, 68, 68, 0.7);
     }
     50% {
-        /* Base shadow + pulse shadow */
         box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1), 0 0 0 5px rgba(239, 68, 68, 0);
     }
 }
@@ -248,18 +214,10 @@ mark { background-color: #fef08a; color: inherit; padding: 0 2px; border-radius:
 .checkbox-label::after { content: ''; position: absolute; left: 15px; top: 48%; width: 5px; height: 9px; border: solid white; border-width: 0 2px 2px 0; transform: translateY(-60%) rotate(45deg) scale(0); opacity: 0; transition: all 0.2s ease-in-out; }
 .checkbox-input:checked + .checkbox-label::after { transform: translateY(-60%) rotate(45deg) scale(1); opacity: 1; }
 
-/*
- * ===============================================
- * === ADDED: Visual Cue for Triggered Reminders ===
- * ===============================================
- */
-
-/* Keyframes for the new blinking red tab background */
 @keyframes blink-red-tab {
     50% { background-color: rgba(239, 68, 68, 0.2); }
 }
 
-/* Keyframes for the new screen edge glow */
 @keyframes pulse-screen-glow {
     0%, 100% {
         box-shadow: inset 0 0 20px 8px rgba(239, 68, 68, 0.4);
@@ -269,23 +227,20 @@ mark { background-color: #fef08a; color: inherit; padding: 0 2px; border-radius:
     }
 }
 
-/* Apply the blinking animation to the tab */
 .tab-button.has-triggered-reminders {
     animation: blink-red-tab 1.5s infinite ease-in-out;
-    border-radius: 6px 6px 0 0; /* Rounded top corners to contain the glow */
+    border-radius: 6px 6px 0 0; 
 }
 
-/* Add the screen edge glow when body has the class */
 body.screen-glow-active::after {
     content: '';
     position: fixed;
     top: 0; left: 0; right: 0; bottom: 0;
-    pointer-events: none; /* Prevent interference with clicks */
+    pointer-events: none; 
     z-index: 99999;
     animation: pulse-screen-glow 2.5s infinite;
 }
 
-/* New Reminder Badge Style */
 .reminder-badge {
     position: absolute;
     top: -8px;
@@ -306,7 +261,6 @@ body.screen-glow-active::after {
     border-color: #111827; /* Dark mode background */
 }
 
-/* If the tab is NOT active, also make the text red */
 .tab-button.has-triggered-reminders:not(.active-tab) {
     color: #ef4444;
     font-weight: 600;
@@ -315,7 +269,6 @@ body.screen-glow-active::after {
     color: #f87171;
 }
 
-/* If the tab IS active, override the default active colors to be red */
 .tab-button.has-triggered-reminders.active-tab {
     border-color: #ef4444 !important;
     color: #ef4444 !important;
@@ -325,207 +278,105 @@ body.screen-glow-active::after {
     color: #f87171 !important;
 }
 
-/* Custom-styled radio buttons */
-/*
- * =========================================================
- * === UPDATED: Custom Switch-Style Toggles for Reminders ===
- * =========================================================
- */
-
-/* The new switch-style toggle control */
 input[type="radio"].custom-switch {
-    appearance: none;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    
-    position: relative;
-    display: inline-block;
-    width: 2.75rem;  /* 44px */
-    height: 1.5rem;   /* 24px */
-    border-radius: 9999px;
-    cursor: pointer;
+    appearance: none; -webkit-appearance: none; -moz-appearance: none;
+    position: relative; display: inline-block;
+    width: 2.75rem; height: 1.5rem;
+    border-radius: 9999px; cursor: pointer;
     transition: background-color 0.2s ease-in-out;
-    vertical-align: middle; /* Ensures vertical alignment with labels */
-    flex-shrink: 0; /* Prevents the switch from shrinking */
-
-    /* "Off" state track color */
-    background-color: #4b5563; /* Tailwind gray-600 */
+    vertical-align: middle; flex-shrink: 0;
+    background-color: #4b5563; 
 }
-
-/* The thumb of the switch */
 input[type="radio"].custom-switch::after {
-    content: '';
-    position: absolute;
-    top: 2px;
-    left: 2px;
-    width: 1.25rem; /* 20px */
-    height: 1.25rem; /* 20px */
-    border-radius: 50%;
-    background-color: white;
+    content: ''; position: absolute;
+    top: 2px; left: 2px;
+    width: 1.25rem; height: 1.25rem;
+    border-radius: 50%; background-color: white;
     transition: transform 0.2s ease-in-out;
     box-shadow: 0 1px 3px rgba(0,0,0,0.2);
 }
-
-/* "On" state track color */
-input[type="radio"].custom-switch:checked {
-    background-color: #3b82f6; /* Tailwind blue-500 */
-}
-
-/* Move the thumb to the right when checked */
-input[type="radio"].custom-switch:checked::after {
-    transform: translateX(1.25rem);
-}
-
-/* Style the disabled inputs and their labels to look inactive */
-input:disabled {
-    cursor: not-allowed;
-    background-color: #e5e7eb !important; /* gray-200 */
-    opacity: 0.7;
-}
-.dark input:disabled {
-    background-color: #374151 !important; /* gray-700 */
-    opacity: 0.5;
-}
-
-/* Make labels for disabled inputs look disabled too */
-input[type="radio"]:not(:checked) + label + input:disabled + label {
-    opacity: 0.5;
-}
+input[type="radio"].custom-switch:checked { background-color: #3b82f6; }
+input[type="radio"].custom-switch:checked::after { transform: translateX(1.25rem); }
+input:disabled { cursor: not-allowed; background-color: #e5e7eb !important; opacity: 0.7; }
+.dark input:disabled { background-color: #374151 !important; opacity: 0.5; }
+input[type="radio"]:not(:checked) + label + input:disabled + label { opacity: 0.5; }
 
 .feature-card {
     background-color: rgba(243, 244, 246, 0.5); /* gray-100/50 */
     border: 1px solid rgba(209, 213, 219, 0.7); /* gray-300/70 */
-    border-radius: 0.75rem; /* rounded-xl */
-    padding: 1.25rem; /* p-5 */
+    border-radius: 0.75rem; padding: 1.25rem;
     transition: background-color 0.2s, border-color 0.2s;
 }
+.dark .feature-card { background-color: rgba(55, 65, 81, 0.3); border: 1px solid #4b5563; }
+.feature-card:hover { background-color: rgba(229, 231, 235, 0.7); border-color: rgba(156, 163, 175, 0.8); }
+.dark .feature-card:hover { background-color: rgba(55, 65, 81, 0.5); border-color: #6b7280; }
+.feature-title { font-size: 1.125rem; font-weight: 700; color: #0ea5e9; margin-bottom: 0.75rem; }
+.dark .feature-title { color: #38bdf8; }
+.feature-content { font-size: 0.875rem; color: #374151; line-height: 1.6; }
+.dark .feature-content { color: #d1d5db; }
+.feature-content ul { color: #4b5563; }
+.dark .feature-content ul { color: #9ca3af; }
 
-.dark .feature-card {
-    background-color: rgba(55, 65, 81, 0.3); /* gray-700/30 */
-    border: 1px solid #4b5563; /* gray-600 */
+kbd {
+    font-family: monospace; background-color: #e5e7eb; color: #374151;
+    padding: 0.125rem 0.375rem; border-radius: 0.25rem;
+    border-bottom: 2px solid #d1d5db; font-size: 0.8em;
 }
+.dark kbd { background-color: #374151; color: #e5e7eb; border-bottom-color: #1f2937; }
+.feature-content svg { display: inline-block; vertical-align: -0.25em; width: 1em; height: 1em; }
 
-.feature-card:hover {
-    background-color: rgba(229, 231, 235, 0.7); /* gray-200/70 */
-    border-color: rgba(156, 163, 175, 0.8); /* gray-400/80 */
+#notes-container > .group, .tab-button, .control-btn, .category-tag-btn, .icon-tag-btn,
+.color-tag-btn, .checkbox-label, #help-menu-btn, #reset-config-btn, #import-menu-btn,
+#export-menu-btn, #theme-switcher, #style-switcher, .config-submenu-item,
+#modal-copy-btn, #help-modal-close-btn { cursor: pointer; }
+.category-edit-btn, .category-delete-btn { cursor: pointer; }
+.group { cursor: default; }
+a.flex.items-center.gap-4 { cursor: pointer; }
+#edit-note-modal .form-field:has(#note-content-input) { display: flex; flex-direction: column; flex-grow: 1; min-height: 0; margin-bottom: 0; }
+#edit-note-modal #note-content-input { height: 100%; }
+#edit-note-modal .form-actions { margin-top: 1rem; }
+#notes-container .group, .reminder-card { cursor: pointer; }
+
+/* Settings Modal Styles */
+.settings-section {
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid #e5e7eb; /* gray-200 */
 }
-
-.dark .feature-card:hover {
-    background-color: rgba(55, 65, 81, 0.5); /* gray-700/50 */
-    border-color: #6b7280; /* gray-500 */
+.dark .settings-section {
+    border-color: #374151; /* gray-700 */
 }
-
-.feature-title {
+.settings-section:last-of-type {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+.settings-section-title {
     font-size: 1.125rem; /* text-lg */
-    font-weight: 700;
-    color: #0ea5e9; /* sky-500 */
-    margin-bottom: 0.75rem; /* mb-3 */
+    font-weight: 600;
+    color: #111827; /* gray-900 */
+    margin-bottom: 1rem;
 }
-
-.dark .feature-title {
-    color: #38bdf8; /* sky-400 */
+.dark .settings-section-title {
+    color: #f9fafb; /* gray-50 */
 }
-
-.feature-content {
-    font-size: 0.875rem; /* text-sm */
+.setting-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+}
+.setting-label {
+    font-weight: 500;
     color: #374151; /* gray-700 */
-    line-height: 1.6;
 }
-
-.dark .feature-content {
+.dark .setting-label {
     color: #d1d5db; /* gray-300 */
 }
 
-.feature-content ul {
-    color: #4b5563; /* gray-600 */
-}
-
-.dark .feature-content ul {
-    color: #9ca3af; /* gray-400 */
-}
-
-/* Style for the KBD tag */
-kbd {
-    font-family: monospace;
-    background-color: #e5e7eb;
-    color: #374151;
-    padding: 0.125rem 0.375rem;
-    border-radius: 0.25rem;
-    border-bottom: 2px solid #d1d5db;
-    font-size: 0.8em;
-}
-
-.dark kbd {
-    background-color: #374151; /* gray-700 */
-    color: #e5e7eb; /* gray-200 */
-    border-bottom-color: #1f2937; /* gray-800 */
-}
-
-.feature-content svg {
-    display: inline-block;
-    vertical-align: -0.25em;
-    width: 1em;
-    height: 1em;
-}
-
-/* --- Added for Cursor Fix (v3) --- */
-#notes-container > .group, /* <-- FIX for Note Widgets */
-.tab-button,
-.control-btn,
-.category-tag-btn,
-.icon-tag-btn,
-.color-tag-btn,
-.checkbox-label,
-#help-menu-btn,
-#reset-config-btn,
-#import-menu-btn,
-#export-menu-btn,
-#theme-switcher,
-#style-switcher,
-.config-submenu-item,
-#modal-copy-btn,
-#help-modal-close-btn {
-    cursor: pointer;
-}
-
-/* Ensure category control buttons have pointers */
-.category-edit-btn,
-.category-delete-btn {
-    cursor: pointer;
-}
-
-/* Default for groups, which can be overridden by more specific rules */
-.group {
-    cursor: default;
-}
-
-/* Ensure main shortcut links have a pointer */
-a.flex.items-center.gap-4 {
-     cursor: pointer;
-}
-
-/* Target the specific form field DIV that contains the content textarea.
-   We make this DIV a flex container that can grow. */
-#edit-note-modal .form-field:has(#note-content-input) {
-    display: flex;
-    flex-direction: column;
-    flex-grow: 1; /* This is the key change: allows this field to expand */
-    min-height: 0; /* Prevents overflow issues in some flexbox scenarios */
-    margin-bottom: 0;
-}
-
-/* Ensure the textarea itself grows to fill its parent DIV.
-   The existing flex-grow rule on it will now work as intended. */
-#edit-note-modal #note-content-input {
-    height: 100%;
-}
-
-/* Add margin-top to the buttons to ensure proper spacing. */
-#edit-note-modal .form-actions {
-    margin-top: 1rem;
-}
-
-#notes-container .group,
-.reminder-card {
-    cursor: pointer;
-}
+/* Custom Toggle Switch */
+.switch { position: relative; display: inline-block; width: 52px; height: 28px; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
+.slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+input:checked + .slider { background-color: #2563eb; }
+input:focus + .slider { box-shadow: 0 0 1px #2563eb; }
+input:checked + .slider:before { transform: translateX(24px); }

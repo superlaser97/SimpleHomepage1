@@ -25,7 +25,8 @@
             "file": "M6 2c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6H6zm7 7V3.5L18.5 9H13z",
             "folder": "M10 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z",
             "browser": "M19 4H5c-1.11 0-2 .9-2 2v12c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 14H5V8h14v10z",
-            "bell": "M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"
+            "bell": "M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z",
+            "settings": "M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65C14.46 2.18 14.25 2 14 2h-4c-.25 0-.46.18-.49.42l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49-1c-.23-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65c-.19.15-.24.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49-.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1c.23.09.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z"
         };
         
         const SAFE_COLORS = {
@@ -191,6 +192,7 @@
                 shortcuts: config.shortcuts,
                 reminders: config.reminders,
                 categoryConfig: config.categoryConfig,
+                enableReminderGlow: config.enableReminderGlow,
             };
             try {
                 const jsonString = JSON.stringify(configToSave);
@@ -231,6 +233,7 @@
         function loadConfig() {
             const defaultConfig = {
                 pageTitle: "Dashboard",
+                enableReminderGlow: false,
                 notes: [
                     {
                         title: "Welcome to your Dashboard!",
@@ -563,42 +566,42 @@
 
         function parseNoteContent(rawContent, isPreview = false, query = '') {
              const lines = rawContent.split('\\n');
-                let processedLines = [];
-                let currentParagraph = [];
-                let inList = false;
-                const flushParagraph = () => {
-                    if (currentParagraph.length > 0) {
-                        const paragraphText = currentParagraph.join(' ').trim();
-                        processedLines.push(`<p class="text-gray-600 dark:text-gray-300 mb-2 style-compact:mb-1 style-compact:text-sm">${highlightText(paragraphText, query)}</p>`);
-                        currentParagraph = [];
-                    }
-                };
-                const closeList = () => { if (inList) { processedLines.push('</ul>'); inList = false; } };
-                lines.forEach(line => {
-                    const headerMatch = line.match(/^(#{1,6})(.*?)\1?$/);
-                    const listItemMatch = line.match(/^[\-\*]\s(.*)/);
-                    if (headerMatch && headerMatch[2].trim() !== '') {
-                        flushParagraph(); closeList();
-                        const hashes = headerMatch[1];
-                        const content = headerMatch[2].trim();
-                        const headingLevel = Math.min(hashes.length + 1, 6);
-                        let classes = 'font-bold';
-                        if (isPreview) { classes += ' text-sm text-gray-500 dark:text-gray-400 mt-2 mb-1 style-compact:text-xs'; } 
-                        else { classes += ` text-sky-600 dark:text-sky-300 ${['text-2xl','text-xl','text-lg','text-base'][headingLevel-2] || 'text-base'} mb-2`; }
-                        processedLines.push(`<h${headingLevel} class="${classes}">${highlightText(content, query)}</h${headingLevel}>`);
-                    } else if (listItemMatch) {
-                        flushParagraph();
-                        if (!inList) { processedLines.push('<ul class="list-disc list-inside space-y-1 pl-2 mb-2 style-compact:text-sm">'); inList = true; }
-                        const listItemText = listItemMatch[1].trim();
-                        processedLines.push(`<li class="text-gray-600 dark:text-gray-300">${highlightText(listItemText, query)}</li>`);
-                    } else if (line.trim() === '') {
-                        flushParagraph(); closeList();
-                    } else {
-                        closeList(); currentParagraph.push(line);
-                    }
-                });
-                flushParagraph(); closeList();
-                return processedLines.join('');
+                 let processedLines = [];
+                 let currentParagraph = [];
+                 let inList = false;
+                 const flushParagraph = () => {
+                     if (currentParagraph.length > 0) {
+                         const paragraphText = currentParagraph.join(' ').trim();
+                         processedLines.push(`<p class="text-gray-600 dark:text-gray-300 mb-2 style-compact:mb-1 style-compact:text-sm">${highlightText(paragraphText, query)}</p>`);
+                         currentParagraph = [];
+                     }
+                 };
+                 const closeList = () => { if (inList) { processedLines.push('</ul>'); inList = false; } };
+                 lines.forEach(line => {
+                     const headerMatch = line.match(/^(#{1,6})(.*?)\1?$/);
+                     const listItemMatch = line.match(/^[\-\*]\s(.*)/);
+                     if (headerMatch && headerMatch[2].trim() !== '') {
+                         flushParagraph(); closeList();
+                         const hashes = headerMatch[1];
+                         const content = headerMatch[2].trim();
+                         const headingLevel = Math.min(hashes.length + 1, 6);
+                         let classes = 'font-bold';
+                         if (isPreview) { classes += ' text-sm text-gray-500 dark:text-gray-400 mt-2 mb-1 style-compact:text-xs'; } 
+                         else { classes += ` text-sky-600 dark:text-sky-300 ${['text-2xl','text-xl','text-lg','text-base'][headingLevel-2] || 'text-base'} mb-2`; }
+                         processedLines.push(`<h${headingLevel} class="${classes}">${highlightText(content, query)}</h${headingLevel}>`);
+                     } else if (listItemMatch) {
+                         flushParagraph();
+                         if (!inList) { processedLines.push('<ul class="list-disc list-inside space-y-1 pl-2 mb-2 style-compact:text-sm">'); inList = true; }
+                         const listItemText = listItemMatch[1].trim();
+                         processedLines.push(`<li class="text-gray-600 dark:text-gray-300">${highlightText(listItemText, query)}</li>`);
+                     } else if (line.trim() === '') {
+                         flushParagraph(); closeList();
+                     } else {
+                         closeList(); currentParagraph.push(line);
+                     }
+                 });
+                 flushParagraph(); closeList();
+                 return processedLines.join('');
         }
         
         function renderNotes(query = '') {
@@ -1273,21 +1276,6 @@
             addReminderBtn.prepend(addIcon.cloneNode(true));
         }
 
-        function setupHelpIcon() {
-            const helpBtn = document.getElementById('help-menu-btn');
-            if (helpBtn) {
-                 const svgNS = 'http://www.w3.org/2000/svg';
-                 const svg = document.createElementNS(svgNS, 'svg');
-                 svg.setAttribute('class', 'w-5 h-5');
-                 svg.setAttribute('fill', 'currentColor');
-                 svg.setAttribute('viewBox', '0 0 24 24');
-                 const path = document.createElementNS(svgNS, 'path');
-                 path.setAttribute('d', icons.question);
-                 svg.appendChild(path);
-                 helpBtn.appendChild(svg);
-            }
-        }
-
         function setupSearch() {
             const searchInput = document.getElementById('search-input');
             const searchBox = document.getElementById('search-box');
@@ -1336,25 +1324,10 @@
             });
         }
 
-        function setupThemeSwitcher() {
-            const themeBtn = document.getElementById('theme-switcher');
-            const sunIcon = document.getElementById('sun-icon');
-            const moonIcon = document.getElementById('moon-icon');
-            const applyTheme = (isDark) => {
-                document.documentElement.classList.toggle('dark', isDark);
-                sunIcon.classList.toggle('hidden', !isDark);
-                moonIcon.classList.toggle('hidden', isDark);
-            };
-            themeBtn.addEventListener('click', () => {
-                const isDarkMode = document.documentElement.classList.toggle('dark');
-                localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
-                applyTheme(isDarkMode);
-            });
-            const savedTheme = localStorage.getItem('theme');
-            const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-            applyTheme(savedTheme === 'dark' || (!savedTheme && systemPrefersDark));
-        }
-
+        function applyTheme(isDark) {
+            document.documentElement.classList.toggle('dark', isDark);
+        };
+        
         function setupReminderControls() {
             const toggle = document.getElementById('show-completed-reminders-toggle');
             if (!toggle) return;
@@ -1366,80 +1339,76 @@
             });
         }
 
-        function setupDisplayStyleSwitcher() {
-            const styleBtn = document.getElementById('style-switcher');
-            const styleText = document.getElementById('style-text');
+        function applyDisplayStyle(isCompact) {
             const container = document.querySelector('.container');
-            const applyDisplayStyle = (isCompact) => {
-                container.classList.toggle('style-compact', isCompact);
-                styleText.textContent = isCompact ? 'Comfortable' : 'Compact';
-                const currentQuery = document.getElementById('search-input').value;
-                renderShortcuts(currentQuery);
-                renderNotes(currentQuery);
-                renderReminders(currentQuery);
-            };
-            styleBtn.addEventListener('click', () => {
-                const isCompact = container.classList.toggle('style-compact');
-                localStorage.setItem('displayStyle', isCompact ? 'compact' : 'comfortable');
-                applyDisplayStyle(isCompact);
-            });
-            const savedDisplayStyle = localStorage.getItem('displayStyle');
-            applyDisplayStyle(savedDisplayStyle === 'compact');
-        }
+            container.classList.toggle('style-compact', isCompact);
+            const currentQuery = document.getElementById('search-input').value;
+            renderShortcuts(currentQuery);
+            renderNotes(currentQuery);
+            renderReminders(currentQuery);
+        };
+        
+        function setupSettingsModal() {
+            const settingsModal = document.getElementById('settings-modal');
+            const settingsBtn = document.getElementById('settings-btn');
+            const closeBtn = document.getElementById('settings-modal-close-btn');
 
-        function setupConfigActions() {
-            const importMenuBtn = document.getElementById('import-menu-btn');
-            const importMenuDropdown = document.getElementById('import-menu-dropdown');
-            const exportMenuBtn = document.getElementById('export-menu-btn');
-            const exportMenuDropdown = document.getElementById('export-menu-dropdown');
-            const helpMenuBtn = document.getElementById('help-menu-btn');
+            const showSettingsModal = () => { settingsModal.classList.add('is-active'); document.body.style.overflow = 'hidden'; };
+            const hideSettingsModal = () => { settingsModal.classList.remove('is-active'); document.body.style.overflow = ''; };
+
+            settingsBtn.onclick = showSettingsModal;
+            closeBtn.onclick = hideSettingsModal;
+            settingsModal.addEventListener('click', (e) => { if (e.target === settingsModal) hideSettingsModal(); });
+
+            // Theme Switcher
+            const themeToggle = document.getElementById('settings-theme-toggle');
+            themeToggle.checked = document.documentElement.classList.contains('dark');
+            themeToggle.addEventListener('change', () => {
+                const isDarkMode = themeToggle.checked;
+                applyTheme(isDarkMode);
+                localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
+            });
             
-            const exportClipboardBtn = document.getElementById('export-clipboard-btn');
-            const exportFileBtn = document.getElementById('export-file-btn');
-            const importClipboardBtn = document.getElementById('import-clipboard-btn');
-            const importFileBtn = document.getElementById('import-file-btn');
-            
+            // Display Style Switcher
+            const styleToggle = document.getElementById('settings-style-toggle');
+            styleToggle.checked = document.querySelector('.container').classList.contains('style-compact');
+             styleToggle.addEventListener('change', () => {
+                const isCompact = styleToggle.checked;
+                applyDisplayStyle(isCompact);
+                localStorage.setItem('displayStyle', isCompact ? 'compact' : 'comfortable');
+            });
+
+            // Reminder Glow Toggle
+            const glowToggle = document.getElementById('settings-glow-toggle');
+            glowToggle.checked = config.enableReminderGlow;
+            glowToggle.addEventListener('change', () => {
+                config.enableReminderGlow = glowToggle.checked;
+                updateReminderTabIndicator(); // Immediately apply visual change
+                saveConfig();
+            });
+
+            // Help Button
+            document.getElementById('settings-help-btn').onclick = () => {
+                hideSettingsModal();
+                showHelpModal();
+            };
+
+            // Data Management
+            const exportClipboardBtn = document.getElementById('settings-export-clipboard-btn');
+            const exportFileBtn = document.getElementById('settings-export-file-btn');
+            const importClipboardBtn = document.getElementById('settings-import-clipboard-btn');
+            const importFileBtn = document.getElementById('settings-import-file-btn');
             const importFileInput = document.getElementById('import-file-input');
             const importModal = document.getElementById('import-config-modal');
-            const resetBtn = document.getElementById('reset-config-btn');
+            const resetBtn = document.getElementById('settings-reset-btn');
 
-            const hideMenus = () => {
-                importMenuDropdown.classList.add('hidden');
-                exportMenuDropdown.classList.add('hidden');
-            };
+            const showImportModal = () => { importModal.classList.add('is-active'); document.body.style.overflow = 'hidden'; };
+            const hideImportModal = () => { importModal.classList.remove('is-active'); document.body.style.overflow = ''; };
 
-            importMenuBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                exportMenuDropdown.classList.add('hidden');
-                importMenuDropdown.classList.toggle('hidden');
-            });
-
-            exportMenuBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                importMenuDropdown.classList.add('hidden');
-                exportMenuDropdown.classList.toggle('hidden');
-            });
-
-            if (helpMenuBtn) {
-                helpMenuBtn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    hideMenus();
-                    showHelpModal();
-                });
-            }
-
-            window.addEventListener('click', hideMenus);
-            
             exportClipboardBtn.addEventListener('click', (e) => {
                 e.preventDefault();
-                hideMenus();
-                const configToSave = {
-                    pageTitle: config.pageTitle,
-                    notes: config.notes,
-                    shortcuts: config.shortcuts,
-                    reminders: config.reminders,
-                    categoryConfig: config.categoryConfig,
-                };
+                hideSettingsModal();
+                const configToSave = { pageTitle: config.pageTitle, notes: config.notes, shortcuts: config.shortcuts, reminders: config.reminders, categoryConfig: config.categoryConfig, enableReminderGlow: config.enableReminderGlow };
                 const jsonString = JSON.stringify(configToSave);
                 const base64String = btoa(unescape(encodeURIComponent(jsonString)));
                 navigator.clipboard.writeText(base64String).then(() => {
@@ -1452,14 +1421,8 @@
 
             exportFileBtn.addEventListener('click', (e) => {
                 e.preventDefault();
-                hideMenus();
-                const configToSave = {
-                    pageTitle: config.pageTitle,
-                    notes: config.notes,
-                    shortcuts: config.shortcuts,
-                    reminders: config.reminders,
-                    categoryConfig: config.categoryConfig,
-                };
+                hideSettingsModal();
+                const configToSave = { pageTitle: config.pageTitle, notes: config.notes, shortcuts: config.shortcuts, reminders: config.reminders, categoryConfig: config.categoryConfig, enableReminderGlow: config.enableReminderGlow };
                 const jsonString = JSON.stringify(configToSave, null, 4);
                 const blob = new Blob([jsonString], { type: 'application/json' });
                 const url = URL.createObjectURL(blob);
@@ -1472,19 +1435,16 @@
                 URL.revokeObjectURL(url);
                 showMessage('Export Successful', 'Configuration file is being downloaded.', 'success');
             });
-
-            const showImportModal = () => { importModal.classList.add('is-active'); document.body.style.overflow = 'hidden'; };
-            const hideImportModal = () => { importModal.classList.remove('is-active'); document.body.style.overflow = ''; };
             
             importClipboardBtn.addEventListener('click', (e) => {
                 e.preventDefault();
-                hideMenus();
+                hideSettingsModal();
                 showImportModal();
             });
 
             importFileBtn.addEventListener('click', (e) => {
                 e.preventDefault();
-                hideMenus();
+                hideSettingsModal();
                 importFileInput.click();
             });
             
@@ -1497,7 +1457,7 @@
                     try {
                         const parsedConfig = JSON.parse(e.target.result);
                          if (!parsedConfig.hasOwnProperty('pageTitle') || !parsedConfig.hasOwnProperty('shortcuts')) {
-                                   throw new Error("Invalid or incomplete configuration file.");
+                                     throw new Error("Invalid or incomplete configuration file.");
                          }
                         
                         config.pageTitle = parsedConfig.pageTitle || 'My Homepage';
@@ -1505,14 +1465,13 @@
                         config.shortcuts = parsedConfig.shortcuts || [];
                         config.reminders = parsedConfig.reminders || [];
                         config.categoryConfig = parsedConfig.categoryConfig || {};
+                        config.enableReminderGlow = parsedConfig.enableReminderGlow !== undefined ? parsedConfig.enableReminderGlow : true;
+
 
                         saveConfig();
                         showMessage('Import Successful', 'Configuration has been loaded and saved.', 'success');
                         
-                        renderTitle();
-                        renderShortcuts();
-                        renderNotes();
-                        checkReminders();
+                        location.reload(); // Reload to apply all changes cleanly
                     } catch (err) {
                         showMessage('Import Failed', 'The selected file is not a valid configuration file.', 'error');
                         console.error('Failed to import config from file:', err);
@@ -1541,15 +1500,13 @@
                     config.shortcuts = parsedConfig.shortcuts || [];
                     config.reminders = parsedConfig.reminders || [];
                     config.categoryConfig = parsedConfig.categoryConfig || {};
+                    config.enableReminderGlow = parsedConfig.enableReminderGlow !== undefined ? parsedConfig.enableReminderGlow : true;
 
                     saveConfig();
                     hideImportModal();
                     showMessage('Import Successful', 'Configuration has been loaded and saved.', 'success');
                     
-                    renderTitle();
-                    renderShortcuts();
-                    renderNotes();
-                    checkReminders();
+                     setTimeout(() => location.reload(), 500); // Reload to apply all changes cleanly
 
                 } catch (err) {
                     showMessage('Import Failed', 'The provided configuration string is invalid.', 'error');
@@ -1558,7 +1515,7 @@
             });
 
             resetBtn.addEventListener('click', () => {
-                hideMenus();
+                hideSettingsModal();
                 showConfirmation('Reset Configuration', 'Are you sure you want to reset all settings to their default values? This action cannot be undone.', () => {
                     localStorage.removeItem('homepageConfig');
                     showMessage('Configuration Reset', 'The page will now reload with default settings.', 'success');
@@ -1661,8 +1618,13 @@
             const triggeredCount = config.reminders.filter(r => r.triggered && !r.dismissed).length;
             const hasTriggered = triggeredCount > 0;
 
-            // Toggle class on body for screen edge glow
-            document.body.classList.toggle('screen-glow-active', hasTriggered);
+            // Toggle screen edge glow based on setting
+            if (config.enableReminderGlow) {
+                document.body.classList.toggle('screen-glow-active', hasTriggered);
+            } else {
+                document.body.classList.remove('screen-glow-active');
+            }
+
 
             // Update badge visibility and count
             if (hasTriggered) {
@@ -1677,6 +1639,13 @@
 
         // --- INITIALIZATION ---
         window.onload = function() {
+            const savedTheme = localStorage.getItem('theme');
+            const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            applyTheme(savedTheme === 'dark' || (!savedTheme && systemPrefersDark));
+            
+            const savedDisplayStyle = localStorage.getItem('displayStyle');
+            applyDisplayStyle(savedDisplayStyle === 'compact');
+
             renderTitle();
             renderFavicon();
             renderGreeter();
@@ -1687,16 +1656,14 @@
             checkReminders();
             setInterval(checkReminders, 15000);
             
-            setupHelpIcon();
             setupAddButtonIcons();
-            setupThemeSwitcher();
-            setupDisplayStyleSwitcher();
             setupSearch();
             setupTabs();
             setupModal();
             setupEditing();
-            setupConfigActions();
             setupReminderControls();
+            setupSettingsModal();
+
             window.addEventListener('keydown', (event) => {
                 if (event.key === '/' && document.activeElement.tagName.toLowerCase() !== 'input' && document.activeElement.tagName.toLowerCase() !== 'textarea') {
                     event.preventDefault();
@@ -1710,6 +1677,7 @@
                     if (document.getElementById('add-category-modal').classList.contains('is-active')) hideCategoryModal();
                     if (document.getElementById('import-config-modal').classList.contains('is-active')) document.getElementById('import-config-modal').classList.remove('is-active');
                     if (document.getElementById('edit-reminder-modal').classList.contains('is-active')) hideReminderModal();
+                    if (document.getElementById('settings-modal').classList.contains('is-active')) document.getElementById('settings-modal').classList.remove('is-active');
                 }
             });
         };
@@ -1718,30 +1686,9 @@
 <body class="bg-gray-200 text-gray-800 dark:bg-gray-900 dark:text-white transition-colors duration-300">
     
     <div class="fixed top-4 right-4 flex items-center space-x-2 z-50">
-        <button id="help-menu-btn" class="p-2 rounded-full backdrop-blur-sm transition-colors cursor-pointer" title="Help" aria-label="Help"></button>
-        <button id="reset-config-btn" class="p-2 rounded-full backdrop-blur-sm transition-colors cursor-pointer" title="Reset Configuration" aria-label="Reset Configuration">
-            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"></path></svg>
+         <button id="settings-btn" class="p-2 rounded-full bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/20 transition-colors cursor-pointer" title="Settings" aria-label="Settings">
+            <svg class="w-5 h-5 text-gray-800 dark:text-gray-200" fill="currentColor" viewBox="0 0 24 24"><path d="M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65C14.46 2.18 14.25 2 14 2h-4c-.25 0-.46.18-.49.42l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49-1c-.23-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65c-.19.15-.24.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49-.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1c.23.09.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z"></path></svg>
         </button>
-        <div class="relative">
-            <button id="import-menu-btn" class="p-2 rounded-full backdrop-blur-sm transition-colors cursor-pointer" title="Import Configuration" aria-label="Import Configuration">
-                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M9 16h6v-6h4l-8-8-8 8h4v6zm-4 2h14v2H5v-2z"></path></svg>
-            </button>
-            <div id="import-menu-dropdown" class="absolute top-full right-0 mt-2 w-48 rounded-md shadow-lg py-1 z-10 hidden config-submenu">
-                <a href="#" id="import-clipboard-btn" class="config-submenu-item">From Clipboard</a>
-                <a href="#" id="import-file-btn" class="config-submenu-item">From File...</a>
-            </div>
-        </div>
-        <div class="relative">
-            <button id="export-menu-btn" class="p-2 rounded-full backdrop-blur-sm transition-colors cursor-pointer" title="Export Configuration" aria-label="Export Configuration">
-                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"></path></svg>
-            </button>
-             <div id="export-menu-dropdown" class="absolute top-full right-0 mt-2 w-48 rounded-md shadow-lg py-1 z-10 hidden config-submenu">
-                <a href="#" id="export-clipboard-btn" class="config-submenu-item">To Clipboard</a>
-                <a href="#" id="export-file-btn" class="config-submenu-item">To File...</a>
-            </div>
-        </div>
-        <button id="theme-switcher" class="p-2 rounded-full backdrop-blur-sm transition-colors cursor-pointer" aria-label="Toggle theme"><svg id="sun-icon" class="w-5 h-5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg><svg id="moon-icon" class="w-5 h-5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg></button>
-        <button id="style-switcher" class="p-2 rounded-full backdrop-blur-sm transition-colors cursor-pointer" aria-label="Toggle display style"><span id="style-text" class="text-sm font-semibold">Compact</span></button>
     </div>
 
     <div class="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-white/10 via-white/0 to-indigo-100/20 dark:from-gray-900 dark:via-gray-900 dark:to-indigo-900/40 -z-10"></div>
@@ -1863,6 +1810,63 @@
             </div>
         </div>
     </div>
+    
+    <div id="settings-modal" class="edit-modal">
+        <div class="edit-modal-content !max-w-l">
+             <div class="flex items-center justify-between pb-4 mb-4 border-b border-gray-200 dark:border-gray-700">
+                <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-100">Settings</h2>
+                <button id="settings-modal-close-btn" class="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
+                     <svg class="w-6 h-6 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <div class="space-y-6">
+                <div class="settings-section">
+                    <h3 class="settings-section-title">Appearance</h3>
+                    <div class="setting-item">
+                        <label for="settings-theme-toggle" class="setting-label">Dark Mode</label>
+                        <div class="setting-control">
+                            <label class="switch"><input type="checkbox" id="settings-theme-toggle"><span class="slider"></span></label>
+                        </div>
+                    </div>
+                     <div class="setting-item">
+                        <label for="settings-style-toggle" class="setting-label">Compact Layout</label>
+                        <div class="setting-control">
+                           <label class="switch"><input type="checkbox" id="settings-style-toggle"><span class="slider"></span></label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h3 class="settings-section-title">Reminders</h3>
+                     <div class="setting-item">
+                        <label for="settings-glow-toggle" class="setting-label">Screen Edge Glow on Due</label>
+                        <div class="setting-control">
+                            <label class="switch"><input type="checkbox" id="settings-glow-toggle"><span class="slider"></span></label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="settings-section">
+                     <h3 class="settings-section-title">Data Management</h3>
+                      <div class="grid grid-cols-2 gap-4">
+                         <button id="settings-import-file-btn" class="btn btn-secondary justify-center">Import from File...</button>
+                         <button id="settings-export-file-btn" class="btn btn-secondary justify-center">Export to File...</button>
+                         <button id="settings-import-clipboard-btn" class="btn btn-secondary justify-center">Import from Clipboard</button>
+                         <button id="settings-export-clipboard-btn" class="btn btn-secondary justify-center">Export to Clipboard</button>
+                         <button id="settings-reset-btn" class="btn bg-red-600/10 text-red-600 hover:bg-red-600/20 dark:bg-red-400/10 dark:text-red-400 dark:hover:bg-red-400/20 col-span-2 justify-center">Reset to Default</button>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                     <h3 class="settings-section-title">About</h3>
+                     <div class="text-center">
+                        <button id="settings-help-btn" class="btn btn-primary">View Help & Quick Tips</button>
+                     </div>
+                 </div>
+            </div>
+        </div>
+    </div>
+
 
     <div id="link-preview" class="fixed pointer-events-none z-50 rounded-lg bg-gray-800 px-3 py-1.5 text-sm font-medium text-white shadow-lg transition-opacity duration-200 opacity-0" role="tooltip"></div>
     <input type="file" id="import-file-input" class="hidden" accept=".json,application/json">
