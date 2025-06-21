@@ -380,3 +380,41 @@ a.flex.items-center.gap-4 { cursor: pointer; }
 input:checked + .slider { background-color: #2563eb; }
 input:focus + .slider { box-shadow: 0 0 1px #2563eb; }
 input:checked + .slider:before { transform: translateX(24px); }
+
+.custom-icon-wrapper {
+    position: relative;
+}
+
+.delete-icon-btn {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background-color: #ef4444; /* red-500 */
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid white;
+    cursor: pointer;
+    opacity: 0;
+    transform: scale(0.8);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    z-index: 10;
+}
+
+.dark .delete-icon-btn {
+    border-color: #374151; /* gray-700 from your theme */
+}
+
+.custom-icon-wrapper:hover .delete-icon-btn {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.delete-icon-btn svg {
+    width: 12px;
+    height: 12px;
+}

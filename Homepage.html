@@ -26,7 +26,7 @@
             "folder": "M10 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z",
             "browser": "M19 4H5c-1.11 0-2 .9-2 2v12c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 14H5V8h14v10z",
             "bell": "M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z",
-            "settings": "M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65C14.46 2.18 14.25 2 14 2h-4c-.25 0-.46.18-.49.42l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49-1c-.23-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65c-.19.15-.24.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49-.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1c.23.09.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z"
+            "settings": "M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65C14.46 2.18 14.25 2 14 2h-4c-.25 0-.46.18-.49.42l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49-1c-.23-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65c-.19-.15-.24-.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1c.23.09.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z"
         };
         
         const SAFE_COLORS = {
@@ -114,6 +114,54 @@
             };
         }
 
+        function deleteCustomIcon(iconName) {
+            if (!config.customIcons[iconName]) return;
+
+            // Check how many shortcuts are using this icon
+            const shortcutsUsingIcon = config.shortcuts.filter(s => s.icon === iconName);
+            const usageCount = shortcutsUsingIcon.length;
+
+            let message = `Are you sure you want to delete the custom icon "${iconName}"?`;
+            if (usageCount > 0) {
+                message += `\n\nIt is currently used by ${usageCount} shortcut${usageCount > 1 ? 's' : ''}. The icon will be removed from them.`;
+            }
+
+            showConfirmation('Delete Custom Icon', message, () => {
+                // Remove the icon from any shortcuts using it
+                if (usageCount > 0) {
+                    shortcutsUsingIcon.forEach(shortcut => {
+                        shortcut.icon = '';
+                    });
+                }
+
+                // Delete the icon from the config
+                delete config.customIcons[iconName];
+
+                // Save the updated configuration
+                saveConfig();
+                
+                // Re-render the main shortcuts list to reflect changes
+                renderShortcuts();
+
+                // If the shortcut modal is open, refresh its icon list
+                const modal = document.getElementById('edit-shortcut-modal');
+                if (modal.classList.contains('is-active')) {
+                    const iconContainer = document.getElementById('shortcut-icon-selector');
+                    const customIconContainer = document.getElementById('shortcut-custom-icon-selector');
+                    const iconInput = document.getElementById('shortcut-icon-input');
+
+                    // If the deleted icon was the one currently selected, clear the selection
+                    if (iconInput.value === iconName) {
+                        iconInput.value = '';
+                    }
+                    
+                    renderIconSelector(iconContainer, customIconContainer, iconInput, iconInput.value);
+                }
+
+                showMessage('Icon Deleted', `The icon "${iconName}" has been successfully removed.`, 'success');
+            });
+        }
+
         function highlightText(text, query) {
             if (!query || !text) {
                 return text;
@@ -193,6 +241,7 @@
                 reminders: config.reminders,
                 categoryConfig: config.categoryConfig,
                 enableReminderGlow: config.enableReminderGlow,
+                customIcons: config.customIcons, // Save custom icons
             };
             try {
                 const jsonString = JSON.stringify(configToSave);
@@ -234,6 +283,7 @@
             const defaultConfig = {
                 pageTitle: "Dashboard",
                 enableReminderGlow: false,
+                customIcons: {}, // Add customIcons to default config
                 notes: [
                     {
                         title: "Welcome to your Dashboard!",
@@ -450,19 +500,35 @@
                           'bg-gray-100/50 dark:bg-gray-800/50 hover:bg-gray-200/60 dark:hover:bg-gray-700/80 ' +
                           'style-compact:gap-2 style-compact:p-2 style-compact:text-sm style-compact:bg-white/60 style-compact:dark:bg-gray-800/60';
 
-            if (shortcut.icon && icons[shortcut.icon]) {
+            const allBuiltIn = config.icons;
+            const allCustom = config.customIcons;
+
+            if (shortcut.icon && (allBuiltIn[shortcut.icon] || allCustom[shortcut.icon])) {
                 const iconContainer = document.createElement('div');
                 iconContainer.className = 'flex-shrink-0 w-6 h-6 style-compact:w-5 style-compact:h-5';
+                
                 const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-                svg.setAttribute('viewBox', '0 0 24 24');
                 svg.setAttribute('fill', 'currentColor');
                 svg.className = 'text-gray-500 dark:text-gray-400 group-hover:text-black dark:group-hover:text-white transition-colors duration-300';
-                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-                path.setAttribute('d', icons[shortcut.icon]);
-                svg.appendChild(path);
+
+                if (allCustom[shortcut.icon]) {
+                    // It's a custom icon (new object format)
+                    const iconData = allCustom[shortcut.icon];
+                    svg.setAttribute('viewBox', iconData.viewBox);
+                    svg.innerHTML = iconData.content;
+                } else {
+                    // It's a built-in icon (old string format)
+                    const iconData = allBuiltIn[shortcut.icon];
+                    svg.setAttribute('viewBox', '0 0 24 24');
+                    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                    path.setAttribute('d', iconData);
+                    svg.appendChild(path);
+                }
+
                 iconContainer.appendChild(svg);
                 a.appendChild(iconContainer);
             }
+
             const textSpan = document.createElement('span');
             textSpan.innerHTML = highlightText(shortcut.name, query);
             textSpan.className = 'font-semibold style-compact:font-normal';
@@ -566,42 +632,42 @@
 
         function parseNoteContent(rawContent, isPreview = false, query = '') {
              const lines = rawContent.split('\\n');
-                 let processedLines = [];
-                 let currentParagraph = [];
-                 let inList = false;
-                 const flushParagraph = () => {
-                     if (currentParagraph.length > 0) {
-                         const paragraphText = currentParagraph.join(' ').trim();
-                         processedLines.push(`<p class="text-gray-600 dark:text-gray-300 mb-2 style-compact:mb-1 style-compact:text-sm">${highlightText(paragraphText, query)}</p>`);
-                         currentParagraph = [];
-                     }
-                 };
-                 const closeList = () => { if (inList) { processedLines.push('</ul>'); inList = false; } };
-                 lines.forEach(line => {
-                     const headerMatch = line.match(/^(#{1,6})(.*?)\1?$/);
-                     const listItemMatch = line.match(/^[\-\*]\s(.*)/);
-                     if (headerMatch && headerMatch[2].trim() !== '') {
-                         flushParagraph(); closeList();
-                         const hashes = headerMatch[1];
-                         const content = headerMatch[2].trim();
-                         const headingLevel = Math.min(hashes.length + 1, 6);
-                         let classes = 'font-bold';
-                         if (isPreview) { classes += ' text-sm text-gray-500 dark:text-gray-400 mt-2 mb-1 style-compact:text-xs'; } 
-                         else { classes += ` text-sky-600 dark:text-sky-300 ${['text-2xl','text-xl','text-lg','text-base'][headingLevel-2] || 'text-base'} mb-2`; }
-                         processedLines.push(`<h${headingLevel} class="${classes}">${highlightText(content, query)}</h${headingLevel}>`);
-                     } else if (listItemMatch) {
-                         flushParagraph();
-                         if (!inList) { processedLines.push('<ul class="list-disc list-inside space-y-1 pl-2 mb-2 style-compact:text-sm">'); inList = true; }
-                         const listItemText = listItemMatch[1].trim();
-                         processedLines.push(`<li class="text-gray-600 dark:text-gray-300">${highlightText(listItemText, query)}</li>`);
-                     } else if (line.trim() === '') {
-                         flushParagraph(); closeList();
-                     } else {
-                         closeList(); currentParagraph.push(line);
-                     }
-                 });
-                 flushParagraph(); closeList();
-                 return processedLines.join('');
+                  let processedLines = [];
+                  let currentParagraph = [];
+                  let inList = false;
+                  const flushParagraph = () => {
+                      if (currentParagraph.length > 0) {
+                          const paragraphText = currentParagraph.join(' ').trim();
+                          processedLines.push(`<p class="text-gray-600 dark:text-gray-300 mb-2 style-compact:mb-1 style-compact:text-sm">${highlightText(paragraphText, query)}</p>`);
+                          currentParagraph = [];
+                      }
+                  };
+                  const closeList = () => { if (inList) { processedLines.push('</ul>'); inList = false; } };
+                  lines.forEach(line => {
+                      const headerMatch = line.match(/^(#{1,6})(.*?)\1?$/);
+                      const listItemMatch = line.match(/^[\-\*]\s(.*)/);
+                      if (headerMatch && headerMatch[2].trim() !== '') {
+                          flushParagraph(); closeList();
+                          const hashes = headerMatch[1];
+                          const content = headerMatch[2].trim();
+                          const headingLevel = Math.min(hashes.length + 1, 6);
+                          let classes = 'font-bold';
+                          if (isPreview) { classes += ' text-sm text-gray-500 dark:text-gray-400 mt-2 mb-1 style-compact:text-xs'; } 
+                          else { classes += ` text-sky-600 dark:text-sky-300 ${['text-2xl','text-xl','text-lg','text-base'][headingLevel-2] || 'text-base'} mb-2`; }
+                          processedLines.push(`<h${headingLevel} class="${classes}">${highlightText(content, query)}</h${headingLevel}>`);
+                      } else if (listItemMatch) {
+                          flushParagraph();
+                          if (!inList) { processedLines.push('<ul class="list-disc list-inside space-y-1 pl-2 mb-2 style-compact:text-sm">'); inList = true; }
+                          const listItemText = listItemMatch[1].trim();
+                          processedLines.push(`<li class="text-gray-600 dark:text-gray-300">${highlightText(listItemText, query)}</li>`);
+                      } else if (line.trim() === '') {
+                          flushParagraph(); closeList();
+                      } else {
+                          closeList(); currentParagraph.push(line);
+                      }
+                  });
+                  flushParagraph(); closeList();
+                  return processedLines.join('');
         }
         
         function renderNotes(query = '') {
@@ -895,14 +961,109 @@
                 saveConfig();
             });
         }
+        
+        function sanitizeSvgContent(svgElement) {
+            const elements = svgElement.querySelectorAll('*');
+            elements.forEach(el => {
+                el.removeAttribute('fill');
+                el.removeAttribute('stroke');
+                el.removeAttribute('style');
+                el.removeAttribute('class');
+            });
+            return svgElement.innerHTML;
+        }
 
-        function renderIconSelector(container, hiddenInput, selectedIcon = '') {
+        async function handleIconUpload(event) {
+            const files = event.target.files;
+            if (!files.length) return;
+
+            let filesProcessed = 0;
+            for (const file of files) {
+                if (file.type !== "image/svg+xml") {
+                    showMessage('Upload Error', `File "${file.name}" is not an SVG.`, 'error');
+                    continue;
+                }
+
+                const iconName = file.name.replace(/\.svg$/, '').replace(/[^a-zA-Z0-9-]/g, '_').toLowerCase();
+                if (!iconName) {
+                    showMessage('Upload Error', `Could not generate a valid name for "${file.name}".`, 'error');
+                    continue;
+                }
+
+                if (config.icons[iconName] || config.customIcons[iconName]) {
+                    showMessage('Upload Error', `An icon with the name "${iconName}" already exists.`, 'error');
+                    continue;
+                }
+
+                try {
+                    const svgText = await file.text();
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(svgText, "image/svg+xml");
+                    
+                    const svgError = doc.querySelector('parsererror');
+                    if (svgError) { throw new Error("Invalid SVG file format."); }
+                    
+                    const svgElement = doc.querySelector('svg');
+                    if (!svgElement) { throw new Error("No <svg> tag found."); }
+                    
+                    const viewBox = svgElement.getAttribute('viewBox') || '0 0 24 24';
+                    const content = sanitizeSvgContent(svgElement);
+                    if (!content.trim()) { throw new Error("SVG contains no visible elements (e.g., path, circle)."); }
+
+                    config.customIcons[iconName] = { viewBox, content };
+                    filesProcessed++;
+
+                } catch (err) {
+                    showMessage('SVG Parse Error', `Could not process "${file.name}": ${err.message}`, 'error');
+                    console.error(`Error processing ${file.name}:`, err);
+                }
+            }
+
+            if (filesProcessed > 0) {
+                saveConfig();
+                const iconContainer = document.getElementById('shortcut-icon-selector');
+                const customIconContainer = document.getElementById('shortcut-custom-icon-selector');
+                const iconInput = document.getElementById('shortcut-icon-input');
+                renderIconSelector(iconContainer, customIconContainer, iconInput, iconInput.value);
+                showMessage('Success', `${filesProcessed} icon(s) uploaded successfully.`, 'success');
+            }
+            event.target.value = '';
+        }
+
+        function renderIconSelector(container, customContainer, hiddenInput, selectedIcon = '') {
             container.innerHTML = '';
-            const internalIcons = ['search', 'edit', 'delete', 'add', 'copy', 'check', 'clipboard', 'upload', 'download', 'reset', 'question'];
+            customContainer.innerHTML = '';
+
+            const createButton = (iconName, iconData) => {
+                const tag = document.createElement('button');
+                tag.type = 'button';
+                tag.className = 'icon-tag-btn';
+                tag.dataset.icon = iconName;
+                tag.title = iconName;
+                const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                
+                if (typeof iconData === 'object' && iconData.content) {
+                    // New custom icon format
+                    svg.setAttribute('viewBox', iconData.viewBox);
+                    svg.innerHTML = iconData.content;
+                } else {
+                    // Old built-in icon format (string path)
+                    svg.setAttribute('viewBox', '0 0 24 24');
+                    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                    path.setAttribute('d', iconData);
+                    svg.appendChild(path);
+                }
+                
+                svg.setAttribute('fill', 'currentColor');
+                tag.appendChild(svg);
+                if (iconName === selectedIcon) { tag.classList.add('active'); }
+                return tag;
+            };
             
+            const internalIcons = ['search', 'edit', 'delete', 'add', 'copy', 'check', 'clipboard', 'upload', 'download', 'reset', 'question'];
             const iconNames = Object.keys(config.icons)
-                                        .filter(icon => !internalIcons.includes(icon))
-                                        .sort();
+                                  .filter(icon => !internalIcons.includes(icon))
+                                  .sort();
 
             const noneTag = document.createElement('button');
             noneTag.type = 'button';
@@ -913,21 +1074,37 @@
             container.appendChild(noneTag);
             
             iconNames.forEach(iconName => {
-                const tag = document.createElement('button');
-                tag.type = 'button';
-                tag.className = 'icon-tag-btn';
-                tag.dataset.icon = iconName;
-                tag.title = iconName;
-                const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-                svg.setAttribute('viewBox', '0 0 24 24');
-                svg.setAttribute('fill', 'currentColor');
-                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-                path.setAttribute('d', config.icons[iconName]);
-                svg.appendChild(path);
-                tag.appendChild(svg);
-                if (iconName === selectedIcon) { tag.classList.add('active'); }
-                container.appendChild(tag);
+                container.appendChild(createButton(iconName, config.icons[iconName]));
             });
+
+            // --- MODIFIED SECTION ---
+            const customIconNames = Object.keys(config.customIcons).sort();
+            if (customIconNames.length === 0) {
+                customContainer.innerHTML = '<p class="text-xs text-gray-500 dark:text-gray-400 w-full">No custom icons uploaded yet.</p>';
+            } else {
+                 customIconNames.forEach(iconName => {
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 'custom-icon-wrapper';
+
+                    const button = createButton(iconName, config.customIcons[iconName]);
+                    
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.type = 'button';
+                    deleteBtn.className = 'delete-icon-btn';
+                    deleteBtn.title = `Delete "${iconName}" icon`;
+                    deleteBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="${icons.delete}"/></svg>`;
+                    
+                    deleteBtn.onclick = (e) => {
+                        e.stopPropagation(); // Prevent the icon button underneath from being selected
+                        deleteCustomIcon(iconName);
+                    };
+
+                    wrapper.appendChild(button);
+                    wrapper.appendChild(deleteBtn);
+                    customContainer.appendChild(wrapper);
+                });
+            }
+           
             hiddenInput.value = selectedIcon || '';
         }
 
@@ -984,18 +1161,19 @@
             const categoryContainer = document.getElementById('shortcut-category-selector');
             const categoryInput = document.getElementById('shortcut-category-input');
             const iconContainer = document.getElementById('shortcut-icon-selector');
+            const customIconContainer = document.getElementById('shortcut-custom-icon-selector');
             const iconInput = document.getElementById('shortcut-icon-input');
             if (shortcut) {
                 title.textContent = 'Edit Shortcut';
                 document.getElementById('shortcut-name-input').value = shortcut.name;
                 document.getElementById('shortcut-url-input').value = shortcut.url;
                 renderCategorySelector(categoryContainer, categoryInput, shortcut.category);
-                renderIconSelector(iconContainer, iconInput, shortcut.icon || '');
+                renderIconSelector(iconContainer, customIconContainer, iconInput, shortcut.icon || '');
             } else {
                 title.textContent = 'Add Shortcut';
                 document.getElementById('edit-shortcut-form').reset();
                 renderCategorySelector(categoryContainer, categoryInput, 'General');
-                renderIconSelector(iconContainer, iconInput, '');
+                renderIconSelector(iconContainer, customIconContainer, iconInput, '');
             }
             modal.classList.add('is-active');
             document.body.style.overflow = 'hidden';
@@ -1139,14 +1317,21 @@
                 document.querySelectorAll('#shortcut-category-selector button').forEach(btn => btn.classList.remove('active'));
                 target.classList.add('active');
             });
-            document.getElementById('shortcut-icon-selector').addEventListener('click', (e) => {
+            
+            const iconModalContainer = document.getElementById('edit-shortcut-modal');
+            iconModalContainer.addEventListener('click', (e) => {
                 const target = e.target.closest('button[data-icon]');
                 if (!target) return;
                 document.getElementById('shortcut-icon-input').value = target.dataset.icon;
-                document.querySelectorAll('#shortcut-icon-selector button').forEach(btn => btn.classList.remove('active'));
+                iconModalContainer.querySelectorAll('.icon-selector-container button').forEach(btn => btn.classList.remove('active'));
                 target.classList.add('active');
             });
-            
+
+            document.getElementById('upload-icons-btn').addEventListener('click', () => {
+                document.getElementById('icon-upload-input').click();
+            });
+            document.getElementById('icon-upload-input').addEventListener('change', handleIconUpload);
+
             document.getElementById('add-category-form').addEventListener('submit', (e) => {
                 e.preventDefault();
                 const newName = document.getElementById('new-category-name-input').value.trim();
@@ -1408,7 +1593,7 @@
             exportClipboardBtn.addEventListener('click', (e) => {
                 e.preventDefault();
                 hideSettingsModal();
-                const configToSave = { pageTitle: config.pageTitle, notes: config.notes, shortcuts: config.shortcuts, reminders: config.reminders, categoryConfig: config.categoryConfig, enableReminderGlow: config.enableReminderGlow };
+                const configToSave = { pageTitle: config.pageTitle, notes: config.notes, shortcuts: config.shortcuts, reminders: config.reminders, categoryConfig: config.categoryConfig, enableReminderGlow: config.enableReminderGlow, customIcons: config.customIcons };
                 const jsonString = JSON.stringify(configToSave);
                 const base64String = btoa(unescape(encodeURIComponent(jsonString)));
                 navigator.clipboard.writeText(base64String).then(() => {
@@ -1422,7 +1607,7 @@
             exportFileBtn.addEventListener('click', (e) => {
                 e.preventDefault();
                 hideSettingsModal();
-                const configToSave = { pageTitle: config.pageTitle, notes: config.notes, shortcuts: config.shortcuts, reminders: config.reminders, categoryConfig: config.categoryConfig, enableReminderGlow: config.enableReminderGlow };
+                const configToSave = { pageTitle: config.pageTitle, notes: config.notes, shortcuts: config.shortcuts, reminders: config.reminders, categoryConfig: config.categoryConfig, enableReminderGlow: config.enableReminderGlow, customIcons: config.customIcons };
                 const jsonString = JSON.stringify(configToSave, null, 4);
                 const blob = new Blob([jsonString], { type: 'application/json' });
                 const url = URL.createObjectURL(blob);
@@ -1466,6 +1651,7 @@
                         config.reminders = parsedConfig.reminders || [];
                         config.categoryConfig = parsedConfig.categoryConfig || {};
                         config.enableReminderGlow = parsedConfig.enableReminderGlow !== undefined ? parsedConfig.enableReminderGlow : true;
+                        config.customIcons = parsedConfig.customIcons || {};
 
 
                         saveConfig();
@@ -1501,6 +1687,7 @@
                     config.reminders = parsedConfig.reminders || [];
                     config.categoryConfig = parsedConfig.categoryConfig || {};
                     config.enableReminderGlow = parsedConfig.enableReminderGlow !== undefined ? parsedConfig.enableReminderGlow : true;
+                    config.customIcons = parsedConfig.customIcons || {};
 
                     saveConfig();
                     hideImportModal();
@@ -1687,8 +1874,8 @@
     
     <div class="fixed top-4 right-4 flex items-center space-x-2 z-50">
          <button id="settings-btn" class="p-2 rounded-full bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/20 transition-colors cursor-pointer" title="Settings" aria-label="Settings">
-            <svg class="w-5 h-5 text-gray-800 dark:text-gray-200" fill="currentColor" viewBox="0 0 24 24"><path d="M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65C14.46 2.18 14.25 2 14 2h-4c-.25 0-.46.18-.49.42l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49-1c-.23-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65c-.19.15-.24.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49-.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1c.23.09.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z"></path></svg>
-        </button>
+             <svg class="w-5 h-5 text-gray-800 dark:text-gray-200" fill="currentColor" viewBox="0 0 24 24"><path d="M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65C14.46 2.18 14.25 2 14 2h-4c-.25 0-.46.18-.49.42l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49-1c-.23-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65c-.19.15-.24-.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1c.23.09.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z"></path></svg>
+         </button>
     </div>
 
     <div class="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-white/10 via-white/0 to-indigo-100/20 dark:from-gray-900 dark:via-gray-900 dark:to-indigo-900/40 -z-10"></div>
@@ -1725,13 +1912,55 @@
     </div>
 
     <div id="note-modal" class="edit-modal"><div class="edit-modal-content"><button id="modal-close-btn" class="absolute top-4 right-4 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white text-3xl leading-none z-10 cursor-pointer">×</button><div class="flex-grow overflow-y-auto" style="scrollbar-width: thin; scrollbar-color: #6b7280 transparent;"><div class="p-6"><h2 id="modal-title" class="text-2xl font-bold mb-4 text-gray-900 dark:text-white"></h2><div id="modal-body" class="text-gray-700 dark:text-gray-200 whitespace-pre-wrap"></div></div></div><div class="flex-shrink-0 pt-4 pb-6 px-6 border-t border-gray-200 dark:border-gray-700 flex justify-end"><button id="modal-copy-btn" class="flex items-center gap-2 px-4 py-2 rounded-md bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors cursor-pointer" aria-label="Copy content"><span id="copy-btn-text" class="text-sm font-medium text-gray-700 dark:text-gray-200">Copy</span><svg id="copy-btn-icon" class="w-5 h-5 text-gray-500 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg><svg id="copy-btn-success-icon" class="w-5 h-5 text-green-500 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg></button></div></div></div>
-    <div id="edit-shortcut-modal" class="edit-modal"><div class="edit-modal-content"><h2 id="edit-shortcut-modal-title" class="text-2xl font-bold mb-6 text-gray-800 dark:text-gray-100"></h2><form id="edit-shortcut-form"><div class="form-field"><label for="shortcut-name-input">Name</label><input id="shortcut-name-input" type="text" required></div><div class="form-field"><label for="shortcut-url-input">URL</label><input id="shortcut-url-input" type="url" required></div><div class="form-field"><label>Category</label><div id="shortcut-category-selector" class="category-selector-container"></div><input id="shortcut-category-input" type="hidden" required></div><div class="form-field"><label>Icon</label><div id="shortcut-icon-selector" class="icon-selector-container"></div><input id="shortcut-icon-input" type="hidden"></div><div class="form-actions"><button type="button" id="shortcut-modal-cancel" class="btn btn-secondary">Cancel</button><button type="submit" class="btn btn-primary">Save</button></div></form></div></div>
+    
+    <div id="edit-shortcut-modal" class="edit-modal">
+        <div class="edit-modal-content">
+            <h2 id="edit-shortcut-modal-title" class="text-2xl font-bold mb-6 text-gray-800 dark:text-gray-100"></h2>
+            <form id="edit-shortcut-form">
+                <div class="form-field">
+                    <label for="shortcut-name-input">Name</label>
+                    <input id="shortcut-name-input" type="text" required>
+                </div>
+                <div class="form-field">
+                    <label for="shortcut-url-input">URL</label>
+                    <input id="shortcut-url-input" type="url" required>
+                </div>
+                <div class="form-field">
+                    <label>Category</label>
+                    <div id="shortcut-category-selector" class="category-selector-container"></div>
+                    <input id="shortcut-category-input" type="hidden" required>
+                </div>
+                <div class="form-field">
+                    <label>Icons</label>
+                    <div id="shortcut-icon-selector" class="icon-selector-container"></div>
+                    <input id="shortcut-icon-input" type="hidden">
+                </div>
+                <div class="form-field">
+                    <label>Custom Icons</label>
+                    <div id="shortcut-custom-icon-selector" class="icon-selector-container"></div>
+                </div>
+                <div class="form-field">
+                    <button type="button" id="upload-icons-btn" class="btn btn-secondary">Upload Icons</button>
+                    <input type="file" id="icon-upload-input" class="hidden" accept="image/svg+xml" multiple>
+                    
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                        Note: Please upload simple, single-color <strong>.svg</strong> files for best results.
+                    </p>
+                    </div>
+                <div class="form-actions">
+                    <button type="button" id="shortcut-modal-cancel" class="btn btn-secondary">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
     <div id="edit-note-modal" class="edit-modal"><div class="edit-modal-content"><h2 id="edit-note-modal-title" class="text-2xl font-bold mb-6 text-gray-800 dark:text-gray-100"></h2><form id="edit-note-form"><div class="form-field"><label for="note-title-input">Title (Optional)</label><input id="note-title-input" type="text"></div><div class="form-field"><label for="note-content-input">Content</label><textarea id="note-content-input" required></textarea></div><div class="form-actions"><button type="button" id="note-modal-cancel" class="btn btn-secondary">Cancel</button><button type="submit" class="btn btn-primary">Save</button></div></form></div></div>
     <div id="add-category-modal" class="edit-modal"><div class="edit-modal-content"><h2 class="text-2xl font-bold mb-6 text-gray-800 dark:text-gray-100">Add New Category</h2><form id="add-category-form"><div class="form-field"><label for="new-category-name-input">Category Name</label><input id="new-category-name-input" type="text" required></div><div class="form-field"><label>Color</label><div id="new-category-color-selector" class="color-selector-container"></div><input id="new-category-color-input" type="hidden" required></div><div class="form-actions"><button type="button" id="category-modal-cancel" class="btn btn-secondary">Cancel</button><button type="submit" class="btn btn-primary">Save Category</button></div></form></div></div>
     <div id="import-config-modal" class="edit-modal"><div class="edit-modal-content"><h2 class="text-2xl font-bold mb-6 text-gray-800 dark:text-gray-100">Import Configuration</h2><form id="import-config-form"><div class="form-field"><label for="import-config-string">Paste Configuration String</label><textarea id="import-config-string" required placeholder="Paste your exported configuration string here..."></textarea></div><div class="form-actions"><button type="button" id="import-modal-cancel" class="btn btn-secondary">Cancel</button><button type="submit" class="btn btn-primary">Load Configuration</button></div></form></div></div>
     <div id="edit-reminder-modal" class="edit-modal"><div class="edit-modal-content"><h2 id="edit-reminder-modal-title" class="text-2xl font-bold mb-6 text-gray-800 dark:text-gray-100"></h2><form id="edit-reminder-form" class="flex flex-col h-full"><div class="flex-grow overflow-y-auto pr-2 -mr-2 custom-scrollbar"><div class="form-field"><label for="reminder-message-input">Message</label><textarea id="reminder-message-input" required rows="2"></textarea></div><div class="form-field"><label for="reminder-start-datetime-input">Starts</label><input id="reminder-start-datetime-input" type="datetime-local" required></div><div class="form-field"><label>Repeats every</label><div class="grid grid-cols-3 gap-x-2"><input id="reminder-interval-input" type="number" min="1" value="1" class="col-span-1" required><select id="reminder-frequency-input" class="col-span-2" required><option value="none">Does not repeat</option><option value="day">Day(s)</option><option value="week">Week(s)</option><option value="month">Month(s)</option><option value="year">Year(s)</option></select></div></div><div id="reminder-ends-section" class="form-field hidden"><label class="mb-3">Ends</label><div class="space-y-3 text-sm"><div class="flex items-center"><input type="radio" id="end-type-never" name="end-type" value="never" class="custom-switch" checked><label for="end-type-never" class="ml-3 cursor-pointer">Never</label></div><div class="flex items-center"><input type="radio" id="end-type-on" name="end-type" value="on_date" class="custom-switch"><label for="end-type-on" class="ml-3 cursor-pointer w-12 shrink-0">On</label><input type="date" id="reminder-end-date-input" class="flex-grow w-full text-sm p-1.5 rounded-md" disabled></div><div class="flex items-center"><input type="radio" id="end-type-after" name="end-type" value="after_occurrences" class="custom-switch"><label for="end-type-after" class="ml-3 cursor-pointer w-12 shrink-0">After</label><input type="number" id="reminder-occurrences-input" min="1" class="flex-grow w-full text-sm p-1.5 rounded-md" disabled><label for="reminder-occurrences-input" class="ml-2 whitespace-nowrap text-gray-500 dark:text-gray-400">occurrences</label></div></div></div></div><div class="form-actions mt-auto"><button type="button" id="reminder-modal-cancel" class="btn btn-secondary">Cancel</button><button type="submit" class="btn btn-primary">Save Reminder</button></div></form></div></div>
     
-    <div id="help-modal" class="edit-modal">
+<div id="help-modal" class="edit-modal">
         <div class="edit-modal-content !max-w-5xl h-[90vh] !p-0 flex flex-col">
             <div class="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700 shrink-0">
                 <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-100">Quick Tips & Features</h2>
@@ -1742,6 +1971,42 @@
             <div class="p-6 overflow-y-auto grow custom-scrollbar">
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     
+                    <div class="feature-card">
+                        <h3 class="feature-title">Quick Edits & Management</h3>
+                        <div class="feature-content">
+                             <ul class="list-disc list-inside mt-2 space-y-1">
+                                <li><strong>The page title is editable!</strong> Just click on it directly.</li>
+                                <li>Click directly on any <strong>Note</strong> or <strong>Reminder</strong> card to open its editor.</li>
+                                <li>Hover over a category title to reveal a quick-edit <svg class="inline-block w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"></path></svg> button.</li>
+                                <li>In the shortcut editor, hover over a category tag to find its edit/delete controls.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="feature-card">
+                        <h3 class="feature-title">Personalize Your Icons</h3>
+                        <div class="feature-content">
+                            <p>Make the dashboard truly yours by uploading custom icons for your shortcuts.</p>
+                            <ul class="list-disc list-inside mt-2 space-y-1">
+                                <li>In the shortcut editor, use the <strong>Upload Icons</strong> button to select your own SVG files.</li>
+                                <li>Hover over a custom icon in the editor to reveal a <svg class="inline-block w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"></path></svg> button to delete it.</li>
+                                <li>For best results, use simple, single-color SVGs. The app will automatically color them to match your theme.</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <h3 class="feature-title">Powerful Real-time Search</h3>
+                        <div class="feature-content">
+                            <p>The search bar is a dynamic filter for your active tab.</p>
+                            <ul class="list-disc list-inside mt-2 space-y-1">
+                                <li>Press <kbd>/</kbd> to focus the search bar from anywhere.</li>
+                                <li>As you type, the content on the active tab (Shortcuts, Notes, or Reminders) will be filtered instantly.</li>
+                                <li>Search works on shortcut names, categories, note titles, note content, and reminder messages.</li>
+                            </ul>
+                        </div>
+                    </div>
+
                     <div class="feature-card">
                         <h3 class="feature-title">Pro-Level Note Taking</h3>
                         <div class="feature-content">
@@ -1755,53 +2020,43 @@
                     </div>
 
                     <div class="feature-card">
-                        <h3 class="feature-title">Keyboard Shortcuts</h3>
-                        <div class="feature-content">
-                            <ul class="list-disc list-inside space-y-2">
-                                <li>Press <kbd>/</kbd> at any time to instantly focus the search bar.</li>
-                                <li>Press <kbd>Esc</kbd> to close any open modal window.</li>
-                            </ul>
-                        </div>
-                    </div>
-
-                    <div class="feature-card">
-                        <h3 class="feature-title">Quick Edits & Management</h3>
-                        <div class="feature-content">
-                             <ul class="list-disc list-inside mt-2 space-y-1">
-                                <li><strong>The page title is editable!</strong> Just click on it directly.</li>
-                                <li>Hover over a category title to reveal a quick-edit <svg class="inline-block w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"></path></svg> button.</li>
-                                <li>In the shortcut editor, hover over a category tag to find its edit/delete controls.</li>
-                            </ul>
-                        </div>
-                    </div>
-
-                    <div class="feature-card">
-                        <h3 class="feature-title">Your Data, Your Control</h3>
-                        <div class="feature-content">
-                            <p>Use the <strong>Import / Export</strong> buttons to save a backup or move your setup to another computer.</p>
-                            <p class="mt-2">Use the <svg class="inline-block w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"></path></svg> button to reset everything to default.</p>
-                        </div>
-                    </div>
-
-                    <div class="feature-card">
                         <h3 class="feature-title">Advanced Reminders</h3>
                         <div class="feature-content">
                             <p>Set up complex repeating reminders.</p>
                             <ul class="list-disc list-inside mt-2 space-y-1">
                                 <li>Repeat every N days, weeks, months, or years.</li>
                                 <li>Set reminders to end on a specific date or after a number of occurrences.</li>
-                                <li>Triggered reminders will make the tab glow until you dismiss them.</li>
+                                <li>Triggered reminders will make the Reminders tab glow until you dismiss them.</li>
                             </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <h3 class="feature-title">Your Data, Your Control</h3>
+                        <div class="feature-content">
+                            <p>Use the <strong>Import / Export</strong> buttons in Settings to save a backup or move your setup to another computer.</p>
+                            <p class="mt-2">Use the <svg class="inline-block w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"></path></svg> button to reset everything to default.</p>
                         </div>
                     </div>
 
                     <div class="feature-card">
                         <h3 class="feature-title">Display & Theme</h3>
                         <div class="feature-content">
-                            <p>Use the controls in the top-right to customize your view.</p>
+                            <p>Use the controls in the top-right Settings menu to customize your view.</p>
                              <ul class="list-disc list-inside mt-2 space-y-1">
                                 <li>Toggle between Light and Dark themes.</li>
-                                <li>Switch between <strong>Compact</strong> and <strong>Comfortable</strong> display styles.</li>
+                                <li>Switch between <strong>Compact</strong> and <strong>Comfortable</strong> display styles for information density.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="feature-card">
+                        <h3 class="feature-title">Keyboard Shortcuts</h3>
+                        <div class="feature-content">
+                            <p>Navigate and work faster with these keys:</p>
+                            <ul class="list-disc list-inside space-y-2 mt-2">
+                                <li>Press <kbd>/</kbd> at any time to instantly focus the search bar.</li>
+                                <li>Press <kbd>Esc</kbd> to close any open modal window.</li>
                             </ul>
                         </div>
                     </div>
@@ -1859,9 +2114,9 @@
                 <div class="settings-section">
                      <h3 class="settings-section-title">About</h3>
                      <div class="text-center">
-                        <button id="settings-help-btn" class="btn btn-primary text-sm">View Help & Quick Tips</button>
+                         <button id="settings-help-btn" class="btn btn-primary text-sm">View Help & Quick Tips</button>
                      </div>
-                 </div>
+                </div>
             </div>
         </div>
     </div>
