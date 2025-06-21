@@ -23,6 +23,7 @@
     --color-sky-500: oklch(68.5% 0.169 237.323);
     --color-sky-600: oklch(58.8% 0.158 241.966);
     --color-sky-700: oklch(50% 0.134 242.749);
+    --color-blue-500: oklch(62.3% 0.214 259.815);
     --color-indigo-100: oklch(93% 0.034 272.788);
     --color-indigo-900: oklch(35.9% 0.144 278.697);
     --color-violet-500: oklch(60.6% 0.25 292.717);
@@ -904,6 +905,9 @@
   .whitespace-pre-wrap {
     white-space: pre-wrap;
   }
+  .text-blue-500 {
+    color: var(--color-blue-500);
+  }
   .text-gray-400 {
     color: var(--color-gray-400);
   }
@@ -1150,6 +1154,13 @@
     &:hover {
       @media (hover: hover) {
         color: var(--color-sky-500);
+      }
+    }
+  }
+  .hover\:underline {
+    &:hover {
+      @media (hover: hover) {
+        text-decoration-line: underline;
       }
     }
   }
