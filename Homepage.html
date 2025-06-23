@@ -1980,6 +1980,7 @@
             const searchInput = document.getElementById('search-input');
             const reminderControls = document.getElementById('reminders-controls');
             const reminderViewControls = document.getElementById('reminders-view-controls');
+            const scheduleNav = document.getElementById('schedule-nav-container'); // <-- Get the schedule nav element
 
             function updateTabState(activeTabKey) {
                 const query = searchInput.value;
@@ -1993,6 +1994,13 @@
                 const isRemindersTab = activeTabKey === 'reminders';
                 reminderControls.classList.toggle('hidden', !isRemindersTab);
                 reminderViewControls.classList.toggle('hidden', !isRemindersTab);
+
+                // --- THIS IS THE FIX ---
+                // If the active tab is NOT reminders, always hide the floating schedule navigation.
+                if (!isRemindersTab) {
+                    scheduleNav.classList.add('hidden');
+                }
+                // --- END FIX ---
 
                 if (isRemindersTab) {
                     // Also manage visibility based on view mode
