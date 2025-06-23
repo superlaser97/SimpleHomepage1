@@ -26,9 +26,9 @@
             "folder": "M10 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z",
             "browser": "M19 4H5c-1.11 0-2 .9-2 2v12c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 14H5V8h14v10z",
             "bell": "M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z",
-            "settings": "M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65C14.46 2.18 14.25 2 14 2h-4c-.25 0-.46.18-.49.42l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49-1c-.23-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65c-.19.15-.24-.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1c.23.09.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z"
+            "settings": "M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65C14.46 2.18 14.25 2 14 2h-4c-.25 0-.46.18-.49.42l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49-1c-.23-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65c-.19.15-.24-.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1c.23.09.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65z"
         };
-        
+
         const SAFE_COLORS = {
             sky: '#0ea5e9', red: '#ef4444', orange: '#f97316', green: '#22c55e', blue: '#3b82f6', indigo: '#6366f1',
             violet: '#8b5cf6', pink: '#ec4899', teal: '#14b8a6', rose: '#f43f5e', gray: '#6b7280', purple: '#a855f7'
@@ -289,6 +289,7 @@
         function saveConfig() {
             const configToSave = {
                 pageTitle: config.pageTitle,
+                version: config.version,
                 notes: config.notes,
                 shortcuts: config.shortcuts,
                 reminders: config.reminders,
@@ -336,6 +337,7 @@
         function loadConfig() {
             const defaultConfig = {
                 pageTitle: "Dashboard",
+                version: "v10",
                 enableReminderGlow: false,
                 customIcons: {},
                 notes: [
@@ -576,6 +578,9 @@
         config.icons = icons;
         let { pageTitle, notes, shortcuts, reminders, categoryConfig } = config;
         let showCompletedReminders = false;
+        let reminderViewMode = 'grid'; // 'grid' or 'schedule'
+        let scheduleCurrentDate = new Date();
+
 
         function renderFavicon() {
             const link = document.createElement('link');
@@ -588,6 +593,13 @@
         function renderTitle() {
             document.getElementById('page-title').textContent = config.pageTitle;
             updateReminderTabIndicator(); // This will set the document title correctly
+        }
+
+        function renderVersion() {
+            const versionContainer = document.getElementById('version-display');
+            if (versionContainer && config.version) {
+                versionContainer.textContent = config.version;
+            }
         }
 
         function renderGreeter() {
@@ -674,8 +686,8 @@
             a.target = '_blank';
             a.rel = 'noopener noreferrer';
             a.className = 'flex items-center gap-4 p-4 rounded-lg shadow-lg hover:shadow-cyan-500/10 hover:-translate-y-1 transition-all duration-300 text-gray-700 dark:text-gray-200 border border-gray-300/80 dark:border-gray-700/80 ' +
-                                'bg-gray-100/50 dark:bg-gray-800/50 hover:bg-gray-200/60 dark:hover:bg-gray-700/80 ' +
-                                'style-compact:gap-2 style-compact:p-2 style-compact:text-sm style-compact:bg-white/60 style-compact:dark:bg-gray-800/60';
+                            'bg-gray-100/50 dark:bg-gray-800/50 hover:bg-gray-200/60 dark:hover:bg-gray-700/80 ' +
+                            'style-compact:gap-2 style-compact:p-2 style-compact:text-sm style-compact:bg-white/60 style-compact:dark:bg-gray-800/60';
 
             const allBuiltIn = config.icons;
             const allCustom = config.customIcons;
@@ -942,6 +954,237 @@
         }
 
         function renderReminders(query = '') {
+            // This is the new top-level render function for the reminders tab.
+            // It decides whether to show the grid or schedule view.
+            const gridContainerWrapper = document.getElementById('reminders-container');
+            const scheduleContainer = document.getElementById('reminders-schedule-view');
+            const scheduleNav = document.getElementById('schedule-nav-container');
+            const reminderControls = document.getElementById('reminders-controls');
+
+            if (reminderViewMode === 'grid') {
+                gridContainerWrapper.classList.remove('hidden');
+                scheduleContainer.classList.add('hidden');
+                scheduleNav.classList.add('hidden');
+                reminderControls.style.display = 'flex';
+                renderRemindersGrid(query);
+            } else {
+                gridContainerWrapper.classList.add('hidden');
+                scheduleContainer.classList.remove('hidden');
+                scheduleNav.classList.remove('hidden');
+                reminderControls.style.display = 'none';
+                renderScheduleView(query);
+            }
+        }
+
+        function getReminderOccurrences(reminder, rangeStart, rangeEnd) {
+            const occurrences = [];
+            const rec = reminder.recurrence;
+            
+            // Start checking from the reminder's original start date
+            let currentDate = new Date(reminder.start_datetime);
+
+            // If it's a non-repeating reminder, just check if it's in range
+            if (rec.frequency === 'none') {
+                if (currentDate >= rangeStart && currentDate <= rangeEnd) {
+                    occurrences.push(currentDate);
+                }
+                return occurrences;
+            }
+            
+            // For recurring events, fast-forward to the first potential occurrence within or after the range starts
+            // This avoids iterating from the very beginning of a long-running recurring event
+            while(currentDate < rangeStart) {
+                const interval = rec.interval || 1;
+                if (rec.ends.type === 'after_occurrences' && reminder.occurrence_count >= rec.ends.value) break;
+                if (rec.ends.type === 'on_date' && currentDate > new Date(rec.ends.value)) break;
+
+                 switch (rec.frequency) {
+                    case 'day': currentDate.setDate(currentDate.getDate() + interval); break;
+                    case 'week': currentDate.setDate(currentDate.getDate() + (7 * interval)); break;
+                    case 'month': currentDate.setMonth(currentDate.getMonth() + interval); break;
+                    case 'year': currentDate.setFullYear(currentDate.getFullYear() + interval); break;
+                    default: return []; // Exit if frequency is invalid
+                }
+            }
+
+
+            // Now, iterate through dates until we are past the search range
+            while (currentDate <= rangeEnd) {
+                // Stop if we hit the "after X occurrences" limit
+                if (rec.ends.type === 'after_occurrences' && reminder.occurrence_count >= rec.ends.value) {
+                    break;
+                }
+
+                // Stop if we hit the "on date" limit
+                const endDateValue = rec.ends.type === 'on_date' ? new Date(rec.ends.value) : null;
+                if (endDateValue) {
+                    endDateValue.setHours(23, 59, 59, 999);
+                    if (currentDate > endDateValue) break;
+                }
+                
+                // Add the valid date to our list
+                occurrences.push(new Date(currentDate));
+
+                // Calculate the next date
+                const interval = rec.interval || 1;
+                switch (rec.frequency) {
+                    case 'day': currentDate.setDate(currentDate.getDate() + interval); break;
+                    case 'week': currentDate.setDate(currentDate.getDate() + (7 * interval)); break;
+                    case 'month': currentDate.setMonth(currentDate.getMonth() + interval); break;
+                    case 'year': currentDate.setFullYear(currentDate.getFullYear() + interval); break;
+                    default: return occurrences;
+                }
+            }
+            return occurrences;
+        }
+
+        function renderScheduleView(query = '') {
+            const container = document.getElementById('reminders-schedule-view');
+            const navLabel = document.getElementById('schedule-date-range');
+            container.innerHTML = ''; // Clear previous content
+            const lowerCaseQuery = query.toLowerCase();
+            let hasContent = false; // Keep track if we render anything
+
+            // --- NEW: Section for Overdue/Triggered Reminders ---
+            const overdueReminders = config.reminders.filter(r => 
+                r.triggered && 
+                !r.dismissed &&
+                (!query || r.message.toLowerCase().includes(lowerCaseQuery))
+            );
+
+            if (overdueReminders.length > 0) {
+                hasContent = true;
+                const overdueWrapper = document.createElement('div');
+                overdueWrapper.className = "schedule-day-group overdue-section";
+
+                const overdueHeader = document.createElement('h3');
+                overdueHeader.className = "schedule-day-header";
+                overdueHeader.textContent = "Overdue";
+                overdueWrapper.appendChild(overdueHeader);
+
+                const itemsContainer = document.createElement('div');
+                itemsContainer.className = "space-y-2";
+                
+                // Sort by due date, oldest first
+                overdueReminders.sort((a,b) => new Date(a.start_datetime) - new Date(b.start_datetime));
+
+                overdueReminders.forEach(reminder => {
+                    const itemEl = document.createElement('div');
+                    itemEl.className = 'schedule-item group triggered'; // Add triggered class for styling
+                    itemEl.onclick = () => showReminderModal(reminder);
+                    
+                    const dueDate = new Date(reminder.start_datetime);
+                    const timeStr = dueDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + ' ' + dueDate.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+
+                    itemEl.innerHTML = `
+                        <div class="schedule-item-time">${timeStr}</div>
+                        <div class="schedule-item-details">
+                            <p class="font-semibold text-gray-800 dark:text-gray-100">${highlightText(reminder.message, query)}</p>
+                            <p class="text-xs font-bold text-red-600 dark:text-red-400">Due Now</p>
+                        </div>
+                    `;
+                    itemEl.appendChild(createItemControls(reminder, 'reminder'));
+                    itemsContainer.appendChild(itemEl);
+                });
+
+                overdueWrapper.appendChild(itemsContainer);
+                container.appendChild(overdueWrapper);
+            }
+            // --- END of Overdue Section ---
+
+
+            // 1. Define the week range
+            const startOfWeek = new Date(scheduleCurrentDate);
+            startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
+            startOfWeek.setHours(0, 0, 0, 0);
+
+            const endOfWeek = new Date(startOfWeek);
+            endOfWeek.setDate(endOfWeek.getDate() + 6);
+            endOfWeek.setHours(23, 59, 59, 999);
+            
+            // Update navigation label
+            const options = { month: 'short', day: 'numeric' };
+            navLabel.textContent = `${startOfWeek.toLocaleDateString(undefined, options)} - ${endOfWeek.toLocaleDateString(undefined, options)}`;
+
+            // 2. Get all occurrences for the week, filtered by search query
+            let allOccurrences = [];
+            config.reminders.forEach(reminder => {
+                // Also check that it's not an overdue item we've already displayed
+                if (reminder.triggered && !reminder.dismissed) return;
+
+                if (query && !reminder.message.toLowerCase().includes(lowerCaseQuery)) {
+                    return;
+                }
+                const occurrences = getReminderOccurrences(reminder, startOfWeek, endOfWeek);
+                occurrences.forEach(date => {
+                    allOccurrences.push({ date: date, reminder: reminder });
+                });
+            });
+
+            // Sort all occurrences chronologically
+            allOccurrences.sort((a, b) => a.date - b.date);
+
+            if (allOccurrences.length > 0) {
+                hasContent = true;
+            }
+
+            // 3. Group occurrences by day
+            const groupedByDay = allOccurrences.reduce((acc, curr) => {
+                const dateString = curr.date.toDateString();
+                if (!acc[dateString]) acc[dateString] = [];
+                acc[dateString].push(curr);
+                return acc;
+            }, {});
+
+            // 4. Render the HTML
+            const sortedDays = Object.keys(groupedByDay).sort((a, b) => new Date(a) - new Date(b));
+
+            sortedDays.forEach(dateString => {
+                const dayOccurrences = groupedByDay[dateString];
+                const dayDate = new Date(dateString);
+
+                const dayWrapper = document.createElement('div');
+                dayWrapper.className = "schedule-day-group";
+
+                const dayHeader = document.createElement('h3');
+                dayHeader.className = "schedule-day-header";
+                dayHeader.textContent = dayDate.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
+                dayWrapper.appendChild(dayHeader);
+
+                const itemsContainer = document.createElement('div');
+                itemsContainer.className = "space-y-2";
+
+                dayOccurrences.forEach(occurrence => {
+                    const { reminder, date } = occurrence;
+                    const itemEl = document.createElement('div');
+                    itemEl.className = 'schedule-item group';
+                    itemEl.onclick = () => showReminderModal(reminder);
+                    
+                    const timeStr = date.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit', hour12: true });
+
+                    itemEl.innerHTML = `
+                        <div class="schedule-item-time">${timeStr}</div>
+                        <div class="schedule-item-details">
+                            <p class="font-semibold text-gray-800 dark:text-gray-100">${highlightText(reminder.message, query)}</p>
+                            ${reminder.recurrence.frequency !== 'none' ? `<p class="text-xs text-gray-500 dark:text-gray-400 capitalize">Repeats</p>` : ''}
+                        </div>
+                    `;
+                    itemEl.appendChild(createItemControls(reminder, 'reminder'));
+                    itemsContainer.appendChild(itemEl);
+                });
+
+                dayWrapper.appendChild(itemsContainer);
+                container.appendChild(dayWrapper);
+            });
+
+            // Handle the case where there's nothing at all to show
+            if (!hasContent) {
+                const message = query ? `No results for "${query}".` : "No reminders scheduled for this week.";
+                container.innerHTML = `<p class="text-gray-500 dark:text-gray-400 p-4 text-center col-span-full">${message}</p>`;
+            }
+        }
+
+        function renderRemindersGrid(query = '') {
             const container = document.getElementById('reminders-container');
             container.innerHTML = '';
             const lowerCaseQuery = query.toLowerCase();
@@ -1732,10 +1975,11 @@
             const tabs = {
                 shortcuts: { btn: document.getElementById('tab-shortcuts'), container: document.getElementById('shortcuts-container'), addBtn: document.getElementById('add-shortcut-btn'), render: renderShortcuts },
                 notes: { btn: document.getElementById('tab-notes'), container: document.getElementById('notes-container'), addBtn: document.getElementById('add-note-btn'), render: renderNotes },
-                reminders: { btn: document.getElementById('tab-reminders'), container: document.getElementById('reminders-container'), addBtn: document.getElementById('add-reminder-btn'), render: renderReminders }
+                reminders: { btn: document.getElementById('tab-reminders'), container: document.getElementById('reminders-container-wrapper'), addBtn: document.getElementById('add-reminder-btn'), render: renderReminders }
             };
             const searchInput = document.getElementById('search-input');
             const reminderControls = document.getElementById('reminders-controls');
+            const reminderViewControls = document.getElementById('reminders-view-controls');
 
             function updateTabState(activeTabKey) {
                 const query = searchInput.value;
@@ -1746,7 +1990,15 @@
                     tabs[key].addBtn.classList.toggle('hidden', !is_active);
                 });
                 
-                reminderControls.classList.toggle('hidden', activeTabKey !== 'reminders');
+                const isRemindersTab = activeTabKey === 'reminders';
+                reminderControls.classList.toggle('hidden', !isRemindersTab);
+                reminderViewControls.classList.toggle('hidden', !isRemindersTab);
+
+                if (isRemindersTab) {
+                    // Also manage visibility based on view mode
+                    const isGridView = reminderViewMode === 'grid';
+                    reminderControls.style.display = isGridView ? 'flex' : 'none';
+                }
 
                 searchInput.placeholder = `Search ${activeTabKey}... (Press '/' to focus)`;
                 tabs[activeTabKey].render(query);
@@ -1770,6 +2022,42 @@
                 showCompletedReminders = e.target.checked;
                 const currentQuery = document.getElementById('search-input').value;
                 renderReminders(currentQuery);
+            });
+             // --- NEW --- View mode toggle buttons
+            const gridBtn = document.getElementById('view-grid-btn');
+            const scheduleBtn = document.getElementById('view-schedule-btn');
+            const reminderControls = document.getElementById('reminders-controls');
+
+            gridBtn.addEventListener('click', () => {
+                if (reminderViewMode === 'grid') return;
+                reminderViewMode = 'grid';
+                gridBtn.classList.add('active');
+                scheduleBtn.classList.remove('active');
+                reminderControls.style.display = 'flex'; // Show the "Show Completed" toggle
+                renderReminders();
+            });
+
+            scheduleBtn.addEventListener('click', () => {
+                if (reminderViewMode === 'schedule') return;
+                reminderViewMode = 'schedule';
+                scheduleBtn.classList.add('active');
+                gridBtn.classList.remove('active');
+                reminderControls.style.display = 'none'; // Hide the "Show Completed" toggle
+                renderReminders();
+            });
+
+            // --- NEW --- Schedule navigation
+            const prevWeekBtn = document.getElementById('schedule-prev-btn');
+            const nextWeekBtn = document.getElementById('schedule-next-btn');
+
+            prevWeekBtn.addEventListener('click', () => {
+                scheduleCurrentDate.setDate(scheduleCurrentDate.getDate() - 7);
+                renderScheduleView();
+            });
+
+            nextWeekBtn.addEventListener('click', () => {
+                scheduleCurrentDate.setDate(scheduleCurrentDate.getDate() + 7);
+                renderScheduleView();
             });
         }
 
@@ -1842,7 +2130,7 @@
             exportClipboardBtn.addEventListener('click', (e) => {
                 e.preventDefault();
                 hideSettingsModal();
-                const configToSave = { pageTitle: config.pageTitle, notes: config.notes, shortcuts: config.shortcuts, reminders: config.reminders, categoryConfig: config.categoryConfig, enableReminderGlow: config.enableReminderGlow, customIcons: config.customIcons, shortcutCategoryOrder: config.shortcutCategoryOrder };
+                const configToSave = { pageTitle: config.pageTitle, notes: config.notes, shortcuts: config.shortcuts, reminders: config.reminders, categoryConfig: config.categoryConfig, enableReminderGlow: config.enableReminderGlow, customIcons: config.customIcons, shortcutCategoryOrder: config.shortcutCategoryOrder, version: config.version };
                 const jsonString = JSON.stringify(configToSave);
                 const base64String = btoa(unescape(encodeURIComponent(jsonString)));
                 navigator.clipboard.writeText(base64String).then(() => {
@@ -1856,7 +2144,7 @@
             exportFileBtn.addEventListener('click', (e) => {
                 e.preventDefault();
                 hideSettingsModal();
-                const configToSave = { pageTitle: config.pageTitle, notes: config.notes, shortcuts: config.shortcuts, reminders: config.reminders, categoryConfig: config.categoryConfig, enableReminderGlow: config.enableReminderGlow, customIcons: config.customIcons, shortcutCategoryOrder: config.shortcutCategoryOrder };
+                const configToSave = { pageTitle: config.pageTitle, notes: config.notes, shortcuts: config.shortcuts, reminders: config.reminders, categoryConfig: config.categoryConfig, enableReminderGlow: config.enableReminderGlow, customIcons: config.customIcons, shortcutCategoryOrder: config.shortcutCategoryOrder, version: config.version };
                 const jsonString = JSON.stringify(configToSave, null, 4);
                 const blob = new Blob([jsonString], { type: 'application/json' });
                 const url = URL.createObjectURL(blob);
@@ -1891,7 +2179,7 @@
                     try {
                         const parsedConfig = JSON.parse(e.target.result);
                          if (!parsedConfig.hasOwnProperty('pageTitle') || !parsedConfig.hasOwnProperty('shortcuts')) {
-                                     throw new Error("Invalid or incomplete configuration file.");
+                                  throw new Error("Invalid or incomplete configuration file.");
                          }
                         
                         config.pageTitle = parsedConfig.pageTitle || 'My Homepage';
@@ -1902,6 +2190,7 @@
                         config.enableReminderGlow = parsedConfig.enableReminderGlow !== undefined ? parsedConfig.enableReminderGlow : true;
                         config.customIcons = parsedConfig.customIcons || {};
                         config.shortcutCategoryOrder = parsedConfig.shortcutCategoryOrder || [];
+                        config.version = parsedConfig.version || 'v10';
 
 
                         saveConfig();
@@ -1939,6 +2228,7 @@
                     config.enableReminderGlow = parsedConfig.enableReminderGlow !== undefined ? parsedConfig.enableReminderGlow : true;
                     config.customIcons = parsedConfig.customIcons || {};
                     config.shortcutCategoryOrder = parsedConfig.shortcutCategoryOrder || [];
+                    config.version = parsedConfig.version || 'v10';
 
                     saveConfig();
                     hideImportModal();
@@ -2097,6 +2387,7 @@
             applyDisplayStyle(savedDisplayStyle === 'compact');
 
             renderTitle();
+            renderVersion();
             renderFavicon();
             renderGreeter();
             renderDate();
@@ -2136,21 +2427,31 @@
 <body class="bg-gray-200 text-gray-800 dark:bg-gray-900 dark:text-white transition-colors duration-300">
     
     <div class="fixed top-4 right-4 flex items-center space-x-2 z-50">
-         <button id="settings-btn" class="p-2 rounded-full bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/20 transition-colors cursor-pointer" title="Settings" aria-label="Settings">
-             <svg class="w-5 h-5 text-gray-800 dark:text-gray-200" fill="currentColor" viewBox="0 0 24 24"><path d="M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65C14.46 2.18 14.25 2 14 2h-4c-.25 0-.46.18-.49.42l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49-1c-.23-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65c-.19.15-.24-.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1c.23.09.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z"></path></svg>
-         </button>
+        <button id="settings-btn" class="p-2 rounded-full bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/20 transition-colors cursor-pointer" title="Settings" aria-label="Settings">
+            <svg class="w-5 h-5 text-gray-800 dark:text-gray-200" fill="currentColor" viewBox="0 0 24 24"><path d="M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65C14.46 2.18 14.25 2 14 2h-4c-.25 0-.46.18-.49.42l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49-1c-.23-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65c-.19.15-.24-.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1c.23.09.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z"></path></svg>
+        </button>
     </div>
 
     <div class="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-white/10 via-white/0 to-indigo-100/20 dark:from-gray-900 dark:via-gray-900 dark:to-indigo-900/40 -z-10"></div>
     
     <div class="container mx-auto p-4 sm:p-6 lg:p-8 transition-all duration-300 style-compact:p-2 style-compact:sm:p-4 style-compact:lg:p-6">
-        <div class="mb-8 style-compact:mb-4"><div class="flex items-baseline gap-4"><h1 id="page-title" contenteditable="true" class="text-4xl font-bold text-left fade-in style-compact:text-3xl rounded-lg px-2 -mx-2 hover:bg-gray-500/10 focus:bg-gray-500/20 outline-none transition-colors" title="Click to edit"></h1><div id="clock" class="text-xl font-mono text-gray-500 dark:text-gray-400 style-compact:text-lg"></div></div><p id="greeter" class="text-gray-500 dark:text-gray-400 fade-in"></p><p id="date-display" class="text-gray-500 dark:text-gray-400 fade-in"></p></div>
+        <div class="mb-8 style-compact:mb-4">
+            <div class="flex justify-between">
+                <div class="flex items-end gap-3">
+                    <h1 id="page-title" contenteditable="true" class="text-4xl font-bold text-left fade-in style-compact:text-3xl rounded-lg px-2 -mx-2 hover:bg-gray-500/10 focus:bg-gray-500/20 outline-none transition-colors" title="Click to edit"></h1>
+                    <span id="version-display" class="text-base font-semibold text-gray-400 dark:text-gray-500 pb-1"></span>
+                </div>
+                <div id="clock" class="text-xl font-mono text-gray-500 dark:text-gray-400 style-compact:text-lg"></div>
+            </div>
+            <p id="greeter" class="text-gray-500 dark:text-gray-400 fade-in"></p>
+            <p id="date-display" class="text-gray-500 dark:text-gray-400 fade-in"></p>
+        </div>
         <div class="mb-6 style-compact:mb-4"><div id="search-box" class="relative flex items-center p-1 rounded-xl border border-gray-300/80 dark:border-gray-700/80 bg-white/40 dark:bg-gray-800/40 backdrop-blur-sm shadow-lg transition-colors"><div class="w-10 h-10 flex items-center justify-center flex-shrink-0"><svg class="w-6 h-6 text-gray-400 dark:text-gray-500" fill="currentColor" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"></path></svg></div><input id="search-input" type="text" placeholder="Search shortcuts... (Press '/' to focus)" class="w-full bg-transparent p-2 text-gray-800 dark:text-gray-200 focus:outline-none"></div></div>
         
         <div class="mb-4 flex items-center border-b border-gray-300/80 dark:border-gray-700/80">
             <button id="tab-shortcuts" class="tab-button px-4 py-2 text-sm font-semibold border-b-2 border-transparent transition-colors duration-300 text-gray-500 hover:text-gray-800 dark:hover:text-gray-200">Shortcuts</button>
             <button id="tab-notes" class="tab-button px-4 py-2 text-sm font-semibold border-b-2 border-transparent transition-colors duration-300 text-gray-500 hover:text-gray-800 dark:hover:text-gray-200">Notes</button>
-            <button id="tab-reminders" class="tab-button px-4 py-2 text-sm font-semibold border-b-2 border-transparent transition-colors duration-300 text-gray-500 hover:text-gray-800 dark:hover:text-gray-200">Reminders<span id="reminder-badge" class="reminder-badge hidden"></span></button>
+            <button id="tab-reminders" class="tab-button relative px-4 py-2 text-sm font-semibold border-b-2 border-transparent transition-colors duration-300 text-gray-500 hover:text-gray-800 dark:hover:text-gray-200">Reminders<span id="reminder-badge" class="reminder-badge hidden"></span></button>
             <div class="ml-auto flex items-center gap-4">
             <div id="reminders-controls" class="hidden items-center gap-2">
                 <div class="flex items-center">
@@ -2159,6 +2460,10 @@
                         Show Completed
                     </label>
                 </div>
+            </div>
+            <div id="reminders-view-controls" class="hidden items-center p-0.5 rounded-lg bg-gray-200 dark:bg-gray-700">
+                <button id="view-grid-btn" class="px-3 py-1 text-xs font-semibold rounded-md transition-colors active" title="Grid View">Grid</button>
+                <button id="view-schedule-btn" class="px-3 py-1 text-xs font-semibold rounded-md transition-colors" title="Schedule View">Schedule</button>
             </div>
 
             <div id="add-buttons-container">
@@ -2171,7 +2476,10 @@
 
         <div id="shortcuts-container" class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-3 mb-6 style-compact:gap-2 style-compact:mb-4 hidden"></div>
         <div id="notes-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 style-compact:gap-2 hidden"></div>
-        <div id="reminders-container" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 style-compact:gap-2 hidden"></div>
+        <div id="reminders-container-wrapper" class="hidden">
+            <div id="reminders-container" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 style-compact:gap-2"></div>
+            <div id="reminders-schedule-view" class="hidden space-y-4"></div>
+        </div>
     </div>
 
     <div id="note-modal" class="edit-modal"><div class="edit-modal-content"><button id="modal-close-btn" class="absolute top-4 right-4 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white text-3xl leading-none z-10 cursor-pointer">×</button><div class="flex-grow overflow-y-auto" style="scrollbar-width: thin; scrollbar-color: #6b7280 transparent;"><div class="p-6"><h2 id="modal-title" class="text-2xl font-bold mb-4 text-gray-900 dark:text-white"></h2><div id="modal-body" class="text-gray-700 dark:text-gray-200 whitespace-pre-wrap"></div></div></div><div class="flex-shrink-0 pt-4 pb-6 px-6 border-t border-gray-200 dark:border-gray-700 flex justify-end"><button id="modal-copy-btn" class="flex items-center gap-2 px-4 py-2 rounded-md bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors cursor-pointer" aria-label="Copy content"><span id="copy-btn-text" class="text-sm font-medium text-gray-700 dark:text-gray-200">Copy</span><svg id="copy-btn-icon" class="w-5 h-5 text-gray-500 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg><svg id="copy-btn-success-icon" class="w-5 h-5 text-green-500 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg></button></div></div></div>
@@ -2397,6 +2705,11 @@
     </div>
 
 
+    <div id="schedule-nav-container" class="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm p-2 rounded-lg shadow-lg flex items-center gap-2 hidden">
+        <button id="schedule-prev-btn" class="btn btn-sm btn-secondary">Prev</button>
+        <div id="schedule-date-range" class="font-semibold text-sm px-4 text-gray-700 dark:text-gray-200 text-center w-48"></div>
+        <button id="schedule-next-btn" class="btn btn-sm btn-secondary">Next</button>
+    </div>
     <div id="link-preview" class="fixed pointer-events-none z-50 rounded-lg bg-gray-800 px-3 py-1.5 text-sm font-medium text-white shadow-lg transition-opacity duration-200 opacity-0" role="tooltip"></div>
     <input type="file" id="import-file-input" class="hidden" accept=".json,application/json">
 </body>

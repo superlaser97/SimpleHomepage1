@@ -440,3 +440,99 @@ input:checked + .slider:before { transform: translateX(24px); }
   opacity: 0.3; /* Makes the original item fade out, reducing visual noise */
   cursor: grabbing !important;
 }
+
+/* Reminder Schedule View Styles */
+#reminders-schedule-view {
+    padding: 0.5rem;
+}
+.schedule-day-group {
+    margin-bottom: 1.5rem;
+}
+.schedule-day-header {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #4b5563; /* gray-600 */
+    padding-bottom: 0.5rem;
+    margin-bottom: 0.75rem;
+    border-bottom: 2px solid #e5e7eb; /* gray-200 */
+}
+.dark .schedule-day-header {
+    color: #9ca3af; /* gray-400 */
+    border-color: #4b5563; /* gray-600 */
+}
+
+.schedule-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+    background-color: rgba(255, 255, 255, 0.7);
+    border: 1px solid #e5e7eb;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+}
+.dark .schedule-item {
+    background-color: rgba(55, 65, 81, 0.6);
+    border-color: #4b5563;
+}
+.schedule-item:hover {
+    border-color: #3b82f6;
+    background-color: #ffffff;
+}
+.dark .schedule-item:hover {
+    border-color: #60a5fa;
+    background-color: #374151;
+}
+
+.schedule-item-time {
+    font-weight: 600;
+    color: #0ea5e9; /* sky-500 */
+    width: 6rem;
+    flex-shrink: 0;
+}
+.dark .schedule-item-time {
+    color: #38bdf8; /* sky-400 */
+}
+
+.schedule-item-details {
+    flex-grow: 1;
+}
+
+/* Reminder View Toggle Buttons */
+#reminders-view-controls button {
+    background-color: #e5e7eb; /* gray-200 */
+    color: #4b5563; /* gray-600 */
+    border: 1px solid transparent;
+    cursor: pointer;
+}
+#reminders-view-controls button.active {
+    background-color: #3b82f6; /* blue-600 */
+    color: white;
+    font-weight: 600;
+}
+.dark #reminders-view-controls button {
+    background-color: #374151; /* gray-700 */
+    color: #d1d5db; /* gray-300 */
+}
+.dark #reminders-view-controls button.active {
+    background-color: #60a5fa; /* blue-400 */
+    color: #1f2937; /* gray-800 */
+}
+
+.overdue-section .schedule-day-header {
+    color: #ef4444; /* red-500 */
+    border-color: #ef4444;
+}
+.dark .overdue-section .schedule-day-header {
+    color: #f87171; /* red-400 */
+    border-color: #f87171;
+}
+.schedule-item.triggered {
+    border-left: 4px solid #ef4444;
+    animation: pulse-border 2s infinite;
+}
+.dark .schedule-item.triggered {
+    border-left-color: #f87171;
+}
